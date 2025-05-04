@@ -1,3 +1,7 @@
+/* ==========================================================================
+   1. Base Styles & Variables
+   ========================================================================== */
+
 /* --- Font Face --- */
 @font-face {
     font-family: 'GmarketSansMedium';
@@ -129,7 +133,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: var(--spacing-md);
 }
 
-h2 {
+h2 { /* Section Title */
     font-size: 2.5rem;
     margin-bottom: var(--spacing-xxl);
     text-align: center;
@@ -148,12 +152,11 @@ h2::after {
     border-radius: var(--border-radius-sm);
 }
 
-h3 {
+h3 { /* Category Title */
     font-size: 1.8rem;
     margin-top: var(--spacing-xxl);
     margin-bottom: var(--spacing-lg);
     color: var(--mint-green);
-    /* 제목 왼쪽 바 스타일 유지 */
     border-left: 4px solid var(--mint-green);
     padding-left: var(--spacing-md);
 }
@@ -161,20 +164,15 @@ h3 {
      margin-top: 0;
 }
 
-h4 {
+h4 { /* Card Title */
     font-size: 1.3rem;
     color: var(--mint-green);
 }
 
-/* 양쪽 정렬 적용 영역 (히어로는 중앙 정렬 유지) */
-.project-item-content p,
-.project-category > p, /* 카테고리 바로 아래 p 태그 */
-#contact > p {
-    text-align: justify;
-    hyphens: auto;
-}
+/* ==========================================================================
+   2. Header (#main-header)
+   ========================================================================== */
 
-/* --- Header --- */
 #main-header {
     background-color: var(--dark-surface);
     padding: var(--spacing-md) 0;
@@ -229,24 +227,23 @@ h4 {
     color: var(--mint-green);
 }
 
+/* ==========================================================================
+   3. Hero Section (#hero)
+   ========================================================================== */
 
-/* --- Hero Section --- */
 #hero {
     background: url('images/hero-background.webp') no-repeat center center/cover;
-    min-height: 75vh; /* 최소 높이는 유지 */
+    min-height: 75vh;
     display: flex;
-    /* align-items: center; */ /* 기존 중앙 정렬 주석 처리 */
-    align-items: flex-end; /* 수정: 콘텐츠를 아래쪽으로 정렬 */
+    align-items: flex-end; /* Content bottom aligned */
     justify-content: center;
     position: relative;
     text-align: center;
-    /* padding-top/bottom 조정으로 위치 조절 */
-    padding-top: 100px; /* 헤더 고려한 상단 패딩 (기존보다 살짝 줄임) */
-    padding-bottom: var(--spacing-xxl); /* 수정: 하단 여백 추가 */
-    margin-top: -80px; /* 헤더 높이 확인 필요 */
-    /* padding-top: 120px; */ /* 기존 패딩 주석 처리 */
+    padding-top: 100px; /* Adjust for header */
+    padding-bottom: var(--spacing-xxl); /* Bottom padding */
+    margin-top: -80px; /* Adjust for sticky header height */
 }
-#hero::before {
+#hero::before { /* Overlay */
     content: '';
     position: absolute;
     inset: 0;
@@ -257,33 +254,28 @@ h4 {
     position: relative;
     z-index: 2;
     max-width: 800px;
-    text-align: center; /* 자식 요소 중 inline 또는 inline-block 요소 중앙 정렬 */
+    text-align: center; /* Center align children like the button */
 }
-
 .hero-headline {
     font-size: 3.5rem;
     color: #ffffff;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-md); /* Reduced margin */
     text-shadow: 2px 2px 4px var(--shadow-color);
 }
-
 .hero-intro {
     font-size: 1.15rem;
     color: var(--light-text);
-    /* margin-bottom 제거 또는 조정 필요 */
-    margin-bottom: var(--spacing-lg); /* 버튼과의 간격을 위해 조정 */
+    margin-bottom: var(--spacing-lg); /* Adjusted margin */
     line-height: 1.7;
-    hyphens: auto;
-    max-width: 450px; /* 텍스트 박스 너비 */
+    max-width: 420px; /* Text box width */
     margin-left: auto;
     margin-right: auto;
-    text-align: justify; /* 텍스트 양쪽 정렬 */
+    text-align: justify; /* Justify text content */
+    hyphens: auto;
 }
-
-.hero-link {
-    display: inline-block; /* inline-block 유지 */
-    /* margin-top 제거 또는 조정 필요 */
-    margin-top: var(--spacing-lg); /* 위 p 태그와의 간격 */
+.hero-link { /* Button */
+    display: inline-block;
+    margin-top: var(--spacing-lg); /* Spacing above button */
     padding: var(--spacing-sm) var(--spacing-xl);
     background-color: var(--mint-green);
     color: var(--dark-bg);
@@ -291,7 +283,6 @@ h4 {
     font-weight: 500;
     border-radius: var(--border-radius-md);
     transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
-    /* align-self 같은 flex 아이템 속성은 제거 (부모가 flex가 아님) */
 }
 .hero-link:hover {
     background-color: var(--mint-green-darker);
@@ -299,20 +290,33 @@ h4 {
     transform: translateY(-2px);
 }
 
-/* --- Projects Section --- */
+
+/* ==========================================================================
+   4. Projects Section (#projects)
+   ========================================================================== */
+
 .project-category {
-    margin-bottom: var(--spacing-xxl); /* 카테고리 간 간격 */
+    margin-bottom: var(--spacing-xxl);
 }
-.project-category > p { /* 카테고리 바로 아래 설명 p 태그 */
+/* Category description paragraph */
+.project-category > p {
     color: var(--light-text);
     margin-bottom: var(--spacing-xl);
     max-width: 800px;
+    /* Default alignment (usually left) */
 }
+/* Justify specific category descriptions if needed */
+.project-category:not(:first-of-type) > p { /* Example: Exclude first category (Web Novel) */
+     text-align: justify;
+     hyphens: auto;
+}
+
 
 .project-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: var(--spacing-xl);
+    align-items: stretch; /* Make grid items same height if possible */
 }
 
 .project-item {
@@ -320,8 +324,8 @@ h4 {
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    display: flex; /* Use flex for vertical alignment */
+    flex-direction: column; /* Stack children vertically */
     transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
@@ -338,74 +342,74 @@ h4 {
 
 .project-item-content {
     padding: var(--spacing-lg);
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+    flex-grow: 1; /* Allow this container to grow and fill space */
+    display: flex; /* Use flex for children alignment */
+    flex-direction: column; /* Stack children vertically */
 }
 
-.project-item-content h4 {
+.project-item-content h4 { /* Card Title */
     margin-bottom: var(--spacing-xs);
 }
-.project-title-en {
+.project-title-en { /* English Title */
     display: block;
     font-size: 0.9rem;
     color: var(--secondary-text);
     font-weight: 400;
     margin-bottom: var(--spacing-lg);
 }
-
-/* 부제 스타일 (왼쪽 바 복원) */
-.project-concept {
+.project-concept { /* Subtitle with left border */
     font-style: normal;
     color: var(--light-text);
     margin-bottom: var(--spacing-lg);
-    padding-left: var(--spacing-md); /* 왼쪽 패딩 */
-    border-left: 4px solid var(--mint-green); /* 녹색 바 복원 (스크린샷 기준) */
+    padding-left: var(--spacing-md);
+    border-left: 4px solid var(--mint-green);
     font-size: 1rem;
-    line-height: 1.6; /* 줄간격 추가 */
+    line-height: 1.6;
 }
 
-.project-item-content p {
+.project-item-content p { /* Main description paragraphs */
     color: var(--secondary-text);
     margin-bottom: var(--spacing-sm);
     font-size: 0.95rem;
     line-height: 1.6;
-    /* flex-grow 제거 -> 설명 길이가 달라도 카드 높이가 가변적이도록 */
+    text-align: justify; /* Justify description text */
+    hyphens: auto;
 }
 .project-item-content p strong {
     color: var(--light-text);
     font-weight: 600;
 }
 
+/* Status Note & Button - Common Styles for bottom alignment */
+.status-note,
+.button {
+    margin-top: auto; /* Pushes the element to the bottom */
+    padding-top: var(--spacing-lg); /* Space above the element */
+}
+
 .status-note {
     color: var(--mint-green-darker);
     font-weight: 600;
     font-size: 0.9rem;
-    margin-top: var(--spacing-md); /* 위 요소와 간격 확보 (auto 제거) */
-    padding-top: 0; /* 패딩 제거 */
-    align-self: flex-start;
-    order: 10; /* 버튼보다 아래에 오도록 순서 조정 (필요시) */
+    align-self: flex-start; /* Align left */
 }
 
-/* 버튼 스타일 (간격, 중앙 정렬, 텍스트 정렬 수정) */
 .button {
-    display: inline-flex; /* inline-flex로 변경하여 너비 자동, 내부 정렬 가능 */
-    align-items: center; /* 수직 중앙 정렬 */
-    justify-content: center; /* 수평 중앙 정렬 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: var(--mint-green);
     color: var(--dark-bg);
-    padding: 0rem var(--spacing-lg); /* 상하 패딩 조정하여 텍스트 중앙 맞춤 */
+    padding: 0.7rem var(--spacing-lg); /* Adjusted padding */
     border-radius: var(--border-radius-sm);
     font-weight: 500;
     font-family: var(--font-heading);
     text-align: center;
     transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
-    margin-top: var(--spacing-xl); /* 위쪽 본문과의 간격 증가 (auto 제거) */
-    padding-top: 0; /* 패딩 제거 */
-    align-self: center; /* 카드 하단 중앙 정렬 */
+    align-self: center; /* Align center horizontally */
     cursor: pointer;
-    min-height: 2.5rem; /* 버튼 최소 높이 확보 (텍스트 세로 정렬 도움) */
-    line-height: 1; /* line-height 영향 제거 */
+    min-height: 2.5rem;
+    line-height: 1;
 }
 .button:hover, .button:focus {
     background-color: var(--mint-green-darker);
@@ -413,13 +417,6 @@ h4 {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px var(--shadow-color);
 }
-
-/* 에테르 튜너의 status-note 는 버튼이 없으므로 하단 정렬 유지 */
-.project-item:has(.status-note):not(:has(.button)) .status-note {
-     margin-top: auto;
-     order: 0; /* 순서 초기화 */
-}
-
 
 /* --- AI Art Gallery --- */
 .ai-gallery {
@@ -443,7 +440,7 @@ h4 {
     display: block;
     transition: transform var(--transition-speed) var(--transition-timing), filter var(--transition-speed) var(--transition-timing);
 }
-.gallery-item::after {
+.gallery-item::after { /* Hover overlay */
     content: '+';
     font-size: 2rem;
     font-weight: bold;
@@ -462,7 +459,7 @@ h4 {
     box-shadow: 0 0 20px var(--mint-green-transparent);
     border-color: var(--mint-green);
     z-index: 10;
-    cursor: pointer; /* 커서 추가 */
+    cursor: pointer;
 }
 .gallery-item:hover img {
     transform: scale(1.1);
@@ -505,85 +502,64 @@ h4 {
     font-size: 0.9rem;
 }
 
-/* --- Contact Section --- */
+/* ==========================================================================
+   5. Contact Section (#contact)
+   ========================================================================== */
+
 #contact {
-    text-align: center; /* 섹션 내 블록 요소 기본 중앙 정렬 */
+    /* Section block itself doesn't need alignment */
 }
 
-#contact > h2 {
-   /* 기존 스타일 유지 */
+#contact > h2 { /* Section title - Center */
+   text-align: center;
+   /* ... other h2 styles ... */
 }
 
-/* 수정: 소개 문구만 가운데 정렬 */
-#contact > p {
-    /* text-align: left; */ /* 왼쪽 정렬 제거 */
-    text-align: center; /* 수정: 가운데 정렬 적용 */
-    hyphens: none; /* 가운데 정렬 시 하이픈 불필요 */
-    max-width: 600px; /* 문단 너비 제한은 유지 (값 조절 가능) */
-    margin-left: auto; /* 블록 자체 중앙 정렬 유지 */
-    margin-right: auto; /* 블록 자체 중앙 정렬 유지 */
-    margin-bottom: var(--spacing-xl); /* 아래 목록과의 간격 */
-    color: var(--secondary-text); /* 텍스트 색상 확인 */
+
+#contact > p:first-of-type { /* Intro paragraph - Center */
+    text-align: center; /* Ensure center alignment */
+    hyphens: none;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--spacing-xl);
+    color: var(--secondary-text);
 }
 
-/* 연락처 목록은 이전 스타일(블록 중앙, 내부 왼쪽 정렬) 유지 */
-.contact-list {
+.contact-list { /* List block - Center, Text Left */
     list-style: none;
     padding-left: 0;
     max-width: fit-content;
     margin-left: auto;
     margin-right: auto;
     margin-top: var(--spacing-xl);
-    text-align: left; /* 내부 텍스트 왼쪽 정렬 유지 */
+    text-align: left; /* Align text within list items to the left */
 }
-
 .contact-list li {
     margin-bottom: var(--spacing-lg);
     font-size: 1.1rem;
-    /* text-align: left; /* li 자체에 적용할 필요 없음 */
 }
-
 .contact-label {
-    display: inline-block; /* 라벨과 값 가로 배치 유지 */
-    /* width: 100px; */ /* 고정 너비 제거 또는 조정 */
+    display: inline-block;
     font-weight: 600;
     color: var(--light-text);
     margin-right: var(--spacing-sm);
-    /* text-align: right; */ /* 라벨 오른쪽 정렬 제거 또는 조정 */
+    /* Optional fixed width/alignment for labels */
+    /* width: 80px; */
+    /* text-align: right; */
 }
-
 .contact-list li a {
     font-weight: 500;
     word-break: break-all;
 }
-
 .contact-list li a:hover {
     text-decoration: underline;
 }
 
-/* --- Responsive --- */
-/* ... 다른 반응형 스타일 ... */
+/* ==========================================================================
+   6. Footer
+   ========================================================================== */
 
-@media (max-width: 768px) {
-    /* ... 다른 모바일 스타일 ... */
-    #contact > p {
-        /* text-align: left; */ /* 모바일 양쪽 정렬 해제 시 이 부분은 유지 */
-        max-width: 90%; /* 모바일에서 너비 조정 */
-    }
-    .contact-list {
-        /* 모바일에서 목록 너비 조정이 필요하면 추가 */
-        /* max-width: 90%; */
-    }
-    .contact-label {
-        /* 모바일에서 라벨 스타일 변경이 필요하면 추가 */
-        /* display: block; */
-        /* width: auto; */
-        /* text-align: left; */
-        /* margin-bottom: var(--spacing-xs); */
-    }
-}
-
-/* --- Footer --- */
 footer {
     background-color: var(--dark-surface);
     padding: var(--spacing-xl) 0;
@@ -598,7 +574,10 @@ footer p {
     text-align: center;
 }
 
-/* --- Responsive --- */
+/* ==========================================================================
+   7. Responsive Styles
+   ========================================================================== */
+
 @media (max-width: 1024px) {
     :root {
         --base-font-size: 15px;
@@ -626,11 +605,10 @@ footer p {
     }
     #hero {
         min-height: 60vh;
-        margin-top: -100px; /* 헤더 높이 재조정 필요 */
-        padding-top: 140px; /* 헤더 높이 재조정 필요 */
+        /* margin-top & padding-top might need adjustment */
     }
     .hero-headline { font-size: 2.5rem; }
-    .hero-intro { font-size: 1.1rem; }
+    .hero-intro { font-size: 1.1rem; max-width: 90%; }
 
     .section { padding-top: var(--spacing-xxl); padding-bottom: var(--spacing-xxl); }
     h2 { font-size: 2rem; margin-bottom: var(--spacing-xl); }
@@ -641,13 +619,20 @@ footer p {
 
     .music-item { width: clamp(250px, 85%, 400px); }
 
-    /* 양쪽 정렬 모바일 가독성 고려 (왼쪽 정렬로) */
+    /* Reset justify alignment for better readability on mobile */
     .project-item-content p,
-    .project-category > p,
-    #contact > p {
+    .project-category > p:not(:first-of-type), /* Exclude web novel intro if it should stay left */
+    #hero .hero-intro {
         text-align: left;
         hyphens: none;
     }
+    /* Ensure Contact intro and Hero intro remain centered on mobile if desired */
+     #contact > p:first-of-type,
+     #hero .hero-intro { /* Re-center hero intro if needed */
+         text-align: center;
+     }
+
+    .contact-list { max-width: 90%; }
 }
 
 @media (max-width: 480px) {
@@ -655,10 +640,14 @@ footer p {
      .hero-intro { font-size: 1rem; }
      .ai-gallery { gap: var(--spacing-sm); }
      .contact-list li { font-size: 1rem; }
-     .button { width: 80%; /* 모바일에서 버튼 너비 조정 */ }
+     .button { width: 80%; /* Adjust button width */ }
 }
 
-/* --- Accessibility --- */
+/* ==========================================================================
+   8. Accessibility & Print
+   ========================================================================== */
+
+/* Accessibility */
 a:focus, button:focus, .gallery-item:focus {
     outline: 2px solid var(--mint-green);
     outline-offset: 2px;
@@ -668,7 +657,7 @@ a:focus, button:focus, .gallery-item:focus {
     width: 100%;
 }
 
-/* --- Print Styles (Optional) --- */
+/* Print Styles (Optional) */
 @media print {
     body { background-color: #fff; color: #000; }
     #main-header, footer, #hero::before { display: none; }
