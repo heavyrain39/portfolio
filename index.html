@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>야차완 / 夜叉腕 - 포트폴리오</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- CSS에서 @font-face로 폰트를 로드하므로, 별도 폰트 링크는 필요 없습니다. -->
+    <!-- Favicon 등 추가적인 head 요소는 필요에 따라 여기에 추가하세요 -->
+    <!-- <link rel="icon" href="favicon.ico" type="image/x-icon"> -->
+</head>
+<body>
+    <header id="main-header">
+        <nav class="container">
+            <div class="logo"><a href="#">야차완 / 夜叉腕</a></div>
+            <ul>
+                <li><a href="#hero">About</a></li> <!-- Hero 섹션으로 링크 변경 -->
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- ====== Hero Section (About 대체, 배경 적용) ====== -->
+        <section id="hero">
+            <div class="hero-content container"> <!-- 내용 컨테이너 -->
+                <h1 class="hero-headline">야차완 / 夜叉腕</h1>
+                <!-- 사용자의 원본 텍스트 -->
+                <p class="hero-intro">
+                    안녕하세요? 이곳은 웹소설 작가, AI 이미지 생성자, 바이브 코더, 기획자, 트위터리안인 야차완의 포트폴리오 웹페이지입니다.
+                    재미있게 둘러보고 가시면 좋겠습니다. 😙
+                    <!-- 트위터 링크 버튼을 이 p 태그 밖으로 이동 -->
+                </p>
+                <!-- ↓↓↓ 버튼을 p 태그 밖, hero-content 안에 위치시킴 ↓↓↓ -->
+                <a href="https://x.com/yakshawan" target="_blank" rel="noopener noreferrer" class="hero-link">트위터(X) 방문하기</a>
+            </div>
+        </section>
+
+        <!-- ====== Projects Section ====== -->
+        <section id="projects" class="container section">
+            <h2>Projects</h2>
+
+            <div class="project-category">
+                <h3>웹소설</h3>
+                <!-- 사용자의 원본 텍스트 유지 -->
+                <p>
+                    2025년 한여름 카카오페이지에서 헌터물 현대 판타지 웹소설 론칭이 예정되어 있습니다.
+                </p>
+                <!-- 나중에 작품 정보 추가 -->
+            </div>
+
+            <div class="project-category">
+                <h3>바이브 코딩 프로젝트</h3>
+                 <!-- 제가 임의로 추가했던 설명 문구 삭제 -->
+                <div class="project-grid">
+                    <article class="project-item">
+                        <img src="images/thumbnail01.png" alt="라이브 온! 와카바 섬네일" class="project-thumbnail">
+                        <div class="project-item-content">
+                            <h4>라이브 온! 와카바</h4>
+                            <span class="project-title-en">(Live on! Wakaba)</span>
+                            <p class="project-concept">PC용 방치형 스트리머 육성 시뮬레이션 게임</p>
+                            <p><strong>컨셉:</strong> PC에서 키우는 나만의 미소녀 다마고치. 나무 정령 컨셉의 캐릭터 '이부키 와카바'를 SSS급 스트리머로 육성하고, 특별 일러스트를 모두 해금하자.</p>
+                            <p><strong>사용 기술:</strong> Python/Pygame</p>
+                            <p><strong>이미지:</strong> Stable Diffusion WebUI 생성</p>
+                            <a href="https://heavyrain39.github.io/wakaba/" target="_blank" rel="noopener noreferrer" class="button">소개 페이지</a>
+                        </div>
+                    </article>
+
+                    <article class="project-item">
+                         <img src="images/thumbnail02.png" alt="아르카나 코드 섬네일" class="project-thumbnail">
+                         <div class="project-item-content">
+                            <h4>아르카나 코드 v1.0</h4>
+                            <span class="project-title-en">(Arcana Code v1.0)</span>
+                            <p class="project-concept">AI가 해석해 주는 무료 타로카드 프로그램</p>
+                            <p><strong>컨셉:</strong> 진정한 무작위 카드 뽑기가 불가능한 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다!</p>
+                            <p><strong>사용 기술:</strong> 프론트엔드(HTML5, CSS3, JS ES6+), 백엔드(Node.js, Express.js), LLM API(Google Gemini 1.5 Flash), 이미지(Stable Diffusion)</p>
+                            <a href="https://heavyrain39.github.io/arcana-code/" target="_blank" rel="noopener noreferrer" class="button">소개 페이지</a>
+                        </div>
+                    </article>
+
+                    <article class="project-item">
+                         <img src="images/thumbnail03.png" alt="에테르 튜너 섬네일" class="project-thumbnail">
+                         <div class="project-item-content">
+                            <h4>에테르 튜너</h4>
+                            <span class="project-title-en">(Aether Tuner v1.0)</span>
+                            <p class="project-concept">웹페이지로 굴리는 나만의 라디오닉스 머신</p>
+                            <p><strong>컨셉:</strong> 나만의 커스텀 소원성취 주파수를 원한다면? 사용자가 입력한 의도를 기반으로 화이트/브라운 노이즈를 생성하는 스태틱 웹사이트 형식의 라디오닉스 머신. 매력적인 비주얼라이저와 깔끔한 UI로 언제 어디서나 사용 가능.</p>
+                            <p><strong>사용 기술:</strong> 프론트엔드(HTML5, CSS3, JS ES6+), 오디오(Web Audio API), 라이브러리(p5.js)</p>
+                            <p class="status-note">* 아직 제작 중입니다. 완성 후 공개 예정입니다.</p>
+                         </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="project-category">
+                <h3>AI 아트</h3>
+                <!-- 제가 임의로 추가했던 설명 문구 삭제, 원본 유지 -->
+                <p>
+                    Stable Diffusion을 사용해 게임 프로젝트의 비주얼을 구체화하는 등 다양한 이미지를 생성하고 있습니다.
+                </p>
+                <div class="ai-gallery">
+                    <!-- 이미지 클릭 시 확대 기능은 JS 필요 -->
+                    <!-- Lightbox 스크립트 사용 예시 (data-* 속성 추가) -->
+                    <a href="images/01.png" data-lightbox="ai-art" data-title="AI 생성 이미지 1" class="gallery-item"><img src="images/01.png" alt="AI 생성 이미지 1"></a>
+                    <a href="images/02.png" data-lightbox="ai-art" data-title="AI 생성 이미지 2" class="gallery-item"><img src="images/02.png" alt="AI 생성 이미지 2"></a>
+                    <a href="images/03.png" data-lightbox="ai-art" data-title="AI 생성 이미지 3" class="gallery-item"><img src="images/03.png" alt="AI 생성 이미지 3"></a>
+                    <a href="images/04.png" data-lightbox="ai-art" data-title="AI 생성 이미지 4" class="gallery-item"><img src="images/04.png" alt="AI 생성 이미지 4"></a>
+                    <a href="images/05.png" data-lightbox="ai-art" data-title="AI 생성 이미지 5" class="gallery-item"><img src="images/05.png" alt="AI 생성 이미지 5"></a>
+                    <a href="images/06.png" data-lightbox="ai-art" data-title="AI 생성 이미지 6" class="gallery-item"><img src="images/06.png" alt="AI 생성 이미지 6"></a>
+                    <a href="images/07.png" data-lightbox="ai-art" data-title="AI 생성 이미지 7" class="gallery-item"><img src="images/07.png" alt="AI 생성 이미지 7"></a>
+                    <a href="images/08.png" data-lightbox="ai-art" data-title="AI 생성 이미지 8" class="gallery-item"><img src="images/08.png" alt="AI 생성 이미지 8"></a>
+                </div>
+            </div>
+
+            <div class="project-category">
+                <h3>전자음악</h3>
+                 <!-- 제가 임의로 추가했던 설명 문구 삭제, 원본 유지 -->
+                 <p>
+                    여기까지 내려오셨다면 제가 작곡한 음악도 들어보고 가세요.
+                 </p>
+                <div class="music-carousel">
+                     <!-- 캐러셀 기능 및 좌우 화살표는 JavaScript 필요 (예: Swiper.js) -->
+                    <div class="music-item swiper-slide"> <!-- Swiper 사용 시 클래스 추가 -->
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/NEQKjyKhVUI" title="Pattern Completion" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                        <p>Pattern Completion</p>
+                    </div>
+                     <div class="music-item swiper-slide"> <!-- Swiper 사용 시 클래스 추가 -->
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/zML3G3r8rLk" title="Ascent" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                        <p>Ascent</p>
+                    </div>
+                    <div class="music-item swiper-slide"> <!-- Swiper 사용 시 클래스 추가 -->
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/j5U2r_SG19k" title=""Voice of No Return(還ラナイ声)" from NieR:Automata (Yakshawan Remix)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                        <p>"Voice of No Return" (Yakshawan Remix)</p>
+                    </div>
+                </div>
+                 <!-- Swiper 네비게이션 버튼 (필요시 추가) -->
+                 <!-- <div class="swiper-button-prev"></div> -->
+                 <!-- <div class="swiper-button-next"></div> -->
+            </div>
+        </section>
+
+        <!-- ====== Contact Section ====== -->
+        <section id="contact" class="container section">
+            <h2>Contact</h2>
+            <p>협업 제안, 질문, 피드백 등은 아래 메일 또는 트위터(X)로 부탁드립니다.</p>
+            <ul class="contact-list">
+                <li><span class="contact-label">Email:</span> <a href="mailto:ggolem@naver.com">ggolem@naver.com</a></li>
+                <li><span class="contact-label">Twitter(X):</span> <a href="https://x.com/yakshawan" target="_blank" rel="noopener noreferrer">@yakshawan</a></li>
+                <li><span class="contact-label">GitHub:</span> <a href="https://github.com/heavyrain39" target="_blank" rel="noopener noreferrer">heavyrain39</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <!-- Copyright 연도는 사용자가 수정한 2025 유지 -->
+            <p>© 2025 야차완 / 夜叉腕. All Rights Reserved.</p>
+            <!-- <p>Designed with ♥</p> --> <!-- 필요시 추가 문구 -->
+        </div>
+    </footer>
+
+    <!-- JavaScript 파일 로드 (Lightbox, Swiper 등 라이브러리 및 커스텀 스크립트) -->
+    <!-- 예시: <script src="path/to/lightbox.min.js"></script> -->
+    <!-- 예시: <script src="path/to/swiper-bundle.min.js"></script> -->
+    <!-- <script src="script.js"></script> -->
+</body>
+</html>
