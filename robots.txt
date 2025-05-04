@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://heavyrain39.github.io/portfolio/sitemap.xml
