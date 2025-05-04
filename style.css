@@ -62,6 +62,10 @@
     /* Container */
     --container-width: 1140px;
     --container-padding: 1rem;
+
+    /* Swiper Variables */
+    --swiper-navigation-color: var(--mint-green);
+    --swiper-navigation-size: 30px;
 }
 
 /* --- Global Reset & Base Styles --- */
@@ -81,12 +85,20 @@ html {
 }
 
 body {
-    background-color: var(--dark-bg);
+    background-color: var(--dark-bg); /* 기본 배경색만 남김 */
     color: var(--light-text);
     font-family: var(--font-body);
     font-weight: 400;
     line-height: var(--line-height-base);
     overflow-x: hidden;
+    position: relative; /* z-index 컨텍스트 위해 유지 */
+}
+
+/* Animated background lines REMOVED */
+
+main {
+    position: relative;
+    z-index: 1; /* 콘텐츠가 body 배경 위에 오도록 유지 */
 }
 
 .container {
@@ -173,12 +185,13 @@ h4 { /* Card Title */
    2. Header (#main-header)
    ========================================================================== */
 
-#main-header {
+   #main-header {
     background-color: var(--dark-surface);
     padding: var(--spacing-md) 0;
     position: sticky;
     top: 0;
-    z-index: 1000;
+    /* z-index: 1; */ /* <<< 이 값을 아래처럼 수정 */
+    z-index: 1000;  /* <<< 다른 요소들보다 확실히 높게 설정 */
     box-shadow: 0 2px 10px var(--shadow-color);
     transition: background-color var(--transition-speed) var(--transition-timing);
 }
@@ -231,17 +244,20 @@ h4 { /* Card Title */
    3. Hero Section (#hero)
    ========================================================================== */
 
+/* style.css 파일에서 해당 부분 찾아서 수정 */
 #hero {
     background: url('images/hero-background.webp') no-repeat center center/cover;
-    min-height: 75vh;
+    min-height: 95vh;
     display: flex;
-    align-items: flex-end; /* Content bottom aligned */
+    align-items: flex-end;
     justify-content: center;
     position: relative;
+    z-index: 1;
     text-align: center;
-    padding-top: 100px; /* Adjust for header */
-    padding-bottom: var(--spacing-xxl); /* Bottom padding */
-    margin-top: -80px; /* Adjust for sticky header height */
+    padding-top: 100px;
+    padding-bottom: var(--spacing-xxl);
+    margin-top: -80px;
+    background-attachment: fixed; /* <<< 이 줄을 추가하세요 */
 }
 #hero::before { /* Overlay */
     content: '';
@@ -254,28 +270,28 @@ h4 { /* Card Title */
     position: relative;
     z-index: 2;
     max-width: 800px;
-    text-align: center; /* Center align children like the button */
+    text-align: center;
 }
 .hero-headline {
     font-size: 3.5rem;
     color: #ffffff;
-    margin-bottom: var(--spacing-md); /* Reduced margin */
+    margin-bottom: var(--spacing-md);
     text-shadow: 2px 2px 4px var(--shadow-color);
 }
 .hero-intro {
     font-size: 1.15rem;
     color: var(--light-text);
-    margin-bottom: var(--spacing-lg); /* Adjusted margin */
+    margin-bottom: var(--spacing-lg);
     line-height: 1.7;
-    max-width: 420px; /* Text box width */
+    max-width: 420px;
     margin-left: auto;
     margin-right: auto;
-    text-align: justify; /* Justify text content */
+    text-align: justify;
     hyphens: auto;
 }
-.hero-link { /* Button */
+.hero-link {
     display: inline-block;
-    margin-top: var(--spacing-lg); /* Spacing above button */
+    margin-top: var(--spacing-lg);
     padding: var(--spacing-sm) var(--spacing-xl);
     background-color: var(--mint-green);
     color: var(--dark-bg);
@@ -296,27 +312,25 @@ h4 { /* Card Title */
    ========================================================================== */
 
 .project-category {
-    margin-bottom: var(--spacing-xxl);
+    /* margin-bottom: var(--spacing-xxl); */ /* 기존 3rem */
+    margin-bottom: 4rem; /* <<< 카테고리 간 간격 증가 */
 }
-/* Category description paragraph */
 .project-category > p {
     color: var(--light-text);
     margin-bottom: var(--spacing-xl);
     max-width: 800px;
-    /* Default alignment (usually left) */
 }
-/* Justify specific category descriptions if needed */
-.project-category:not(:first-of-type) > p { /* Example: Exclude first category (Web Novel) */
-     text-align: justify;
-     hyphens: auto;
+.project-category:not(:first-of-type) > p {
+    text-align: justify;
+    hyphens: auto;
+    word-break: keep-all; /* <<< 이 줄을 추가하세요 */
 }
-
 
 .project-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: var(--spacing-xl);
-    align-items: stretch; /* Make grid items same height if possible */
+    align-items: stretch;
 }
 
 .project-item {
@@ -324,8 +338,8 @@ h4 { /* Card Title */
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
     overflow: hidden;
-    display: flex; /* Use flex for vertical alignment */
-    flex-direction: column; /* Stack children vertically */
+    display: flex;
+    flex-direction: column;
     transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
@@ -342,22 +356,22 @@ h4 { /* Card Title */
 
 .project-item-content {
     padding: var(--spacing-lg);
-    flex-grow: 1; /* Allow this container to grow and fill space */
-    display: flex; /* Use flex for children alignment */
-    flex-direction: column; /* Stack children vertically */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.project-item-content h4 { /* Card Title */
+.project-item-content h4 {
     margin-bottom: var(--spacing-xs);
 }
-.project-title-en { /* English Title */
+.project-title-en {
     display: block;
     font-size: 0.9rem;
     color: var(--secondary-text);
     font-weight: 400;
     margin-bottom: var(--spacing-lg);
 }
-.project-concept { /* Subtitle with left border */
+.project-concept {
     font-style: normal;
     color: var(--light-text);
     margin-bottom: var(--spacing-lg);
@@ -367,12 +381,12 @@ h4 { /* Card Title */
     line-height: 1.6;
 }
 
-.project-item-content p { /* Main description paragraphs */
+.project-item-content p {
     color: var(--secondary-text);
     margin-bottom: var(--spacing-sm);
     font-size: 0.95rem;
     line-height: 1.6;
-    text-align: justify; /* Justify description text */
+    text-align: justify;
     hyphens: auto;
 }
 .project-item-content p strong {
@@ -380,18 +394,17 @@ h4 { /* Card Title */
     font-weight: 600;
 }
 
-/* Status Note & Button - Common Styles for bottom alignment */
 .status-note,
 .button {
-    margin-top: auto; /* Pushes the element to the bottom */
-    padding-top: var(--spacing-lg); /* Space above the element */
+    margin-top: auto;
+    padding-top: var(--spacing-lg);
 }
 
 .status-note {
     color: var(--mint-green-darker);
     font-weight: 600;
     font-size: 0.9rem;
-    align-self: flex-start; /* Align left */
+    align-self: flex-start;
 }
 
 .button {
@@ -400,13 +413,13 @@ h4 { /* Card Title */
     justify-content: center;
     background-color: var(--mint-green);
     color: var(--dark-bg);
-    padding: 0.7rem var(--spacing-lg); /* Adjusted padding */
+    padding: 0.7rem var(--spacing-lg);
     border-radius: var(--border-radius-sm);
     font-weight: 500;
     font-family: var(--font-heading);
     text-align: center;
     transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
-    align-self: center; /* Align center horizontally */
+    align-self: center;
     cursor: pointer;
     min-height: 2.5rem;
     line-height: 1;
@@ -469,39 +482,6 @@ h4 { /* Card Title */
     opacity: 1;
 }
 
-/* --- Music Section --- */
-.music-carousel {
-    display: flex;
-    overflow-x: auto;
-    gap: var(--spacing-xl);
-    padding-bottom: var(--spacing-md);
-    scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    scrollbar-color: var(--mint-green-darker) var(--dark-surface);
-}
-.music-item {
-    flex: 0 0 auto;
-    width: clamp(300px, 80%, 500px);
-    text-align: center;
-    scroll-snap-align: center;
-}
-.music-item iframe {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border: var(--border-width) solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    margin-bottom: var(--spacing-sm);
-    box-shadow: 0 4px 10px var(--shadow-color);
-}
-.music-item p {
-    color: var(--light-text);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.9rem;
-}
-
 /* ==========================================================================
    5. Contact Section (#contact)
    ========================================================================== */
@@ -510,14 +490,12 @@ h4 { /* Card Title */
     /* Section block itself doesn't need alignment */
 }
 
-#contact > h2 { /* Section title - Center */
+#contact > h2 {
    text-align: center;
-   /* ... other h2 styles ... */
 }
 
-
-#contact > p:first-of-type { /* Intro paragraph - Center */
-    text-align: center; /* Ensure center alignment */
+#contact > p:first-of-type {
+    text-align: center;
     hyphens: none;
     max-width: 600px;
     margin-left: auto;
@@ -526,27 +504,35 @@ h4 { /* Card Title */
     color: var(--secondary-text);
 }
 
-.contact-list { /* List block - Center, Text Left */
+/* Contact List Box Styling */
+.contact-list {
     list-style: none;
-    padding-left: 0;
-    max-width: fit-content;
+    padding: var(--spacing-xl); /* <<< 내부 여백 추가 */
+    max-width: 450px; /* <<< 명함같은 느낌을 위해 고정 너비 또는 최대 너비 설정 */
     margin-left: auto;
     margin-right: auto;
     margin-top: var(--spacing-xl);
-    text-align: left; /* Align text within list items to the left */
+    text-align: left;
+    background-color: var(--dark-surface); /* <<< 배경색 추가 */
+    border-radius: var(--border-radius-md); /* <<< 모서리 둥글게 */
+    border: var(--border-width) solid var(--border-color); /* <<< 테두리 추가 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* <<< 그림자 추가 */
 }
 .contact-list li {
-    margin-bottom: var(--spacing-lg);
+    /* margin-bottom: var(--spacing-lg); */ /* 기존 1.5rem */
+    margin-bottom: var(--spacing-sm);   /* <<< 항목 간 간격 줄임 (0.5rem) */
     font-size: 1.1rem;
 }
+/* 마지막 항목 아래 여백 제거 */
+.contact-list li:last-child {
+    margin-bottom: 0;
+}
+
 .contact-label {
     display: inline-block;
     font-weight: 600;
     color: var(--light-text);
     margin-right: var(--spacing-sm);
-    /* Optional fixed width/alignment for labels */
-    /* width: 80px; */
-    /* text-align: right; */
 }
 .contact-list li a {
     font-weight: 500;
@@ -568,6 +554,8 @@ footer {
     color: var(--secondary-text);
     font-size: 0.9rem;
     border-top: var(--border-width) solid var(--border-color);
+    position: relative;
+    z-index: 1; /* 유지 */
 }
 footer p {
     margin-bottom: var(--spacing-xs);
@@ -605,7 +593,6 @@ footer p {
     }
     #hero {
         min-height: 60vh;
-        /* margin-top & padding-top might need adjustment */
     }
     .hero-headline { font-size: 2.5rem; }
     .hero-intro { font-size: 1.1rem; max-width: 90%; }
@@ -617,22 +604,22 @@ footer p {
     .project-grid { grid-template-columns: 1fr; }
     .ai-gallery { grid-template-columns: repeat(2, 1fr); }
 
-    .music-item { width: clamp(250px, 85%, 400px); }
-
     /* Reset justify alignment for better readability on mobile */
     .project-item-content p,
-    .project-category > p:not(:first-of-type), /* Exclude web novel intro if it should stay left */
+    .project-category > p:not(:first-of-type),
     #hero .hero-intro {
         text-align: left;
         hyphens: none;
     }
-    /* Ensure Contact intro and Hero intro remain centered on mobile if desired */
      #contact > p:first-of-type,
-     #hero .hero-intro { /* Re-center hero intro if needed */
+     #hero .hero-intro {
          text-align: center;
      }
 
-    .contact-list { max-width: 90%; }
+    .contact-list {
+        max-width: 90%; /* 모바일에서는 너비 좀 더 유연하게 */
+        padding: var(--spacing-lg); /* 모바일에서 내부 여백 약간 줄임 */
+    }
 }
 
 @media (max-width: 480px) {
@@ -640,7 +627,7 @@ footer p {
      .hero-intro { font-size: 1rem; }
      .ai-gallery { gap: var(--spacing-sm); }
      .contact-list li { font-size: 1rem; }
-     .button { width: 80%; /* Adjust button width */ }
+     .button { width: 80%; }
 }
 
 /* ==========================================================================
@@ -659,10 +646,122 @@ a:focus, button:focus, .gallery-item:focus {
 
 /* Print Styles (Optional) */
 @media print {
-    body { background-color: #fff; color: #000; }
+    body {
+        background-image: none;
+        background-color: #fff; color: #000;
+    }
     #main-header, footer, #hero::before { display: none; }
     #hero { background: none; min-height: auto; padding: 0; margin: 0; }
+    main, footer { position: static; z-index: auto; }
     .section { padding: var(--spacing-xl) 0; }
     .project-item, .gallery-item { border: 1px solid #ccc; box-shadow: none; }
     a { color: #000; text-decoration: underline; }
+    .contact-list { /* Print 시 명함 스타일 제거 */
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+    }
 }
+
+/* ==========================================================================
+   9. Library Customizations (Swiper, Lightbox)
+   ========================================================================== */
+
+/* --- Swiper Customization --- */
+.my-music-swiper {
+    position: relative;
+    padding-left: 45px;
+    padding-right: 45px;
+    overflow: hidden;
+    margin-top: var(--spacing-xl);
+}
+
+.swiper-wrapper {
+     align-items: center;
+}
+
+.music-item { /* Swiper Slide */
+     flex-shrink: 0;
+     width: auto;
+     text-align: center;
+}
+
+.music-item iframe {
+    max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--spacing-sm);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    aspect-ratio: 16 / 9;
+}
+
+.music-item p {
+    color: var(--light-text);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+    margin-top: var(--spacing-sm);
+}
+
+/* Swiper Navigation Buttons */
+.swiper-button-prev,
+.swiper-button-next {
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    transition: opacity 0.3s ease;
+    color: var(--swiper-navigation-color);
+}
+.swiper-button-prev::after,
+.swiper-button-next::after {
+    font-size: var(--swiper-navigation-size);
+    font-weight: bold;
+}
+
+.swiper-button-prev { left: 5px; }
+.swiper-button-next { right: 5px; }
+
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+    opacity: 0.7;
+    color: var(--mint-green-darker);
+}
+
+@media (max-width: 768px) {
+    .music-item {
+         width: clamp(250px, 85%, 400px);
+    }
+}
+
+@media (max-width: 480px) {
+    .my-music-swiper {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .swiper-button-prev,
+    .swiper-button-next {
+         width: 30px;
+         height: 30px;
+         margin-top: -15px;
+         --swiper-navigation-size: 20px;
+    }
+     .swiper-button-prev { left: 0; }
+     .swiper-button-next { right: 0; }
+}
+
+/* --- Lightbox Customization (Optional) --- */
+/* .lb-dataContainer { background-color: var(--dark-surface); } */
+/* .lb-caption { color: var(--light-text); } */
+/* .lb-number { color: var(--secondary-text); } */
+
+/* ==========================================================================
+   10. Background Decorative Lines (REMOVED)
+   ========================================================================== */
+/* This section is intentionally left empty as the effect was removed. */
