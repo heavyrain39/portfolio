@@ -292,24 +292,34 @@ h4 { /* Card Title & Modal Title */
     text-align: justify;
     hyphens: auto;
 }
+/* --- .hero-link 스타일 수정 (상하 패딩 조정하여 높이 맞추기) --- */
 .hero-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin-top: var(--spacing-lg);
-    padding: var(--spacing-sm) var(--spacing-xl);
+    /* padding: var(--spacing-sm) var(--spacing-xl); <<< 기존 값 (상하 0.5rem) */
+    padding: 0.5rem var(--spacing-xl);
     background-color: var(--mint-green);
     color: var(--dark-bg);
     font-family: var(--font-heading);
     font-weight: 500;
     border-radius: var(--border-radius-md);
     transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
-    position: relative; /* Shine 효과 기준점 유지 */
-    /* top 속성 제거 */
+    position: relative; /* Shine 효과 기준점 */
     overflow: hidden;
     z-index: 1;
     text-align: center;
 }
+
+/* --- .hero-link 내부 span 스타일은 유지 --- */
+.hero-link span {
+    position: relative;
+    top: 1px; /* 텍스트만 1px 아래로 내림 (필요시 2px 또는 원하는 값으로 조정) */
+    display: inline-block;
+}
+
+/* --- .hero-link hover 효과는 유지 --- */
 .hero-link:hover {
     background-color: var(--mint-green-darker);
     color: var(--dark-bg);
@@ -422,7 +432,7 @@ h4 { /* Card Title & Modal Title */
     justify-content: center;
     background-color: var(--mint-green);
     color: var(--dark-bg);
-    padding: 0.7rem var(--spacing-lg);
+    padding: 0.5rem var(--spacing-lg);
     border-radius: var(--border-radius-sm);
     font-weight: 500;
     font-family: var(--font-heading);
