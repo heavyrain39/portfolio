@@ -20,11 +20,11 @@
 </head>
 <body>
     <!-- ====== Background Lines Start ====== -->
-    <div class="background-lines">
+    <!-- <div class="background-lines">
         <div class="line line-1"></div>
         <div class="line line-2"></div>
         <div class="line line-3"></div>
-    </div>
+    </div> -->
     <!-- ====== Background Lines End ====== -->
     <header id="main-header">
         <nav class="container">
@@ -46,7 +46,9 @@
                     안녕하세요? 이곳은 웹소설 작가, AI 이미지 생성자, 바이브 코더, 기획자, 트위터리안인 야차완의 포트폴리오 웹페이지입니다.
                     재미있게 둘러보고 가시면 좋겠습니다. 😙
                 </p>
-                <a href="https://x.com/yakshawan" target="_blank" rel="noopener noreferrer" class="hero-link">트위터(X) 방문하기</a>
+                <a href="https://x.com/yakshawan" target="_blank" rel="noopener noreferrer" class="hero-link">
+                    <span>트위터(X) 방문하기</span> <!-- span 추가 -->
+                </a>
             </div>
         </section>
 
@@ -57,48 +59,56 @@
             <div class="project-category">
                 <h3>웹소설</h3>
                 <p>
-                    2025년 한여름 카카오페이지에서 헌터물 현대 판타지 웹소설 론칭이 예정되어 있습니다.
+                    [업데이트 예정] 2025년 여름 카카오페이지에서 현대 판타지 웹소설 론칭 예정입니다.
                 </p>
                 <!-- 나중에 작품 정보 추가 -->
             </div>
 
             <div class="project-category">
-                <h3>바이브 코딩 프로젝트</h3>
+                <!-- 바이브 코딩 제목 옆에 도움말 아이콘 추가 -->
+                <h3>
+                    바이브 코딩 프로젝트
+                    <button id="vibe-coding-help" class="help-icon" aria-label="바이브 코딩이란? 도움말 보기">?</button>
+                </h3>
                 <div class="project-grid">
                     <article class="project-item">
-                        <img src="images/thumbnail01.png" alt="라이브 온! 와카바 섬네일" class="project-thumbnail">
+                        <img src="images/thumbnail01.png" alt="방치형 스트리머 육성 게임 라이브 온! 와카바 섬네일" class="project-thumbnail">
                         <div class="project-item-content">
                             <h4>라이브 온! 와카바</h4>
                             <span class="project-title-en">(Live on! Wakaba)</span>
-                            <p class="project-concept">PC용 방치형 스트리머 육성 시뮬레이션 게임</p>
+                            <p class="project-concept">방치형 스트리머 육성 시뮬레이션 게임</p>
                             <p><strong>컨셉:</strong> PC에서 키우는 나만의 미소녀 다마고치. 나무의 정령 '이부키 와카바'를 SSS급 스트리머로 육성하고, 특별 일러스트를 모두 해금하자.</p>
                             <p><strong>사용 기술:</strong> Python/Pygame</p>
                             <p><strong>이미지:</strong> Stable Diffusion</p>
-                            <a href="https://heavyrain39.github.io/wakaba/" target="_blank" rel="noopener noreferrer" class="button">소개 페이지</a>
+                            <a href="https://heavyrain39.github.io/wakaba/" target="_blank" rel="noopener noreferrer" class="button">
+                                <span>소개 페이지</span> <!-- span 추가 -->
+                            </a>
                         </div>
                     </article>
 
                     <article class="project-item">
-                         <img src="images/thumbnail02.png" alt="아르카나 코드 섬네일" class="project-thumbnail">
+                         <img src="images/thumbnail02.png" alt="AI 타로카드 프로그램 아르카나 코드 섬네일" class="project-thumbnail">
                          <div class="project-item-content">
                             <h4>아르카나 코드 v1.0</h4>
                             <span class="project-title-en">(Arcana Code v1.0)</span>
                             <p class="project-concept">AI가 해석해 주는 무료 타로카드 프로그램</p>
                             <p><strong>컨셉:</strong> 진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다!</p>
                             <p><strong>사용 기술:</strong> 프론트엔드(HTML5, CSS3, JS ES6+), 백엔드(Node.js, Express.js), LLM API(Google Gemini 2.5 Flash), 이미지(Stable Diffusion)</p>
-                            <a href="https://heavyrain39.github.io/arcana-code/" target="_blank" rel="noopener noreferrer" class="button">소개 페이지</a>
+                            <a href="https://heavyrain39.github.io/arcana-code/" target="_blank" rel="noopener noreferrer" class="button">
+                                <span>소개 페이지</span> <!-- span 추가 -->
+                            </a>
                         </div>
                     </article>
 
                     <article class="project-item">
-                         <img src="images/thumbnail03.png" alt="에테르 튜너 섬네일" class="project-thumbnail">
+                         <img src="images/thumbnail03.png" alt="웹 라디오닉스 머신 에테르 튜너 섬네일" class="project-thumbnail">
                          <div class="project-item-content">
-                            <h4>에테르 튜너</h4>
-                            <span class="project-title-en">(Aether Tuner v1.0)</span>
+                            <h4>에테르 튜너 v0.1</h4>
+                            <span class="project-title-en">(Aether Tuner v0.1)</span>
                             <p class="project-concept">웹페이지로 굴리는 나만의 라디오닉스 머신</p>
                             <p><strong>컨셉:</strong> 나만의 커스텀 소원성취 주파수를 원한다면? 사용자가 입력한 의도를 기반으로 화이트/브라운 노이즈를 생성하는 스태틱 웹사이트 형식의 라디오닉스 머신. 매력적인 비주얼라이저와 깔끔한 UI로 언제 어디서나 사용 가능.</p>
                             <p><strong>사용 기술:</strong> 프론트엔드(HTML5, CSS3, JS ES6+), 오디오(Web Audio API), 라이브러리(p5.js)</p>
-                            <p class="status-note">* 아직 제작 중입니다. 완성 후 공개 예정입니다.</p>
+                            <p class="status-note">* 제작 중. 완성 후 공개 예정입니다.</p>
                          </div>
                     </article>
                 </div>
@@ -111,39 +121,48 @@
                 </p>
                 <div class="ai-gallery">
                     <!-- Lightbox 적용: <a> 태그에 data-lightbox="ai-art" 와 data-title 추가 -->
-                    <a href="images/01.png" data-lightbox="ai-art" data-title="AI 생성 이미지 1" class="gallery-item"><img src="images/01.png" alt="AI 생성 이미지 1"></a>
-                    <a href="images/02.png" data-lightbox="ai-art" data-title="AI 생성 이미지 2" class="gallery-item"><img src="images/02.png" alt="AI 생성 이미지 2"></a>
-                    <a href="images/03.png" data-lightbox="ai-art" data-title="AI 생성 이미지 3" class="gallery-item"><img src="images/03.png" alt="AI 생성 이미지 3"></a>
-                    <a href="images/04.png" data-lightbox="ai-art" data-title="AI 생성 이미지 4" class="gallery-item"><img src="images/04.png" alt="AI 생성 이미지 4"></a>
-                    <a href="images/05.png" data-lightbox="ai-art" data-title="AI 생성 이미지 5" class="gallery-item"><img src="images/05.png" alt="AI 생성 이미지 5"></a>
-                    <a href="images/06.png" data-lightbox="ai-art" data-title="AI 생성 이미지 6" class="gallery-item"><img src="images/06.png" alt="AI 생성 이미지 6"></a>
-                    <a href="images/07.png" data-lightbox="ai-art" data-title="AI 생성 이미지 7" class="gallery-item"><img src="images/07.png" alt="AI 생성 이미지 7"></a>
-                    <a href="images/08.png" data-lightbox="ai-art" data-title="AI 생성 이미지 8" class="gallery-item"><img src="images/08.png" alt="AI 생성 이미지 8"></a>
+                    <a href="images/01.png" data-lightbox="ai-art" data-title="이부키 와카바" class="gallery-item"><img src="images/01.png" alt="AI 생성 이미지 1"></a>
+                    <a href="images/02.png" data-lightbox="ai-art" data-title="호시노 아쿠아 & 아리마 카나" class="gallery-item"><img src="images/02.png" alt="AI 생성 이미지 2"></a>
+                    <a href="images/03.png" data-lightbox="ai-art" data-title="프리렌 & 페른" class="gallery-item"><img src="images/03.png" alt="AI 생성 이미지 3"></a>
+                    <a href="images/04.png" data-lightbox="ai-art" data-title="이누이 사쥬나 & 키타가와 마린" class="gallery-item"><img src="images/04.png" alt="AI 생성 이미지 4"></a>
+                    <a href="images/05.png" data-lightbox="ai-art" data-title="미르코" class="gallery-item"><img src="images/05.png" alt="AI 생성 이미지 5"></a>
+                    <a href="images/06.png" data-lightbox="ai-art" data-title="죠가사키 미카" class="gallery-item"><img src="images/06.png" alt="AI 생성 이미지 6"></a>
+                    <a href="images/07.png" data-lightbox="ai-art" data-title="오리지널 일러스트" class="gallery-item"><img src="images/07.png" alt="AI 생성 이미지 7"></a>
+                    <a href="images/08.png" data-lightbox="ai-art" data-title="미소노 미카" class="gallery-item"><img src="images/08.png" alt="AI 생성 이미지 8"></a>
                 </div>
             </div>
-
             <div class="project-category">
                 <h3>전자음악</h3>
                  <p>
-                    여기까지 내려오셨다면 제가 작곡한 음악도 들어보고 가세요. (좌우 화살표로 넘길 수 있습니다.)
+                    여기까지 내려오셨다면 제가 작곡한 음악도 들어보고 가세요.
                  </p>
                  <!-- Swiper Container -->
                  <div class="swiper my-music-swiper">
                     <div class="swiper-wrapper"> <!-- 기존 music-carousel 대신 swiper-wrapper 사용 -->
                         <!-- Music Item 1 -->
                         <div class="music-item swiper-slide"> <!-- swiper-slide 클래스 추가 -->
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/NEQKjyKhVUI" title="Pattern Completion" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                            <p>Pattern Completion</p>
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/NEQKjyKhVUI?enablejsapi=1" title="Pattern Completion (2022)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>Pattern Completion (2022)</p>
                         </div>
-                         <!-- Music Item 2 -->
-                         <div class="music-item swiper-slide"> <!-- swiper-slide 클래스 추가 -->
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/zML3G3r8rLk" title="Ascent" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                            <p>Ascent</p>
+                        <!-- Music Item 2 -->
+                        <div class="music-item swiper-slide"> <!-- swiper-slide 클래스 추가 -->
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/javL1uBsCF0?enablejsapi=1" title="Northward (2022)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>북상 (2022)</p>
                         </div>
                         <!-- Music Item 3 -->
                         <div class="music-item swiper-slide"> <!-- swiper-slide 클래스 추가 -->
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/j5U2r_SG19k" title=""Voice of No Return(還ラナイ声)" from NieR:Automata (Yakshawan Remix)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                            <p>"Voice of No Return" (Yakshawan Remix)</p>
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/zML3G3r8rLk?enablejsapi=1" title="Ascent (2021)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>Ascent (2021)</p>
+                        </div>
+                        <!-- Music Item 4 -->
+                        <div class="music-item swiper-slide"> <!-- swiper-slide 클래스 추가 -->
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/j5U2r_SG19k?enablejsapi=1" title=""Voice of No Return(還ラナイ声) " from NieR:Automata (Yakshawan Remix)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>"Voice of No Return" (2021)</p>
+                        </div>
+                        <!-- Music Item 5 -->
+                        <div class="music-item swiper-slide"> <!-- swiper-slide 클래스 추가 -->
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/3hUnxjecycQ?enablejsapi=1" title=""깨어나세요 보살님 (2021)" from NieR:Automata (Yakshawan Remix)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>깨어나세요 보살님 (2021)</p>
                         </div>
                     </div>
                     <!-- Add Navigation Buttons -->
@@ -170,6 +189,19 @@
             <p>© 2025 야차완 / 夜叉腕. All Rights Reserved.</p>
         </div>
     </footer>
+
+    <!-- ====== 바이브 코딩 설명 모달 ====== -->
+    <div id="vibe-coding-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="modal-close" aria-label="닫기">×</button>
+            <h4>바이브 코딩(Vibe Coding)이란?</h4>
+            <p>
+                바이브 코딩(vibe coding)은 오픈 AI의 창립 멤버인 컴퓨터 과학자 안드레 카파시가 2025년 2월 제안한 용어입니다. 사람은 바이브, 즉 느낌을 LLM에게 말하며 기획과 피드백을 담당하고, 실제 코딩 작업은 LLM이 전담하는 개발 방식을 의미합니다.
+            </p>
+             <p>이 포트폴리오의 바이브 코딩 프로젝트들은 이러한 방식으로 아이디어를 빠르게 프로토타이핑한 결과물입니다.</p>
+        </div>
+    </div>
+    <!-- ====== 모달 끝 ====== -->
 
     <!-- jQuery (Lightbox2 requires it) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
