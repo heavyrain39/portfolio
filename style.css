@@ -1,5 +1,5 @@
 /* ==========================================================================
-   style.css (전체 코드 - 텍스트 미세 조정 수정 포함)
+   style.css (전체 코드 - 버튼 상단 간격 조정 포함)
    ========================================================================== */
 
 /* --- Font Face --- */
@@ -292,14 +292,12 @@ h4 { /* Card Title & Modal Title */
     text-align: justify;
     hyphens: auto;
 }
-/* --- .hero-link 스타일 수정 (상하 패딩 조정하여 높이 맞추기) --- */
 .hero-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin-top: var(--spacing-lg);
-    /* padding: var(--spacing-sm) var(--spacing-xl); <<< 기존 값 (상하 0.5rem) */
-    padding: 0.5rem var(--spacing-xl);
+    padding: 0.5rem var(--spacing-xl); /* 상하 0.5rem 패딩 */
     background-color: var(--mint-green);
     color: var(--dark-bg);
     font-family: var(--font-heading);
@@ -311,15 +309,11 @@ h4 { /* Card Title & Modal Title */
     z-index: 1;
     text-align: center;
 }
-
-/* --- .hero-link 내부 span 스타일은 유지 --- */
 .hero-link span {
     position: relative;
-    top: 1px; /* 텍스트만 1px 아래로 내림 (필요시 2px 또는 원하는 값으로 조정) */
+    top: 1px;
     display: inline-block;
 }
-
-/* --- .hero-link hover 효과는 유지 --- */
 .hero-link:hover {
     background-color: var(--mint-green-darker);
     color: var(--dark-bg);
@@ -374,10 +368,10 @@ h4 { /* Card Title & Modal Title */
 
 .project-item-content {
     padding: var(--spacing-lg);
-    flex-grow: 1; /* 카드가 남는 공간을 채우도록 함 */
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* <<< 이 줄을 추가합니다 */
+    justify-content: space-between; /* 유지 */
 }
 
 .project-item-content h4 {
@@ -413,17 +407,16 @@ h4 { /* Card Title & Modal Title */
     font-weight: 600;
 }
 
-.status-note,
-.button {
-    margin-top: auto;
-    padding-top: var(--spacing-lg);
-}
-
+/* .status-note 와 .button 에서 padding-top 제거되었는지 확인 (제공된 코드엔 이미 없음) */
 .status-note {
     color: var(--mint-green-darker);
     font-weight: 600;
     font-size: 0.9rem;
     align-self: flex-start;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    /* margin-top: auto; 제거 또는 유지 -> 아래에서 명시적으로 설정 */
 }
 
 .button {
@@ -432,7 +425,7 @@ h4 { /* Card Title & Modal Title */
     justify-content: center;
     background-color: var(--mint-green);
     color: var(--dark-bg);
-    padding: 0.5rem var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-lg); /* 상하 0.5rem 패딩 */
     border-radius: var(--border-radius-sm);
     font-weight: 500;
     font-family: var(--font-heading);
@@ -440,13 +433,20 @@ h4 { /* Card Title & Modal Title */
     transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
     align-self: center;
     cursor: pointer;
-    /* min-height 제거 유지 */
     border: none;
-    position: relative; /* Shine 효과 기준점 유지 */
-    /* top 속성 제거 */
+    position: relative; /* Shine 효과 기준점 */
     overflow: hidden;
     z-index: 1;
+    /* margin-top: auto; 제거 또는 유지 -> 아래에서 명시적으로 설정 */
 }
+
+/* --- 버튼과 상태 노트 위에 간격 추가 (MODIFIED) --- */
+/* .project-item-content 바로 아래 있는 .button 과 .status-note 에만 적용 */
+.project-item-content > .button,
+.project-item-content > .status-note {
+    margin-top: var(--spacing-xl); /* 버튼/상태 노트 위에 2rem(32px) 여백 추가. 값을 조정하여 간격 조절 */
+}
+
 .button:hover, .button:focus {
     background-color: var(--mint-green-darker);
     color: var(--dark-bg);
@@ -454,12 +454,11 @@ h4 { /* Card Title & Modal Title */
     box-shadow: 0 4px 8px var(--shadow-color);
 }
 
-/* --- 버튼 내부 텍스트 미세 조정 (NEW/MODIFIED) --- */
 .button span,
 .hero-link span {
     position: relative;
-    top: 1px; /* 텍스트만 1px 아래로 내림 (필요시 2px 또는 원하는 값으로 조정) */
-    display: inline-block; /* span이 position 속성을 올바르게 적용받도록 */
+    top: 1px;
+    display: inline-block;
 }
 
 /* --- AI Art Gallery --- */
@@ -685,7 +684,6 @@ a:focus, button:focus, .gallery-item:focus {
         max-width: none;
     }
     .help-icon { display: none; }
-    /* 인쇄 시 텍스트 위치 조정 해제 */
     .button span, .hero-link span { top: auto; position: static; }
 }
 
@@ -848,7 +846,7 @@ a:focus, button:focus, .gallery-item:focus {
     inset: 0;
     background-color: var(--overlay-color);
     z-index: var(--z-index-modal);
-    display: flex;
+    display: flex; /* JS toggles between none and flex */
     align-items: center;
     justify-content: center;
     padding: var(--container-padding);
@@ -910,4 +908,14 @@ a:focus, button:focus, .gallery-item:focus {
 .modal-close:hover, .modal-close:focus {
     color: var(--mint-green);
     transform: scale(1.2);
+}
+
+/* ==========================================================================
+   13. Project Card Button Spacing (ADDED/MODIFIED)
+   ========================================================================== */
+
+/* .project-item-content 바로 아래 있는 .button 과 .status-note 에만 margin-top 추가 */
+.project-item-content > .button,
+.project-item-content > .status-note {
+    margin-top: var(--spacing-xl); /* 버튼/상태 노트 위에 2rem(32px) 여백 추가. 이 값을 조정하여 간격 조절 (예: 1.5rem, 2.5rem) */
 }
