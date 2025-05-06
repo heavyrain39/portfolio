@@ -1,137 +1,130 @@
+// script.js (전체 코드 - Lightbox 활성 시 Swiper 키보드 비활성화 로직 추가)
+
 // Wait for the DOM to be fully loaded before running scripts
 document.addEventListener('DOMContentLoaded', function () {
 
+    let musicSwiper = null; // Swiper 인스턴스를 저장할 변수
+
     // --- Initialize Swiper for the music section ---
-    // Check if the Swiper container exists before initializing
     const swiperContainer = document.querySelector('.my-music-swiper');
     if (swiperContainer) {
-        const musicSwiper = new Swiper('.my-music-swiper', {
-            // Configuration options for the slider
-            loop: true, // Enable infinite looping (first/last slides connect)
-            slidesPerView: 1, // Show 1 slide at a time on small screens
-            spaceBetween: 20, // Space between slides (in pixels)
-
-            // Responsive settings: change slidesPerView based on screen width
+        musicSwiper = new Swiper('.my-music-swiper', { // 변수에 할당
+            loop: true,
+            slidesPerView: 1,
+            spaceBetween: 20,
             breakpoints: {
-                // when window width is >= 768px (tablets)
-                768: {
-                    slidesPerView: 2, // Show 2 slides
-                    spaceBetween: 30
-                },
-                // when window width is >= 1024px (desktops)
-                1024: {
-                    slidesPerView: 2, // Still show 2 slides (adjust if you want more)
-                    spaceBetween: 40
-                }
+                768: { slidesPerView: 2, spaceBetween: 30 },
+                1024: { slidesPerView: 2, spaceBetween: 40 }
             },
-
-            // Navigation arrows
             navigation: {
-                nextEl: '.swiper-button-next', // Selector for the next button
-                prevEl: '.swiper-button-prev', // Selector for the previous button
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
             },
-
-            // Enable keyboard navigation (using arrow keys)
-            keyboard: {
+            keyboard: { // 키보드 기본 설정은 활성화
                 enabled: true,
-                onlyInViewport: false, // Allow keyboard control even when swiper isn't focused
+                onlyInViewport: false,
             },
-
-            // Accessibility features
             a11y: {
                 prevSlideMessage: 'Previous slide',
                 nextSlideMessage: 'Next slide',
             },
-
-            // Pause YouTube videos when sliding away
             on: {
                 slideChangeTransitionStart: function () {
-                    // Find all iframes within the currently active Swiper instance
                     const iframes = this.el.querySelectorAll('iframe');
                     iframes.forEach(iframe => {
-                        // Use postMessage for YouTube API control (requires ?enablejsapi=1)
                         if (iframe.src.includes('youtube.com') && iframe.contentWindow) {
                              try {
                                  iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                              } catch (e) {
-                                 console.warn("Could not pause YouTube video via postMessage. Ensure enablejsapi=1 is in the iframe src.", e);
-                                 // Fallback: Resetting src (less ideal, might cause reload flicker)
-                                 // const currentSrc = iframe.src;
-                                 // iframe.src = currentSrc;
+                                 console.warn("Could not pause YouTube video via postMessage.", e);
                              }
                         }
                     });
                 },
             }
-        }); // End of new Swiper initialization
+        });
     } // End of Swiper initialization check
 
 
     // --- Initialize Lightbox2 ---
-    // Check if Lightbox elements exist before initializing options
     if (typeof lightbox !== 'undefined') {
         lightbox.option({
-          'resizeDuration': 200, // Speed of resizing animation
-          'fadeDuration': 300,   // Speed of fade-in/out
-          'imageFadeDuration': 300, // Speed of image fade when loading
-          'wrapAround': true,      // Allow navigation from last image back to first
-          'showImageNumberLabel': true, // Show "Image x of y" text
-          'disableScrolling': true // Prevent background scrolling when Lightbox is open
-          // Add other options here if desired, see Lightbox2 documentation
+          'resizeDuration': 200,
+          'fadeDuration': 300,
+          'imageFadeDuration': 300,
+          'wrapAround': true,
+          'showImageNumberLabel': true,
+          'disableScrolling': true // Lightbox 열렸을 때 배경 스크롤 막기
         });
+
+        // --- Logic to disable Swiper keyboard when Lightbox is open (NEW) ---
+        if (musicSwiper && musicSwiper.keyboard) { // Swiper 인스턴스와 keyboard 모듈 확인
+            const body = document.body;
+            const lightboxClass = 'lb-disable-scrolling'; // Lightbox가 body에 추가하는 클래스
+
+            // MutationObserver 콜백 함수: body 클래스 변경 감지
+            const observerCallback = function(mutationsList, observer) {
+                for(let mutation of mutationsList) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (body.classList.contains(lightboxClass)) {
+                            // Lightbox가 열림 -> Swiper 키보드 비활성화
+                            musicSwiper.keyboard.disable();
+                            // console.log('Lightbox opened, Swiper keyboard disabled.'); // 디버깅용
+                        } else {
+                            // Lightbox가 닫힘 -> Swiper 키보드 활성화
+                            musicSwiper.keyboard.enable();
+                            // console.log('Lightbox closed, Swiper keyboard enabled.'); // 디버깅용
+                        }
+                    }
+                }
+            };
+
+            // MutationObserver 인스턴스 생성
+            const observer = new MutationObserver(observerCallback);
+
+            // body 요소의 attribute(클래스 포함) 변경 감시 시작
+            observer.observe(body, { attributes: true });
+
+            // 페이지를 떠날 때 observer 연결 해제 (선택 사항, 일반적으로 필요 X)
+            // window.addEventListener('unload', () => observer.disconnect());
+        }
+        // --- End of Swiper keyboard control logic ---
+
     } // End of Lightbox initialization check
 
 
-    // --- Vibe Coding Modal Logic (NEW) ---
+    // --- Vibe Coding Modal Logic ---
     const helpButton = document.getElementById('vibe-coding-help');
     const modalOverlay = document.getElementById('vibe-coding-modal');
-    const modalContent = modalOverlay?.querySelector('.modal-content'); // Optional chaining
-    const closeButton = modalOverlay?.querySelector('.modal-close');    // Optional chaining
+    const modalContent = modalOverlay?.querySelector('.modal-content');
+    const closeButton = modalOverlay?.querySelector('.modal-close');
 
-    // Check if all modal elements exist
     if (helpButton && modalOverlay && modalContent && closeButton) {
-
-        // Function to show the modal
         function showModal() {
             modalOverlay.style.display = 'flex';
-            // Add class for transition after display is set
             setTimeout(() => {
                 modalOverlay.classList.add('visible');
-            }, 10); // Small delay to ensure display:flex is applied first
-             // Focus the close button for accessibility
+            }, 10);
              closeButton.focus();
         }
-
-        // Function to hide the modal
         function hideModal() {
             modalOverlay.classList.remove('visible');
-            // Wait for transition to finish before setting display:none
             modalOverlay.addEventListener('transitionend', () => {
                  modalOverlay.style.display = 'none';
-            }, { once: true }); // Remove listener after it runs once
+            }, { once: true });
         }
-
-        // Event listener for the help button
         helpButton.addEventListener('click', showModal);
-
-        // Event listener for the close button
         closeButton.addEventListener('click', hideModal);
-
-        // Event listener for the overlay (background) click
         modalOverlay.addEventListener('click', function(event) {
-            // Only hide if the click is directly on the overlay, not the content inside
             if (event.target === modalOverlay) {
                 hideModal();
             }
         });
-
-        // Optional: Close modal with the Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && modalOverlay.style.display === 'flex') {
                 hideModal();
             }
         });
-
     } else {
         console.warn('Modal elements not found, skipping modal initialization.');
     } // End of modal elements check
