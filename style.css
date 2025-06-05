@@ -1,10 +1,10 @@
 /* ==========================================================================
-   style.css (전체 코드 - 버튼 상단 간격 조정 포함)
+   style.css (전체 코드 - Paperlogy 폰트 적용, 바이브 코딩 리스트 레이아웃)
    ========================================================================== */
 
 /* --- Font Face --- */
 @font-face {
-    font-family: 'GmarketSansMedium';
+    font-family: 'GmarketSansMedium'; /* 기존 폰트 유지 (fallback 또는 다른 용도) */
     src: url('fonts/GmarketSansMedium.woff2') format('woff2'),
          url('fonts/GmarketSansMedium.woff') format('woff');
     font-weight: 500;
@@ -15,10 +15,19 @@
 @font-face {
     font-family: 'Pretendard Variable';
     src: url('fonts/PretendardVariable.woff2') format('woff2-variations');
-    font-weight: 100 900;
+    font-weight: 100 900; /* 가변 폰트의 모든 굵기 지원 */
     font-style: normal;
     font-display: swap;
 }
+
+@font-face {
+    font-family: 'Paperlogy';
+    src: url('fonts/Paperlogy-4Regular.woff2') format('woff2');
+    font-weight: 400; /* 폰트 파일이 Regular 굵기이므로 400 */
+    font-style: normal;
+    font-display: swap;
+}
+
 
 /* --- CSS Variables --- */
 :root {
@@ -26,50 +35,50 @@
     --mint-green: #64F0C8;
     --mint-green-darker: #4BCDAA;
     --mint-green-transparent: rgba(100, 240, 200, 0.1);
-    --dark-bg: #21252b;
-    --dark-surface: #282c34;
-    --light-text: #e6e6e6;
-    --secondary-text: #a0a8b4;
-    --border-color: #444a57;
+    --dark-bg: #1e2228; /* 약간 더 어둡게 조정 */
+    --dark-surface: #262b33; /* 표면색도 일관성 있게 조정 */
+    --light-text: #e0e0e0; /* 밝은 텍스트 살짝 조정 */
+    --secondary-text: #a8b2c0; /* 보조 텍스트 색상 조정 */
+    --border-color: #3a404d; /* 테두리 색상 조정 */
     --overlay-color: rgba(20, 22, 25, 0.75);
     --shadow-color: rgba(0, 0, 0, 0.2);
 
     /* Typography */
-    --font-heading: 'GmarketSansMedium', sans-serif;
+    --font-heading: 'Paperlogy', 'GmarketSansMedium', sans-serif; /* Paperlogy 우선 적용 */
     --font-body: 'Pretendard Variable', sans-serif;
-    --base-font-size: 16px;
-    --line-height-base: 1.7;
-    --line-height-heading: 1.3;
+    --base-font-size: 16.5px; /* 기본 폰트 크기 미세 조정 (16px ~ 17px 사이) */
+    --line-height-base: 1.75;
+    --line-height-heading: 1.4;
 
     /* Spacing */
-    --spacing-xs: 0.25rem; /* 4px */
-    --spacing-sm: 0.5rem;  /* 8px */
-    --spacing-md: 1rem;    /* 16px */
-    --spacing-lg: 1.5rem;  /* 24px */
-    --spacing-xl: 2rem;    /* 32px */
-    --spacing-xxl: 3rem;   /* 48px */
-    --spacing-section: 5rem;
+    --spacing-xs: 0.3rem; /* 4.8px */
+    --spacing-sm: 0.6rem;  /* 9.6px */
+    --spacing-md: 1.125rem;  /* 18px */
+    --spacing-lg: 1.75rem;  /* 28px */
+    --spacing-xl: 2.5rem;    /* 40px */
+    --spacing-xxl: 3.75rem;   /* 60px */
+    --spacing-section: 6rem; /* 96px, 섹션 간 여백 증가 */
 
     /* Borders & Radius */
-    --border-radius-sm: 4px;
-    --border-radius-md: 8px;
+    --border-radius-sm: 5px; /* 약간 더 둥글게 */
+    --border-radius-md: 10px; /* 약간 더 둥글게 */
     --border-width: 1px;
 
     /* Transitions */
     --transition-speed: 0.3s;
-    --transition-timing: ease;
+    --transition-timing: ease-in-out; /* 좀 더 부드러운 타이밍 함수 */
 
     /* Container */
-    --container-width: 1140px;
-    --container-padding: 1rem;
+    --container-width: 1180px; /* 컨테이너 너비 살짝 증가 */
+    --container-padding: 1.25rem; /* 컨테이너 패딩 살짝 증가 */
 
     /* Swiper Variables */
     --swiper-navigation-color: var(--mint-green);
-    --swiper-navigation-size: 30px;
+    --swiper-navigation-size: 32px; /* 아이콘 크기 조정 */
 
     /* Modal Z-index */
     --z-index-header: 1000;
-    --z-index-modal: 2000; /* 헤더보다 높게 */
+    --z-index-modal: 2000;
 }
 
 /* --- Global Reset & Base Styles --- */
@@ -92,10 +101,11 @@ body {
     background-color: var(--dark-bg);
     color: var(--light-text);
     font-family: var(--font-body);
-    font-weight: 400;
+    font-weight: 300; /* Pretendard 기본 굵기를 약간 가늘게 */
     line-height: var(--line-height-base);
     overflow-x: hidden;
     position: relative;
+    letter-spacing: -0.01em; /* 미세한 자간 조정 */
 }
 
 main {
@@ -121,6 +131,7 @@ img, iframe {
     max-width: 100%;
     height: auto;
     display: block;
+    border-radius: var(--border-radius-sm); /* 이미지에도 기본 radius 적용 */
 }
 
 a {
@@ -141,14 +152,15 @@ p {
 
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 500;
+    font-weight: 400; /* Paperlogy가 Regular이므로 400으로 설정 */
     line-height: var(--line-height-heading);
     color: var(--light-text);
     margin-bottom: var(--spacing-md);
+    /* letter-spacing: 0.01em; /* 제목 자간 살짝 넓힘 (Paperlogy 폰트 특성에 따라 조절) */
 }
 
 h2 { /* Section Title */
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     margin-bottom: var(--spacing-xxl);
     text-align: center;
     position: relative;
@@ -160,18 +172,18 @@ h2::after {
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
+    width: 70px;
+    height: 2.5px;
     background-color: var(--mint-green);
     border-radius: var(--border-radius-sm);
 }
 
 h3 { /* Category Title */
-    font-size: 1.8rem;
+    font-size: 2rem;
     margin-top: var(--spacing-xxl);
     margin-bottom: var(--spacing-lg);
     color: var(--mint-green);
-    border-left: 4px solid var(--mint-green);
+    border-left: 3px solid var(--mint-green);
     padding-left: var(--spacing-md);
     display: flex;
     align-items: center;
@@ -181,9 +193,10 @@ h3 { /* Category Title */
      margin-top: 0;
 }
 
-h4 { /* Card Title & Modal Title */
-    font-size: 1.3rem;
+h4 { /* Card Title & Modal Title & Vibe Project Title */
+    font-size: 1.5rem; /* 일관성 있게 조정 */
     color: var(--mint-green);
+    margin-bottom: var(--spacing-xs);
 }
 
 /* ==========================================================================
@@ -191,12 +204,13 @@ h4 { /* Card Title & Modal Title */
    ========================================================================== */
 
 #main-header {
-    background-color: var(--dark-surface);
+    background-color: rgba(38, 43, 51, 0.85); /* 헤더 배경 투명도 살짝 추가 */
+    backdrop-filter: blur(10px); /* 블러 효과 (지원 브라우저) */
     padding: var(--spacing-md) 0;
     position: sticky;
     top: 0;
     z-index: var(--z-index-header);
-    box-shadow: 0 2px 10px var(--shadow-color);
+    box-shadow: 0 2px 15px rgba(0,0,0,0.2); /* 그림자 강화 */
     transition: background-color var(--transition-speed) var(--transition-timing);
 }
 #main-header .container {
@@ -206,9 +220,10 @@ h4 { /* Card Title & Modal Title */
 }
 #main-header .logo a {
     font-family: var(--font-heading);
-    font-size: 1.6rem;
-    font-weight: 500;
+    font-size: 1.7rem; /* 로고 크기 조정 */
+    font-weight: 400; /* Paperlogy */
     color: var(--light-text);
+    transition: color var(--transition-speed) var(--transition-timing);
 }
 #main-header .logo a:hover {
     color: var(--mint-green);
@@ -219,18 +234,21 @@ h4 { /* Card Title & Modal Title */
     gap: var(--spacing-lg);
 }
 #main-header nav ul li a {
-    color: var(--light-text);
-    font-weight: 500;
+    color: var(--secondary-text); /* 기본 네비 링크 색상 변경 */
+    font-weight: 400; /* Pretendard */
+    font-family: var(--font-body);
+    font-size: 1.05rem; /* 네비 링크 폰트 크기 */
     padding: var(--spacing-sm) 0;
     position: relative;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.03em;
+    transition: color var(--transition-speed) var(--transition-timing);
 }
 #main-header nav ul li a::after {
     content: '';
     position: absolute;
     width: 0;
     height: 2px;
-    bottom: 0;
+    bottom: -2px; /* 밑줄 위치 살짝 내림 */
     left: 0;
     background-color: var(--mint-green);
     transition: width var(--transition-speed) var(--transition-timing);
@@ -250,74 +268,73 @@ h4 { /* Card Title & Modal Title */
 
 #hero {
     background: url('images/hero-background.webp') no-repeat center center/cover;
-    min-height: 95vh;
+    min-height: 90vh;
     display: flex;
-    align-items: flex-end;
+    align-items: flex-end; /* 내용물을 하단으로 */
     justify-content: center;
     position: relative;
-    z-index: 1;
     text-align: center;
-    padding-top: 100px;
-    padding-bottom: var(--spacing-xxl);
-    margin-top: -80px;
-    background-attachment: fixed;
+    padding-top: 120px; /* 헤더 높이 고려 */
+    padding-bottom: var(--spacing-xxl); /* 하단 패딩 증가 */
+    margin-top: -86.5px; /* 헤더 높이만큼 당김 (padding + font-size 고려, 실제값 확인 필요) */
+    background-attachment: fixed; /* 고정 배경 유지 */
 }
 #hero::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-color: var(--overlay-color);
+    background: linear-gradient(to bottom, rgba(20, 22, 25, 0.4) 0%, rgba(20, 22, 25, 0.9) 100%);
     z-index: 1;
 }
 .hero-content {
     position: relative;
     z-index: 2;
-    max-width: 800px;
-    text-align: center;
+    max-width: 700px; /* 컨텐츠 너비 조정 */
 }
 .hero-headline {
-    font-size: 3.5rem;
+    font-size: 4rem; /* Paperlogy에 맞춰 조정 */
     color: #ffffff;
     margin-bottom: var(--spacing-md);
-    text-shadow: 2px 2px 4px var(--shadow-color);
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
 }
 .hero-intro {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--light-text);
-    margin-bottom: var(--spacing-lg);
-    line-height: 1.7;
-    max-width: 420px;
+    margin-bottom: var(--spacing-xl);
+    line-height: 1.8;
+    max-width: 480px; /* 최대 너비 조정 */
     margin-left: auto;
     margin-right: auto;
-    text-align: justify;
+    text-align: left; /* 기본 좌측 정렬 */
     hyphens: auto;
+    font-weight: 300;
 }
 .hero-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin-top: var(--spacing-lg);
-    padding: 0.5rem var(--spacing-xl); /* 상하 0.5rem 패딩 */
+    padding: 0.75rem var(--spacing-xl);
     background-color: var(--mint-green);
     color: var(--dark-bg);
     font-family: var(--font-heading);
-    font-weight: 500;
+    font-weight: 400; /* Paperlogy */
+    font-size: 1.1rem;
     border-radius: var(--border-radius-md);
     transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
-    position: relative; /* Shine 효과 기준점 */
+    position: relative;
     overflow: hidden;
-    z-index: 1;
     text-align: center;
 }
 .hero-link span {
     position: relative;
-    top: 1px;
+    top: 0px; /* 수정됨: 이전 1px에서 0px로 */
     display: inline-block;
 }
 .hero-link:hover {
     background-color: var(--mint-green-darker);
     color: var(--dark-bg);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 /* ==========================================================================
@@ -325,19 +342,129 @@ h4 { /* Card Title & Modal Title */
    ========================================================================== */
 
 .project-category {
-    margin-bottom: 4rem;
-}
-.project-category > p {
-    color: var(--light-text);
-    margin-bottom: var(--spacing-xl);
-    max-width: 800px;
-}
-.project-category:not(:first-of-type) > p {
-    text-align: justify;
-    hyphens: auto;
-    word-break: keep-all;
+    margin-bottom: 5rem; /* 카테고리 간 여백 증가 */
 }
 
+/* 카테고리 설명 텍스트 (모든 .project-category > p 에 적용) */
+.project-category > p {
+    color: var(--secondary-text);
+    margin-bottom: var(--spacing-xl);
+    max-width: 720px; /* 설명 텍스트 블록의 최대 너비 */
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-left: 0;
+    margin-right: 0;
+    text-align: justify;   /* MODIFIED: 텍스트 양쪽 정렬 */
+    hyphens: auto;         /* ADDED: 영어 등에서 단어 내 하이픈 자동 추가 */
+    word-break: keep-all;  /* ADDED: 한국어의 경우 단어 단위 줄바꿈 유지 */
+    font-weight: 300;
+}
+
+/* .project-category.align-left > p 규칙은 삭제 (모든 p가 justify되므로) */
+
+
+/* --- Vibe Coding Project List Layout (New) --- */
+.vibe-coding-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl); /* 아이템 간 간격 */
+}
+
+.vibe-project-item {
+    display: grid;
+    grid-template-columns: 300px 1fr; /* 섬네일 너비, 설명 영역 */
+    gap: var(--spacing-xl);
+    background-color: var(--dark-surface);
+    border-radius: var(--border-radius-md);
+    border: var(--border-width) solid var(--border-color);
+    padding: var(--spacing-lg);
+    align-items: flex-start;
+    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
+}
+.vibe-project-item:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.28);
+    border-color: var(--mint-green-darker);
+}
+
+.vibe-project-thumbnail-wrapper {
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15); /* 섬네일에 은은한 그림자 */
+}
+.vibe-project-thumbnail {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    border: none; /* wrapper에 테두리 있으므로 제거 또는 유지 */
+    transition: transform 0.4s ease-out;
+}
+.vibe-project-item:hover .vibe-project-thumbnail {
+    transform: scale(1.05);
+}
+
+.vibe-project-description {
+    display: flex;
+    flex-direction: column;
+}
+
+.vibe-project-description h4 { /* 프로젝트 제목 (h4 공통 스타일 사용) */
+    margin-bottom: var(--spacing-xs);
+}
+.vibe-project-description .project-title-en {
+    display: block;
+    font-size: 1rem;
+    color: var(--secondary-text);
+    font-weight: 400;
+    font-family: var(--font-body);
+    margin-bottom: var(--spacing-sm);
+    font-style: normal;
+}
+
+.project-last-updated {
+    font-size: 0.8rem;
+    color: var(--secondary-text);
+    font-style: italic;
+    margin-bottom: var(--spacing-md);
+    font-family: var(--font-body);
+    font-weight: 300;
+}
+
+.vibe-project-description .project-concept {
+    font-style: normal;
+    color: var(--light-text);
+    margin-bottom: var(--spacing-md);
+    padding-left: var(--spacing-md);
+    border-left: 3px solid var(--mint-green);
+    font-size: 1.05rem;
+    line-height: 1.65;
+    font-weight: 400; /* 컨셉은 조금 더 강조 */
+}
+
+.vibe-project-description p {
+    color: var(--secondary-text);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.95rem; /* 설명 텍스트 크기 */
+    line-height: 1.7;
+    text-align: justify;
+    hyphens: auto;
+    font-weight: 300;
+}
+.vibe-project-description p strong {
+    color: var(--light-text);
+    font-weight: 500;
+}
+
+.vibe-project-description .button {
+    margin-top: var(--spacing-lg);
+    align-self: flex-start;
+    padding: 0.6rem var(--spacing-lg);
+    font-size: 1rem;
+}
+
+/* --- 기존 카드형 프로젝트 (예: 추후 다른 카테고리용) --- */
 .project-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -345,133 +472,140 @@ h4 { /* Card Title & Modal Title */
     align-items: stretch;
 }
 
-.project-item {
+.project-item { /* 일반 프로젝트 카드 */
     background-color: var(--dark-surface);
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
 }
 .project-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px var(--shadow-color);
+    transform: translateY(-7px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+    border-color: var(--mint-green-darker);
 }
 
-.project-thumbnail {
+.project-thumbnail { /* 일반 카드 섬네일 */
     aspect-ratio: 16 / 9;
     object-fit: cover;
     border-bottom: var(--border-width) solid var(--border-color);
+    transition: transform 0.4s ease-out;
 }
+.project-item:hover .project-thumbnail {
+    transform: scale(1.03);
+}
+
 
 .project-item-content {
     padding: var(--spacing-lg);
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* 유지 */
+    justify-content: space-between;
 }
 
-.project-item-content h4 {
+.project-item-content h4 { /* 일반 카드 제목 (h4 공통 스타일 사용) */
     margin-bottom: var(--spacing-xs);
 }
-.project-title-en {
+.project-item-content .project-title-en {
     display: block;
     font-size: 0.9rem;
     color: var(--secondary-text);
     font-weight: 400;
+    font-family: var(--font-body);
     margin-bottom: var(--spacing-lg);
+    font-style: normal;
 }
-.project-concept {
+.project-item-content .project-concept {
     font-style: normal;
     color: var(--light-text);
     margin-bottom: var(--spacing-lg);
     padding-left: var(--spacing-md);
-    border-left: 4px solid var(--mint-green);
+    border-left: 3px solid var(--mint-green);
     font-size: 1rem;
     line-height: 1.6;
+    font-weight: 400;
 }
 
 .project-item-content p {
     color: var(--secondary-text);
     margin-bottom: var(--spacing-sm);
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.65;
     text-align: justify;
     hyphens: auto;
+    font-weight: 300;
 }
 .project-item-content p strong {
     color: var(--light-text);
-    font-weight: 600;
+    font-weight: 500;
 }
 
-/* .status-note 와 .button 에서 padding-top 제거되었는지 확인 (제공된 코드엔 이미 없음) */
+.project-item-content > .button,
+.project-item-content > .status-note {
+    margin-top: var(--spacing-lg); /* 버튼/상태 노트 위에 여백 */
+}
 .status-note {
     color: var(--mint-green-darker);
-    font-weight: 600;
+    font-weight: 500; /* Pretendard */
+    font-family: var(--font-body);
     font-size: 0.9rem;
     align-self: flex-start;
     position: relative;
     overflow: hidden;
-    z-index: 1;
-    /* margin-top: auto; 제거 또는 유지 -> 아래에서 명시적으로 설정 */
 }
 
+
+/* --- Button (공통 스타일 일부 수정) --- */
 .button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background-color: var(--mint-green);
     color: var(--dark-bg);
-    padding: var(--spacing-sm) var(--spacing-lg); /* 상하 0.5rem 패딩 */
-    border-radius: var(--border-radius-sm);
-    font-weight: 500;
+    padding: 0.65rem var(--spacing-lg); /* 패딩 조정 */
+    border-radius: var(--border-radius-md); /* 둥근 정도 조정 */
+    font-weight: 400; /* Paperlogy */
     font-family: var(--font-heading);
+    font-size: 1rem; /* 폰트 크기 */
     text-align: center;
-    transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
+    transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
     align-self: center;
     cursor: pointer;
     border: none;
-    position: relative; /* Shine 효과 기준점 */
+    position: relative;
     overflow: hidden;
-    z-index: 1;
-    /* margin-top: auto; 제거 또는 유지 -> 아래에서 명시적으로 설정 */
-}
-
-/* --- 버튼과 상태 노트 위에 간격 추가 (MODIFIED) --- */
-/* .project-item-content 바로 아래 있는 .button 과 .status-note 에만 적용 */
-.project-item-content > .button,
-.project-item-content > .status-note {
-    margin-top: var(--spacing-xl); /* 버튼/상태 노트 위에 2rem(32px) 여백 추가. 값을 조정하여 간격 조절 */
 }
 
 .button:hover, .button:focus {
     background-color: var(--mint-green-darker);
     color: var(--dark-bg);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(var(--mint-green-darker), 0.3); /* 호버 시 그림자 */
 }
 
 .button span,
 .hero-link span {
     position: relative;
-    top: 1px;
+    top: 0px; /* 수정됨: 이전 1px에서 0px로 */
     display: inline-block;
 }
+
 
 /* --- AI Art Gallery --- */
 .ai-gallery {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-md);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 반응형으로 더 많은 아이템 */
+    gap: var(--spacing-lg);
 }
 .gallery-item {
     background-color: var(--dark-surface);
     aspect-ratio: 1 / 1;
     overflow: hidden;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-md); /* 둥근 정도 조정 */
     border: var(--border-width) solid var(--border-color);
     transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
     position: relative;
@@ -481,11 +615,11 @@ h4 { /* Card Title & Modal Title */
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform var(--transition-speed) var(--transition-timing), filter var(--transition-speed) var(--transition-timing);
+    transition: transform 0.4s var(--transition-timing), filter 0.3s var(--transition-timing);
 }
 .gallery-item::after {
     content: '+';
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: bold;
     color: white;
     display: flex;
@@ -493,20 +627,21 @@ h4 { /* Card Title & Modal Title */
     justify-content: center;
     position: absolute;
     inset: 0;
-    background-color: var(--overlay-color);
+    background-color: rgba(20, 22, 25, 0.6); /* 오버레이 투명도 조정 */
     opacity: 0;
     transition: opacity var(--transition-speed) var(--transition-timing);
+    border-radius: inherit; /* 부모 radius 상속 */
 }
 .gallery-item:hover, .gallery-item:focus {
-    transform: scale(1.03);
-    box-shadow: 0 0 20px var(--mint-green-transparent);
+    transform: scale(1.04) translateY(-3px); /* 호버 효과 조정 */
+    box-shadow: 0 8px 25px var(--mint-green-transparent);
     border-color: var(--mint-green);
     z-index: 10;
     cursor: pointer;
 }
 .gallery-item:hover img {
-    transform: scale(1.1);
-    filter: brightness(0.9);
+    transform: scale(1.12);
+    filter: brightness(0.85);
 }
 .gallery-item:hover::after {
     opacity: 1;
@@ -519,7 +654,7 @@ h4 { /* Card Title & Modal Title */
 #contact > h2 {
    text-align: center;
 }
-#contact > p:first-of-type {
+#contact > p:first-of-type { /* 연락 섹션 설명 */
     text-align: center;
     hyphens: none;
     max-width: 600px;
@@ -527,11 +662,13 @@ h4 { /* Card Title & Modal Title */
     margin-right: auto;
     margin-bottom: var(--spacing-xl);
     color: var(--secondary-text);
+    font-size: 1.05rem;
+    font-weight: 300;
 }
 .contact-list {
     list-style: none;
     padding: var(--spacing-xl);
-    max-width: 450px;
+    max-width: 480px; /* 너비 조정 */
     margin-left: auto;
     margin-right: auto;
     margin-top: var(--spacing-xl);
@@ -539,27 +676,43 @@ h4 { /* Card Title & Modal Title */
     background-color: var(--dark-surface);
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
 }
 .contact-list li {
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
     font-size: 1.1rem;
+    font-family: var(--font-body);
+    font-weight: 300;
+    display: flex; /* 아이콘과 텍스트 정렬을 위해 flex 사용 */
+    align-items: flex-start; /* 아이콘이 여러 줄 텍스트의 상단에 오도록 */
 }
-.contact-list li:last-child {
-    margin-bottom: 0;
-}
+
 .contact-label {
-    display: inline-block;
-    font-weight: 600;
+    display: inline-flex; /* 내부 아이콘과 텍스트 정렬 */
+    align-items: center; /* 아이콘과 레이블 텍스트 수직 중앙 정렬 */
+    font-weight: 500;
     color: var(--light-text);
     margin-right: var(--spacing-sm);
+    /* white-space: nowrap; /* 레이블이 길어질 경우 줄바꿈 방지 (선택 사항) */
+}
+.contact-icon { /* SVG 아이콘 스타일 */
+    width: 1.2em; 
+    height: 1.2em;
+    margin-right: 0.5em; 
+    vertical-align: -0.15em; 
+    fill: currentColor; 
+    flex-shrink: 0; 
 }
 .contact-list li a {
-    font-weight: 500;
+    font-weight: 400;
     word-break: break-all;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    line-height: 1.5; /* 링크 텍스트가 여러 줄일 경우 줄 간격 */
 }
 .contact-list li a:hover {
-    text-decoration: underline;
+    text-decoration-color: var(--mint-green-darker);
 }
 
 /* ==========================================================================
@@ -567,7 +720,7 @@ h4 { /* Card Title & Modal Title */
    ========================================================================== */
 
 footer {
-    background-color: var(--dark-surface);
+    background-color: var(--dark-bg); /* 배경색 body와 통일 */
     padding: var(--spacing-xl) 0;
     margin-top: var(--spacing-section);
     text-align: center;
@@ -576,6 +729,7 @@ footer {
     border-top: var(--border-width) solid var(--border-color);
     position: relative;
     z-index: 1;
+    font-weight: 300;
 }
 footer p {
     margin-bottom: var(--spacing-xs);
@@ -588,53 +742,102 @@ footer p {
 
 @media (max-width: 1024px) {
     :root {
-        --base-font-size: 15px;
-        --spacing-section: 4rem;
+        --base-font-size: 16px; /* 태블릿 기본 폰트 크기 */
+        --spacing-section: 5rem;
     }
-    h2 { font-size: 2.2rem; }
-    h3 { font-size: 1.6rem; }
-    .hero-headline { font-size: 3rem; }
-    .hero-intro { font-size: 1.15rem; }
-    .ai-gallery { grid-template-columns: repeat(3, 1fr); }
+    h2 { font-size: 2.5rem; }
+    h3 { font-size: 1.8rem; }
+    .hero-headline { font-size: 3.5rem; }
+    .hero-intro { font-size: 1.15rem; max-width: 90%; }
+
+    .vibe-project-item {
+        grid-template-columns: 240px 1fr; /* 태블릿에서 섬네일 크기 조정 */
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md);
+    }
+    .vibe-project-description h4 { font-size: 1.3rem; }
+
+    .ai-gallery {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--spacing-md);
+    }
 }
 
 @media (max-width: 768px) {
     :root {
-        --base-font-size: 14px;
+        --base-font-size: 15px; /* 모바일 기본 폰트 크기 */
+        --container-padding: 1rem;
     }
     #main-header .container {
         flex-direction: column;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-md);
     }
     #main-header nav ul {
         gap: var(--spacing-md);
         flex-wrap: wrap;
         justify-content: center;
     }
+    #main-header nav ul li a { font-size: 1rem; }
+
     #hero {
-        min-height: 60vh;
-        background-attachment: scroll;
+        min-height: 70vh; /* 모바일 히어로 높이 조정 */
+        background-attachment: scroll; /* 모바일에서는 스크롤 */
+        margin-top: -82px; /* 헤더 높이 재조정 필요시 */
+        padding-top: 100px;
     }
-    .hero-headline { font-size: 2.5rem; }
-    .hero-intro { font-size: 1.1rem; max-width: 90%; }
+    .hero-headline { font-size: 2.8rem; }
+    .hero-intro {
+        font-size: 1.1rem;
+        max-width: 90%;
+        text-align: center; /* 모바일에서는 중앙 정렬 */
+    }
 
-    .section { padding-top: var(--spacing-xxl); padding-bottom: var(--spacing-xxl); }
-    h2 { font-size: 2rem; margin-bottom: var(--spacing-xl); }
-    h3 { font-size: 1.5rem; }
+    .section { padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl); }
+    h2 { font-size: 2.2rem; margin-bottom: var(--spacing-xl); }
+    h3 { font-size: 1.6rem; }
 
-    .project-grid { grid-template-columns: 1fr; }
-    .ai-gallery { grid-template-columns: repeat(2, 1fr); }
+    /* 모든 .project-category > p 에 대한 모바일 정렬 */
+    .project-category > p {
+        /* text-align: left; */ /* 모바일에서 왼쪽 정렬을 원하시면 이 주석을 해제하세요. */
+                                 /* 현재는 데스크탑과 동일하게 justify 유지됩니다. */
+        /* hyphens: none;   */   /* 왼쪽 정렬 시 하이픈 불필요 */
+    }
+    #contact > p:first-of-type { text-align: center; } /* 연락처 설명은 중앙 유지 */
 
-    .project-item-content p,
-    .project-category > p:not(:first-of-type),
-    #hero .hero-intro {
+
+    /* Vibe Coding List 모바일 반응형 */
+    .vibe-project-item {
+        grid-template-columns: 1fr; /* 한 줄로 쌓이도록 변경 */
+        gap: var(--spacing-md); /* 요소간 간격 줄임 */
+    }
+    .vibe-project-thumbnail-wrapper {
+        max-width: 100%;
+        margin-bottom: var(--spacing-md);
+    }
+    .vibe-project-description .button {
+        align-self: center;
+        width: auto; /* 너비 자동 */
+        min-width: 180px; /* 최소 너비 */
+        padding: 0.7rem var(--spacing-lg);
+    }
+    .vibe-project-description p,
+    .vibe-project-description .project-concept {
         text-align: left;
         hyphens: none;
+        word-break: keep-all;
     }
-     #contact > p:first-of-type,
-     #hero .hero-intro {
-         text-align: center;
-     }
+    .vibe-project-description h4 { font-size: 1.25rem; }
+    .vibe-project-description .project-title-en { font-size: 0.9rem; }
+    .project-last-updated { font-size: 0.75rem; }
+    .vibe-project-description .project-concept { font-size: 1rem; }
+    .vibe-project-description p { font-size: 0.9rem; }
+
+
+    .project-grid { grid-template-columns: 1fr; } /* 일반 카드도 한 줄 */
+    .ai-gallery {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
 
     .contact-list {
         max-width: 90%;
@@ -643,48 +846,65 @@ footer p {
 }
 
 @media (max-width: 480px) {
-     .hero-headline { font-size: 2rem; }
+     .hero-headline { font-size: 2.2rem; }
      .hero-intro { font-size: 1rem; }
-     .ai-gallery { gap: var(--spacing-sm); }
-     .contact-list li { font-size: 1rem; }
-     .button { width: 80%; }
-     .modal-content { max-width: 90%; }
+
+     h2 { font-size: 1.8rem; }
      h3 { font-size: 1.4rem; }
+     .vibe-project-description h4 { font-size: 1.15rem; }
+
+     .ai-gallery { gap: var(--spacing-sm); }
+     .gallery-item::after { font-size: 1.8rem; }
+
+     .contact-list li { font-size: 1rem; }
+     .button, .hero-link { width: auto; min-width: 70%; padding: 0.6rem var(--spacing-md); font-size: 0.95rem;}
+     .vibe-project-description .button { min-width: auto; width: 80%; }
+     .modal-content { max-width: 90%; padding: var(--spacing-lg); }
+     .modal-content h4 { font-size: 1.3rem; }
 }
 
 /* ==========================================================================
    8. Accessibility & Print
    ========================================================================== */
 
-a:focus, button:focus, .gallery-item:focus {
+a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-visible 사용 */
+    outline: 3px solid var(--mint-green-darker);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px var(--mint-green-transparent);
+}
+#main-header nav ul li a:focus-visible::after { /* focus-visible 사용 */
+    width: 100%;
+}
+/* 키보드 포커스 시 내부 요소에도 스타일 전달 (필요시) */
+.vibe-project-item:focus-within {
     outline: 2px solid var(--mint-green);
     outline-offset: 2px;
     box-shadow: 0 0 0 3px var(--mint-green-transparent);
 }
-#main-header nav ul li a:focus::after {
-    width: 100%;
-}
+
 
 @media print {
     body {
         background-image: none;
         background-color: #fff; color: #000;
+        font-family: serif; /* 인쇄용 폰트 */
     }
-    #main-header, footer, #hero::before, .modal-overlay { display: none; }
+    #main-header, footer, #hero::before, .modal-overlay, .help-icon { display: none !important; }
     #hero { background: none; min-height: auto; padding: 0; margin: 0; }
     main, footer { position: static; z-index: auto; }
-    .section { padding: var(--spacing-xl) 0; }
-    .project-item, .gallery-item { border: 1px solid #ccc; box-shadow: none; }
-    a { color: #000; text-decoration: underline; }
+    .section { padding: var(--spacing-md) 0; }
+    .project-item, .gallery-item, .vibe-project-item { border: 1px solid #ccc !important; box-shadow: none !important; background-color: transparent !important; }
+    a { color: #000 !important; text-decoration: underline !important; }
     .contact-list {
-        background-color: transparent;
-        border: none;
-        box-shadow: none;
-        padding: 0;
-        max-width: none;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        max-width: none !important;
     }
-    .help-icon { display: none; }
     .button span, .hero-link span { top: auto; position: static; }
+    .vibe-project-thumbnail-wrapper { box-shadow: none !important; }
+    img { border-radius: 0 !important; }
 }
 
 /* ==========================================================================
@@ -694,18 +914,19 @@ a:focus, button:focus, .gallery-item:focus {
 /* --- Swiper Customization --- */
 .my-music-swiper {
     position: relative;
-    padding-left: 45px;
-    padding-right: 45px;
-    overflow: hidden;
+    padding-left: 50px; /* 버튼 공간 확보 */
+    padding-right: 50px; /* 버튼 공간 확보 */
+    overflow: hidden; /* 중요: Swiper가 overflow: visible을 강제할 수 있음 */
     margin-top: var(--spacing-xl);
 }
 .swiper-wrapper {
-     align-items: center;
+     align-items: center; /* 수직 중앙 정렬 */
 }
-.music-item {
+.music-item { /* .swiper-slide 에 직접 스타일 적용 가능 */
      flex-shrink: 0;
-     width: auto;
+     width: auto; /* 슬라이드 너비 자동 */
      text-align: center;
+     padding: 0 var(--spacing-sm); /* 슬라이드 간 좌우 패딩 */
 }
 .music-item iframe {
     max-width: 100%;
@@ -714,13 +935,14 @@ a:focus, button:focus, .gallery-item:focus {
     margin-right: auto;
     margin-bottom: var(--spacing-sm);
     border: var(--border-width) solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 4px 10px var(--shadow-color);
+    border-radius: var(--border-radius-md); /* radius 조정 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     aspect-ratio: 16 / 9;
 }
 .music-item p {
     color: var(--light-text);
-    font-weight: 500;
+    font-weight: 400; /* Pretendard */
+    font-family: var(--font-body);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -729,49 +951,90 @@ a:focus, button:focus, .gallery-item:focus {
 }
 .swiper-button-prev,
 .swiper-button-next {
-    width: 44px;
-    height: 44px;
-    margin-top: -22px;
-    transition: opacity 0.3s ease;
+    width: 48px; /* 버튼 크기 조정 */
+    height: 48px; /* 버튼 크기 조정 */
+    margin-top: -24px; /* 중앙 정렬 */
+    transition: opacity 0.3s ease, color 0.3s ease, transform 0.2s ease;
     color: var(--swiper-navigation-color);
+    background-color: rgba(var(--dark-surface), 0.5); /* 버튼 배경 살짝 추가 */
+    border-radius: 50%;
 }
 .swiper-button-prev::after,
 .swiper-button-next::after {
-    font-size: var(--swiper-navigation-size);
+    font-size: calc(var(--swiper-navigation-size) * 0.7); /* 아이콘 크기 조정 */
     font-weight: bold;
 }
-.swiper-button-prev { left: 5px; }
-.swiper-button-next { right: 5px; }
+.swiper-button-prev { left: 0px; } /* 위치 조정 */
+.swiper-button-next { right: 0px; } /* 위치 조정 */
 
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
-    opacity: 0.7;
+    opacity: 1;
     color: var(--mint-green-darker);
+    background-color: rgba(var(--dark-surface), 0.8);
+    transform: scale(1.1);
 }
+.swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 
 @media (max-width: 768px) {
     .music-item {
-         width: clamp(250px, 85%, 400px);
+         width: clamp(280px, 80%, 380px); /* 모바일 슬라이드 너비 조정 */
     }
-}
-@media (max-width: 480px) {
     .my-music-swiper {
-        padding-left: 5px;
-        padding-right: 5px;
+        padding-left: 10px; /* 모바일 버튼 공간 축소 */
+        padding-right: 10px;
     }
     .swiper-button-prev,
     .swiper-button-next {
-         width: 30px;
-         height: 30px;
-         margin-top: -15px;
-         --swiper-navigation-size: 20px;
+         width: 38px;
+         height: 38px;
+         margin-top: -19px;
+         --swiper-navigation-size: 24px;
     }
-     .swiper-button-prev { left: 0; }
-     .swiper-button-next { right: 0; }
+    .swiper-button-prev { left: -5px; }
+    .swiper-button-next { right: -5px; }
 }
 
-/* --- Lightbox Customization (Optional) --- */
-/* ... (이전과 동일) ... */
+
+/* --- Lightbox Customization --- */
+.lb-dataContainer {
+    background-color: var(--dark-surface);
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+}
+.lb-data .lb-details .lb-caption {
+    color: var(--light-text);
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.lb-data .lb-details .lb-number {
+    color: var(--secondary-text);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+.lb-data .lb-close {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+.lb-data .lb-close:hover {
+    opacity: 1;
+}
+.lb-nav a.lb-prev, .lb-nav a.lb-next {
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+.lb-nav a.lb-prev:hover, .lb-nav a.lb-next:hover {
+    opacity: 1;
+}
+.lightboxOverlay {
+    background-color: rgba(20, 22, 25, 0.9); /* 오버레이 더 어둡게 */
+}
+
 
 /* ==========================================================================
    10. Background Decorative Lines (REMOVED)
@@ -787,30 +1050,33 @@ a:focus, button:focus, .gallery-item:focus {
        content: '';
        position: absolute;
        top: -50%;
-       left: -60%;
-       width: 40%;
+       left: -70%; /* 시작 위치 조정 */
+       width: 35%; /* 너비 조정 */
        height: 200%;
        background: linear-gradient(
            to right,
-           rgba(255, 255, 255, 0.05) 0%,
-           rgba(255, 255, 255, 0.4) 50%,
-           rgba(255, 255, 255, 0.05) 100%
+           rgba(255, 255, 255, 0) 0%, /* 시작 투명도 */
+           rgba(255, 255, 255, 0.3) 50%, /* 중간 밝기 조정 */
+           rgba(255, 255, 255, 0) 100% /* 끝 투명도 */
        );
-       transform: rotate(25deg);
-       transition: left 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-       z-index: 2;
+       transform: rotate(20deg); /* 각도 조정 */
+       transition: left 0.9s cubic-bezier(0.23, 1, 0.32, 1); /* 타이밍 함수 변경 */
+       z-index: 0; /* 텍스트 뒤로 가게 수정 (span z-index와 연관) */
        pointer-events: none;
    }
+   .button span, .hero-link span {
+       position: relative;
+       z-index: 1; /* 텍스트가 shine 효과 위로 오도록 */
+   }
+
 
    .button:hover::after,
-   .hero-link:hover::after {
-       left: 120%;
+   .hero-link:hover::after,
+   .button:focus-visible::after, /* focus-visible에도 적용 */
+   .hero-link:focus-visible::after {
+       left: 130%; /* 끝 위치 조정 */
    }
 
-   .button:focus::after,
-   .hero-link:focus::after {
-        left: 120%;
-   }
 
 /* ==========================================================================
    12. Help Icon & Modal Styles
@@ -820,25 +1086,27 @@ a:focus, button:focus, .gallery-item:focus {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.6rem; /* 크기 살짝 키움 */
+    height: 1.6rem;
     background-color: var(--secondary-text);
     color: var(--dark-surface);
     border-radius: 50%;
     border: none;
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: 1.1rem; /* 아이콘 폰트 크기 */
+    font-weight: bold; /* Pretendard */
+    font-family: var(--font-body);
     line-height: 1;
     cursor: pointer;
-    transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
+    transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
     flex-shrink: 0;
     margin-left: var(--spacing-xs);
     padding: 0;
 }
 
-.help-icon:hover, .help-icon:focus {
+.help-icon:hover, .help-icon:focus-visible {
     background-color: var(--mint-green);
-    transform: scale(1.1);
+    color: var(--dark-bg);
+    transform: scale(1.15) rotate(15deg);
 }
 
 .modal-overlay {
@@ -846,46 +1114,54 @@ a:focus, button:focus, .gallery-item:focus {
     inset: 0;
     background-color: var(--overlay-color);
     z-index: var(--z-index-modal);
-    display: flex; /* JS toggles between none and flex */
+    display: none; /* JS toggles between none and flex */
     align-items: center;
     justify-content: center;
     padding: var(--container-padding);
     cursor: pointer;
+    opacity: 0; /* 초기 투명도 0 */
+    transition: opacity 0.3s ease;
 }
+.modal-overlay.visible { /* JS로 추가될 클래스 */
+    display: flex;
+    opacity: 1;
+}
+
 
 .modal-content {
     background-color: var(--dark-surface);
     padding: var(--spacing-xl);
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    max-width: 500px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    max-width: 550px; /* 모달 너비 조정 */
     width: 100%;
     position: relative;
     cursor: default;
     text-align: left;
     opacity: 0;
-    transform: translateY(-20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(-20px) scale(0.95);
+    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s; /* 등장 애니메이션 딜레이 */
 }
 
 .modal-overlay.visible .modal-content {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
-.modal-content h4 {
+.modal-content h4 { /* 모달 제목 (h4 공통 스타일 사용) */
     margin-bottom: var(--spacing-lg);
-    color: var(--mint-green);
+    font-size: 1.6rem; /* 모달 제목 크기 */
 }
 
 .modal-content p {
     color: var(--light-text);
     font-size: 1rem;
-    line-height: 1.7;
+    line-height: 1.75;
     margin-bottom: var(--spacing-md);
     text-align: justify;
     hyphens: auto;
+    font-weight: 300;
 }
 .modal-content p:last-of-type {
     margin-bottom: 0;
@@ -897,25 +1173,27 @@ a:focus, button:focus, .gallery-item:focus {
     right: var(--spacing-md);
     background: none;
     border: none;
-    font-size: 1.8rem;
+    font-size: 2rem; /* 닫기 버튼 크기 */
     color: var(--secondary-text);
     cursor: pointer;
     line-height: 1;
-    padding: 0.25rem;
+    padding: 0.3rem;
     transition: color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
 }
 
-.modal-close:hover, .modal-close:focus {
+.modal-close:hover, .modal-close:focus-visible {
     color: var(--mint-green);
-    transform: scale(1.2);
+    transform: scale(1.25) rotate(90deg);
 }
 
 /* ==========================================================================
-   13. Project Card Button Spacing (ADDED/MODIFIED)
+   13. Project Card Button Spacing (OBSOLETE - 각 항목별로 마진 조정됨)
    ========================================================================== */
-
-/* .project-item-content 바로 아래 있는 .button 과 .status-note 에만 margin-top 추가 */
+/*
 .project-item-content > .button,
 .project-item-content > .status-note {
-    margin-top: var(--spacing-xl); /* 버튼/상태 노트 위에 2rem(32px) 여백 추가. 이 값을 조정하여 간격 조절 (예: 1.5rem, 2.5rem) */
+    margin-top: var(--spacing-xl);
 }
+*/
+/* 이 부분은 각 프로젝트 카드/리스트 내부에서 버튼의 margin-top으로 개별 관리되므로
+   전역적인 스타일은 주석 처리하거나 삭제합니다. */
