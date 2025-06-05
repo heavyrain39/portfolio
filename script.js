@@ -1,4 +1,4 @@
-// script.js (전체 코드 - Lightbox 활성 시 Swiper 키보드 비활성화 로직 추가)
+// script.js (전체 코드 - Lightbox 활성 시 Swiper 키보드 비활성화 로직 추가 + 푸터 연도 업데이트)
 
 // Wait for the DOM to be fully loaded before running scripts
 document.addEventListener('DOMContentLoaded', function () {
@@ -128,5 +128,15 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
         console.warn('Modal elements not found, skipping modal initialization.');
     } // End of modal elements check
+
+
+    // --- Dynamically update footer year (NEW) ---
+    const yearSpan = document.getElementById('current-year');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    } else {
+        console.warn('Footer year span (#current-year) not found.');
+    }
+    // --- End of footer year update ---
 
 }); // End of DOMContentLoaded listener
