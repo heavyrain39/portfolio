@@ -594,6 +594,8 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     display: inline-block;
 }
 
+.button.disabled { background-color: grey; cursor: not-allowed; }
+
 
 /* --- AI Art Gallery --- */
 .ai-gallery {
