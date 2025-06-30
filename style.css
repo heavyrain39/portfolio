@@ -4,15 +4,6 @@
 
 /* --- Font Face --- */
 @font-face {
-    font-family: 'GmarketSansMedium'; /* 기존 폰트 유지 (fallback 또는 다른 용도) */
-    src: url('fonts/GmarketSansMedium.woff2') format('woff2'),
-         url('fonts/GmarketSansMedium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
     font-family: 'Pretendard Variable';
     src: url('fonts/PretendardVariable.woff2') format('woff2-variations');
     font-weight: 100 900; /* 가변 폰트의 모든 굵기 지원 */
@@ -44,7 +35,7 @@
     --shadow-color: rgba(0, 0, 0, 0.2);
 
     /* Typography */
-    --font-heading: 'Paperlogy', 'GmarketSansMedium', sans-serif; /* Paperlogy 우선 적용 */
+    --font-heading: 'Paperlogy', sans-serif; /* Paperlogy 우선 적용, GmarketSansMedium 제거 */
     --font-body: 'Pretendard Variable', sans-serif;
     --base-font-size: 16.5px; /* 기본 폰트 크기 미세 조정 (16px ~ 17px 사이) */
     --line-height-base: 1.75;
@@ -674,39 +665,39 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     margin-left: auto;
     margin-right: auto;
     margin-top: var(--spacing-xl);
-    text-align: left;
     background-color: var(--dark-surface);
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
     box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    display: flex; /* Flexbox 컨테이너로 전환 */
+    flex-direction: column; /* 항목을 세로로 쌓음 */
+    gap: var(--spacing-md); /* 항목 사이의 간격을 일정하게 설정 (margin-bottom 대체) */
 }
 .contact-list li {
-    margin-bottom: var(--spacing-md);
     font-size: 1.1rem;
     font-family: var(--font-body);
     font-weight: 300;
     display: flex; /* 아이콘과 텍스트 정렬을 위해 flex 사용 */
-    align-items: flex-start; /* 아이콘이 여러 줄 텍스트의 상단에 오도록 */
+    align-items: center; /* 세로 중앙 정렬로 변경하여 일관성 확보 */
 }
 
 .contact-label {
-    display: inline-flex; /* 내부 아이콘과 텍스트 정렬 */
-    align-items: center; /* 아이콘과 레이블 텍스트 수직 중앙 정렬 */
     font-weight: 500;
     color: var(--light-text);
     margin-right: var(--spacing-sm);
     /* white-space: nowrap; /* 레이블이 길어질 경우 줄바꿈 방지 (선택 사항) */
 }
 .contact-icon { /* SVG 아이콘 스타일 */
-    width: 1.2em; 
+    vertical-align: middle; /* 텍스트와 아이콘의 세로 정렬을 맞춤 */
+    width: 1.2em;
     height: 1.2em;
     margin-right: 0.5em; 
-    vertical-align: -0.15em; 
     fill: currentColor; 
     flex-shrink: 0; 
 }
 .contact-list li a {
     font-weight: 400;
+    display: inline-block; /* 링크를 블록 요소처럼 다루어 정렬 기준을 명확히 함 */
     word-break: break-all;
     transition: color 0.2s ease, text-decoration-color 0.2s ease;
     text-decoration: underline;
