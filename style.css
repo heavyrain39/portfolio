@@ -289,14 +289,14 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
 }
 .hero-intro {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--light-text);
     margin-bottom: var(--spacing-xl);
     line-height: 1.8;
-    max-width: 480px; /* 최대 너비 조정 */
+    max-width: 410px; /* 최대 너비 조정 */
     margin-left: auto;
     margin-right: auto;
-    text-align: left; /* 기본 좌측 정렬 */
+    text-align: justify; /* 기본 좌측 정렬 */
     hyphens: auto;
     font-weight: 300;
 }
@@ -365,7 +365,7 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     color: var(--secondary-text);
     margin-bottom: var(--spacing-xl);
     max-width: 720px; /* 설명 텍스트 블록의 최대 너비 */
-    font-size: 1.05rem;
+    font-size: 1rem;
     line-height: 1.7;
     margin-left: 0;
     margin-right: 0;
@@ -400,6 +400,15 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     transform: translateY(-7px);
     box-shadow: 0 12px 35px rgba(0,0,0,0.28);
     border-color: var(--mint-green-darker);
+}
+.vibe-project-item.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.vibe-project-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .vibe-project-thumbnail-wrapper {
@@ -679,7 +688,7 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     margin-right: auto;
     margin-bottom: var(--spacing-xl);
     color: var(--secondary-text);
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 300;
 }
 .contact-list {
@@ -698,7 +707,7 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     gap: var(--spacing-md); /* 항목 사이의 간격을 일정하게 설정 (margin-bottom 대체) */
 }
 .contact-list li {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-family: var(--font-body);
     font-weight: 300;
     display: flex; /* 아이콘과 텍스트 정렬을 위해 flex 사용 */
@@ -713,8 +722,8 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
 }
 .contact-icon { /* SVG 아이콘 스타일 */
     vertical-align: middle; /* 텍스트와 아이콘의 세로 정렬을 맞춤 */
-    width: 1.2em;
-    height: 1.2em;
+    width: 1em;
+    height: 1em;
     margin-right: 0.5em; 
     fill: currentColor; 
     flex-shrink: 0; 
