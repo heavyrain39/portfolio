@@ -56,7 +56,7 @@
     --border-width: 1px;
 
     /* Transitions */
-    --transition-speed: 0.3s;
+    --transition-speed: 0.15s;
     --transition-timing: ease-in-out; /* 좀 더 부드러운 타이밍 함수 */
 
     /* Container */
@@ -299,33 +299,6 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     text-align: justify; /* 기본 좌측 정렬 */
     hyphens: auto;
     font-weight: 300;
-}
-.hero-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: var(--spacing-lg);
-    padding: 0.75rem var(--spacing-xl);
-    background-color: var(--mint-green);
-    color: var(--dark-bg);
-    font-family: var(--font-heading);
-    font-weight: 400; /* Paperlogy */
-    font-size: 1.1rem;
-    border-radius: var(--border-radius-md);
-    transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
-    position: relative;
-    overflow: hidden;
-    text-align: center;
-}
-.hero-link span {
-    position: relative;
-    top: 0px; /* 수정됨: 이전 1px에서 0px로 */
-    display: inline-block;
-}
-.hero-link:hover {
-    background-color: var(--mint-green-darker);
-    color: var(--dark-bg);
-    transform: translateY(-3px);
 }
 
 /* Scroll Down Indicator */
@@ -620,125 +593,47 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
 
 .button.disabled { background-color: grey; cursor: not-allowed; }
 
-
-/* --- AI Art Gallery --- */
-.ai-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 반응형으로 더 많은 아이템 */
-    gap: var(--spacing-lg);
-}
-.gallery-item {
-    background-color: var(--dark-surface);
-    aspect-ratio: 1 / 1;
-    overflow: hidden;
-    border-radius: var(--border-radius-md); /* 둥근 정도 조정 */
-    border: var(--border-width) solid var(--border-color);
-    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
-    position: relative;
-}
-.gallery-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.4s var(--transition-timing), filter 0.3s var(--transition-timing);
-}
-.gallery-item::after {
-    content: '+';
-    font-size: 2.2rem;
-    font-weight: bold;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    inset: 0;
-    background-color: rgba(20, 22, 25, 0.6); /* 오버레이 투명도 조정 */
-    opacity: 0;
-    transition: opacity var(--transition-speed) var(--transition-timing);
-    border-radius: inherit; /* 부모 radius 상속 */
-}
-.gallery-item:hover, .gallery-item:focus {
-    transform: scale(1.04) translateY(-3px); /* 호버 효과 조정 */
-    box-shadow: 0 8px 25px var(--mint-green-transparent);
-    border-color: var(--mint-green);
-    z-index: 10;
-    cursor: pointer;
-}
-.gallery-item:hover img {
-    transform: scale(1.12);
-    filter: brightness(0.85);
-}
-.gallery-item:hover::after {
-    opacity: 1;
-}
-
 /* ==========================================================================
-   5. Contact Section (#contact)
+   5. Minimalist Social Links
    ========================================================================== */
 
-#contact > h2 {
-   text-align: center;
-}
-#contact > p:first-of-type { /* 연락 섹션 설명 */
-    text-align: center;
-    hyphens: none;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: var(--spacing-xl);
-    color: var(--secondary-text);
-    font-size: 1rem;
-    font-weight: 300;
-}
-.contact-list {
-    list-style: none;
-    padding: var(--spacing-xl);
-    max-width: 480px; /* 너비 조정 */
-    margin-left: auto;
-    margin-right: auto;
+/* Hero 섹션의 소셜 링크 컨테이너 */
+.hero-social-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl); /* 아이콘 사이 간격 */
     margin-top: var(--spacing-xl);
-    background-color: var(--dark-surface);
-    border-radius: var(--border-radius-md);
-    border: var(--border-width) solid var(--border-color);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-    display: flex; /* Flexbox 컨테이너로 전환 */
-    flex-direction: column; /* 항목을 세로로 쌓음 */
-    gap: var(--spacing-md); /* 항목 사이의 간격을 일정하게 설정 (margin-bottom 대체) */
-}
-.contact-list li {
-    font-size: 1rem;
-    font-family: var(--font-body);
-    font-weight: 300;
-    display: flex; /* 아이콘과 텍스트 정렬을 위해 flex 사용 */
-    align-items: center; /* 세로 중앙 정렬로 변경하여 일관성 확보 */
 }
 
-.contact-label {
-    font-weight: 500;
-    color: var(--light-text);
-    margin-right: var(--spacing-sm);
-    /* white-space: nowrap; /* 레이블이 길어질 경우 줄바꿈 방지 (선택 사항) */
+/* 페이지 하단의 소셜 링크 컨테이너 */
+.social-links-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl); /* 아이콘 사이 간격 */
+    padding-top: var(--spacing-xxl); /* 위쪽 여백 */
+    padding-bottom: var(--spacing-xl); /* 아래쪽 여백 */
 }
-.contact-icon { /* SVG 아이콘 스타일 */
-    vertical-align: middle; /* 텍스트와 아이콘의 세로 정렬을 맞춤 */
+
+/* 개별 소셜 아이콘 링크 스타일 */
+.social-icon-link {
+    display: inline-flex;
+    font-size: 1.8rem; /* 아이콘 크기 */
+    color: var(--secondary-text); /* 기본 색상 (회색) */
+    transition: color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
+}
+
+.social-icon-link:hover,
+.social-icon-link:focus {
+    color: var(--light-text); /* 호버 시 색상 (흰색) */
+    transform: translateY(-3px) scale(1.1); /* 살짝 떠오르는 효과 */
+}
+
+.social-icon-link svg {
     width: 1em;
     height: 1em;
-    margin-right: 0.5em; 
-    fill: currentColor; 
-    flex-shrink: 0; 
-}
-.contact-list li a {
-    font-weight: 400;
-    display: inline-block; /* 링크를 블록 요소처럼 다루어 정렬 기준을 명확히 함 */
-    word-break: break-all;
-    transition: color 0.2s ease, text-decoration-color 0.2s ease;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    line-height: 1.5; /* 링크 텍스트가 여러 줄일 경우 줄 간격 */
-}
-.contact-list li a:hover {
-    text-decoration-color: var(--mint-green-darker);
+    fill: currentColor; /* 링크의 color 값을 상속받음 */
 }
 
 /* ==========================================================================
