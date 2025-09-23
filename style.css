@@ -1,12 +1,12 @@
 /* ==========================================================================
-   style.css (전체 코드 - Paperlogy 폰트 적용, 바이브 코딩 리스트 레이아웃)
+   style.css (전체 코드 - 캡슐형 테마 셀렉터 및 캐러셀 테마 적용)
    ========================================================================== */
 
 /* --- Font Face --- */
 @font-face {
     font-family: 'Pretendard Variable';
     src: url('fonts/PretendardVariable.woff2') format('woff2-variations');
-    font-weight: 100 900; /* 가변 폰트의 모든 굵기 지원 */
+    font-weight: 100 900;
     font-style: normal;
     font-display: swap;
 }
@@ -14,7 +14,7 @@
 @font-face {
     font-family: 'Paperlogy';
     src: url('fonts/Paperlogy-4Regular.woff2') format('woff2');
-    font-weight: 400; /* 폰트 파일이 Regular 굵기이므로 400 */
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
@@ -22,55 +22,70 @@
 
 /* --- CSS Variables --- */
 :root {
-    /* Colors */
-    --mint-green: #64F0C8;
-    --mint-green-darker: #4BCDAA;
-    --mint-green-transparent: rgba(100, 240, 200, 0.1);
-    --dark-bg: #1e2228; /* 약간 더 어둡게 조정 */
-    --dark-surface: #262b33; /* 표면색도 일관성 있게 조정 */
-    --light-text: #e0e0e0; /* 밝은 텍스트 살짝 조정 */
-    --secondary-text: #a8b2c0; /* 보조 텍스트 색상 조정 */
-    --border-color: #3a404d; /* 테두리 색상 조정 */
-    --overlay-color: rgba(20, 22, 25, 0.75);
-    --shadow-color: rgba(0, 0, 0, 0.2);
+    /* Color Themes */
+    --mint-green: #A0D2DB;
+    --mint-green-darker: #7EACB3;
+    --dark-bg: #F8F9FA;
+    --dark-surface: #FFFFFF;
+    --light-text: #343A40;
+    --secondary-text: #6C757D;
+    --border-color: #CED4DA;
+    --button-active-bg: #e9ecef;
+    --overlay-color: rgba(52, 58, 64, 0.75);
+    --shadow-color: rgba(0, 0, 0, 0.05);
 
     /* Typography */
-    --font-heading: 'Paperlogy', sans-serif; /* Paperlogy 우선 적용, GmarketSansMedium 제거 */
+    --font-heading: 'Paperlogy', sans-serif;
     --font-body: 'Pretendard Variable', sans-serif;
-    --base-font-size: 16.5px; /* 기본 폰트 크기 미세 조정 (16px ~ 17px 사이) */
+    --base-font-size: 16.5px;
     --line-height-base: 1.75;
     --line-height-heading: 1.4;
 
     /* Spacing */
-    --spacing-xs: 0.3rem; /* 4.8px */
-    --spacing-sm: 0.6rem;  /* 9.6px */
-    --spacing-md: 1.125rem;  /* 18px */
-    --spacing-lg: 1.75rem;  /* 28px */
-    --spacing-xl: 2.5rem;    /* 40px */
-    --spacing-xxl: 3.75rem;   /* 60px */
-    --spacing-section: 6rem; /* 96px, 섹션 간 여백 증가 */
+    --spacing-xs: 0.3rem;
+    --spacing-sm: 0.6rem;
+    --spacing-md: 1.125rem;
+    --spacing-lg: 1.75rem;
+    --spacing-xl: 2.5rem;
+    --spacing-xxl: 3.75rem;
+    --spacing-section: 6rem;
 
     /* Borders & Radius */
-    --border-radius-sm: 5px; /* 약간 더 둥글게 */
-    --border-radius-md: 10px; /* 약간 더 둥글게 */
+    --border-radius-sm: 5px;
+    --border-radius-md: 10px;
     --border-width: 1px;
 
     /* Transitions */
     --transition-speed: 0.15s;
-    --transition-timing: ease-in-out; /* 좀 더 부드러운 타이밍 함수 */
+    --transition-timing: ease-in-out;
 
     /* Container */
-    --container-width: 1180px; /* 컨테이너 너비 살짝 증가 */
-    --container-padding: 1.25rem; /* 컨테이너 패딩 살짝 증가 */
+    --container-width: 1180px;
+    --container-padding: 1.25rem;
 
     /* Swiper Variables */
-    --swiper-navigation-color: var(--mint-green);
-    --swiper-navigation-size: 32px; /* 아이콘 크기 조정 */
+    --swiper-navigation-color: var(--mint-green-darker);
+    --swiper-navigation-size: 32px;
 
-    /* Modal Z-index */
+    /* Z-index */
     --z-index-header: 1000;
+    --z-index-footer: 1100;
     --z-index-modal: 2000;
 }
+
+body[data-theme="nordic-noir"] {
+    --mint-green: #88C0D0;
+    --mint-green-darker: #70A9BF;
+    --dark-bg: #2E3440;
+    --dark-surface: #3B4252;
+    --light-text: #ECEFF4;
+    --secondary-text: #D8DEE9;
+    --border-color: #4C566A;
+    --button-active-bg: #292E39;
+    --overlay-color: rgba(46, 52, 64, 0.85);
+    --shadow-color: rgba(0, 0, 0, 0.15);
+}
+
 
 /* --- Global Reset & Base Styles --- */
 *,
@@ -92,11 +107,13 @@ body {
     background-color: var(--dark-bg);
     color: var(--light-text);
     font-family: var(--font-body);
-    font-weight: 300; /* Pretendard 기본 굵기를 약간 가늘게 */
+    font-weight: 300;
     line-height: var(--line-height-base);
     overflow-x: hidden;
     position: relative;
-    letter-spacing: -0.01em; /* 미세한 자간 조정 */
+    letter-spacing: -0.01em;
+    padding-bottom: 60px; /* 고정 푸터 높이만큼 공간 확보 */
+    transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
 }
 
 main {
@@ -122,7 +139,7 @@ img, iframe {
     max-width: 100%;
     height: auto;
     display: block;
-    border-radius: var(--border-radius-sm); /* 이미지에도 기본 radius 적용 */
+    border-radius: var(--border-radius-sm);
 }
 
 a {
@@ -143,11 +160,10 @@ p {
 
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 400; /* Paperlogy가 Regular이므로 400으로 설정 */
+    font-weight: 400;
     line-height: var(--line-height-heading);
     color: var(--light-text);
     margin-bottom: var(--spacing-md);
-    /* letter-spacing: 0.01em; /* 제목 자간 살짝 넓힘 (Paperlogy 폰트 특성에 따라 조절) */
 }
 
 h2 { /* Section Title */
@@ -184,8 +200,8 @@ h3 { /* Category Title */
      margin-top: 0;
 }
 
-h4 { /* Card Title & Modal Title & Vibe Project Title */
-    font-size: 1.5rem; /* 일관성 있게 조정 */
+h4 {
+    font-size: 1.5rem;
     color: var(--mint-green);
     margin-bottom: var(--spacing-xs);
 }
@@ -195,14 +211,13 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
    ========================================================================== */
 
 #main-header {
-    background-color: rgba(38, 43, 51, 0.85); /* 헤더 배경 투명도 살짝 추가 */
-    backdrop-filter: blur(10px); /* 블러 효과 (지원 브라우저) */
+    background-color: var(--dark-surface);
     padding: var(--spacing-md) 0;
     position: sticky;
     top: 0;
     z-index: var(--z-index-header);
-    box-shadow: 0 2px 15px rgba(0,0,0,0.2); /* 그림자 강화 */
-    transition: background-color var(--transition-speed) var(--transition-timing);
+    border-bottom: var(--border-width) solid var(--border-color);
+    transition: background-color var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
 }
 #main-header .container {
     display: flex;
@@ -211,10 +226,9 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
 }
 #main-header .logo a {
     font-family: var(--font-heading);
-    font-size: 1.7rem; /* 로고 크기 조정 */
-    font-weight: 400; /* Paperlogy */
+    font-size: 1.7rem;
+    font-weight: 400;
     color: var(--light-text);
-    transition: color var(--transition-speed) var(--transition-timing);
 }
 #main-header .logo a:hover {
     color: var(--mint-green);
@@ -225,21 +239,20 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     gap: var(--spacing-lg);
 }
 #main-header nav ul li a {
-    color: var(--secondary-text); /* 기본 네비 링크 색상 변경 */
-    font-weight: 400; /* Pretendard */
+    color: var(--secondary-text);
+    font-weight: 400;
     font-family: var(--font-body);
-    font-size: 1.05rem; /* 네비 링크 폰트 크기 */
+    font-size: 1.05rem;
     padding: var(--spacing-sm) 0;
     position: relative;
     letter-spacing: 0.03em;
-    transition: color var(--transition-speed) var(--transition-timing);
 }
 #main-header nav ul li a::after {
     content: '';
     position: absolute;
     width: 0;
     height: 2px;
-    bottom: -2px; /* 밑줄 위치 살짝 내림 */
+    bottom: -2px;
     left: 0;
     background-color: var(--mint-green);
     transition: width var(--transition-speed) var(--transition-timing);
@@ -258,47 +271,46 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
    ========================================================================== */
 
 #hero {
-    background: url('images/hero-background.jpg') no-repeat center center/cover;
-    min-height: 100vh;
+    min-height: 85vh;
     display: flex;
-    align-items: flex-end; /* 내용물을 하단으로 */
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    position: relative;
     text-align: center;
-    padding-top: 120px; /* 헤더 높이 고려 */
-    padding-bottom: var(--spacing-xxl); /* 하단 패딩 증가 */
-    margin-top: -86.5px; /* 헤더 높이만큼 당김 (padding + font-size 고려, 실제값 확인 필요) */
-    background-attachment: fixed; /* 고정 배경 유지 */
+    padding: var(--spacing-xl) var(--container-padding);
+    background-color: var(--dark-bg);
 }
-#hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgba(20, 22, 25, 0.2) 0%, rgba(20, 22, 25, 0.75) 100%);
-    z-index: 1;
-}
+
 .hero-content {
+    max-width: 700px;
+    width: 100%;
     position: relative;
-    z-index: 2;
-    max-width: 700px; /* 컨텐츠 너비 조정 */
 }
+
 .hero-headline {
-    font-size: 4rem; /* Paperlogy에 맞춰 조정 */
-    color: #ffffff;
+    font-size: 4rem;
+    color: var(--light-text);
     margin-bottom: var(--spacing-md);
-    text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
 }
 .hero-intro {
-    font-size: 1rem;
-    color: var(--light-text);
+    font-size: 1.1rem;
+    color: var(--secondary-text);
     margin-bottom: var(--spacing-xl);
     line-height: 1.8;
-    max-width: 410px; /* 최대 너비 조정 */
+    max-width: 450px;
     margin-left: auto;
     margin-right: auto;
-    text-align: justify; /* 기본 좌측 정렬 */
-    hyphens: auto;
     font-weight: 300;
+    text-align: justify;
+    hyphens: auto;
+}
+
+.hero-social-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xxl);
 }
 
 /* Scroll Down Indicator */
@@ -310,9 +322,9 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 9px solid rgba(255, 255, 255, 0.7);
+    border-top: 9px solid var(--secondary-text);
     cursor: pointer;
-    animation: breathe-indicator 1s ease-in-out infinite;
+    animation: breathe-indicator 1.2s ease-in-out infinite;
     transition: border-top-color var(--transition-speed) var(--transition-timing);
 }
 .scroll-down-indicator:hover {
@@ -321,7 +333,7 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
 }
 @keyframes breathe-indicator {
     0%, 100% { transform: translateY(0); opacity: 0.7; }
-    50% { transform: translateY(5px); opacity: 1; }
+    50% { transform: translateY(6px); opacity: 1; }
 }
 
 
@@ -330,76 +342,54 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
    ========================================================================== */
 
 .project-category {
-    margin-bottom: 5rem; /* 카테고리 간 여백 증가 */
+    margin-bottom: 5rem;
 }
 
-/* 카테고리 설명 텍스트 (모든 .project-category > p 에 적용) */
 .project-category > p {
     color: var(--secondary-text);
     margin-bottom: var(--spacing-xl);
-    max-width: 720px; /* 설명 텍스트 블록의 최대 너비 */
+    max-width: 720px;
     font-size: 1rem;
     line-height: 1.7;
-    margin-left: 0;
-    margin-right: 0;
-    text-align: justify;   /* MODIFIED: 텍스트 양쪽 정렬 */
-    hyphens: auto;         /* ADDED: 영어 등에서 단어 내 하이픈 자동 추가 */
-    word-break: keep-all;  /* ADDED: 한국어의 경우 단어 단위 줄바꿈 유지 */
+    text-align: justify;
+    hyphens: auto;
+    word-break: keep-all;
     font-weight: 300;
 }
 
-/* .project-category.align-left > p 규칙은 삭제 (모든 p가 justify되므로) */
-
-
-/* --- Vibe Coding Project List Layout (New) --- */
+/* --- Vibe Coding Project List Layout --- */
 .vibe-coding-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xl); /* 아이템 간 간격 */
+    gap: var(--spacing-xl);
 }
 
 .vibe-project-item {
     display: grid;
-    grid-template-columns: 300px 1fr; /* 섬네일 너비, 설명 영역 */
+    grid-template-columns: 300px 1fr;
     gap: var(--spacing-xl);
     background-color: var(--dark-surface);
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
     padding: var(--spacing-lg);
     align-items: flex-start;
-    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
+    transition: border-color var(--transition-speed) var(--transition-timing), background-color var(--transition-speed) var(--transition-timing);
 }
 .vibe-project-item:hover {
-    transform: translateY(-7px);
-    box-shadow: 0 12px 35px rgba(0,0,0,0.28);
     border-color: var(--mint-green-darker);
-}
-.vibe-project-item.reveal-on-scroll {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-.vibe-project-item.is-visible {
-    opacity: 1;
-    transform: translateY(0);
 }
 
 .vibe-project-thumbnail-wrapper {
     border-radius: var(--border-radius-sm);
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15); /* 섬네일에 은은한 그림자 */
 }
 .vibe-project-thumbnail {
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 1;
     object-fit: cover;
     display: block;
-    border: none; /* wrapper에 테두리 있으므로 제거 또는 유지 */
-    transition: transform 0.4s ease-out;
-}
-.vibe-project-item:hover .vibe-project-thumbnail {
-    transform: scale(1.05);
+    border: none;
 }
 
 .vibe-project-description {
@@ -407,7 +397,7 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     flex-direction: column;
 }
 
-.vibe-project-description h4 { /* 프로젝트 제목 (h4 공통 스타일 사용) */
+.vibe-project-description h4 {
     margin-bottom: var(--spacing-xs);
 }
 .vibe-project-description .project-title-en {
@@ -437,13 +427,13 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     border-left: 3px solid var(--mint-green);
     font-size: 1.05rem;
     line-height: 1.65;
-    font-weight: 400; /* 컨셉은 조금 더 강조 */
+    font-weight: 400;
 }
 
 .vibe-project-description p {
     color: var(--secondary-text);
     margin-bottom: var(--spacing-sm);
-    font-size: 0.95rem; /* 설명 텍스트 크기 */
+    font-size: 0.95rem;
     line-height: 1.7;
     text-align: justify;
     hyphens: auto;
@@ -461,179 +451,60 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
     font-size: 1rem;
 }
 
-/* --- 기존 카드형 프로젝트 (예: 추후 다른 카테고리용) --- */
-.project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: var(--spacing-xl);
-    align-items: stretch;
-}
 
-.project-item { /* 일반 프로젝트 카드 */
-    background-color: var(--dark-surface);
-    border-radius: var(--border-radius-md);
-    border: var(--border-width) solid var(--border-color);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-.project-item:hover {
-    transform: translateY(-7px);
-    box-shadow: 0 12px 35px rgba(0,0,0,0.25);
-    border-color: var(--mint-green-darker);
-}
-
-.project-thumbnail { /* 일반 카드 섬네일 */
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    border-bottom: var(--border-width) solid var(--border-color);
-    transition: transform 0.4s ease-out;
-}
-.project-item:hover .project-thumbnail {
-    transform: scale(1.03);
-}
-
-
-.project-item-content {
-    padding: var(--spacing-lg);
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.project-item-content h4 { /* 일반 카드 제목 (h4 공통 스타일 사용) */
-    margin-bottom: var(--spacing-xs);
-}
-.project-item-content .project-title-en {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--secondary-text);
-    font-weight: 400;
-    font-family: var(--font-body);
-    margin-bottom: var(--spacing-lg);
-    font-style: normal;
-}
-.project-item-content .project-concept {
-    font-style: normal;
-    color: var(--light-text);
-    margin-bottom: var(--spacing-lg);
-    padding-left: var(--spacing-md);
-    border-left: 3px solid var(--mint-green);
-    font-size: 1rem;
-    line-height: 1.6;
-    font-weight: 400;
-}
-
-.project-item-content p {
-    color: var(--secondary-text);
-    margin-bottom: var(--spacing-sm);
-    font-size: 0.9rem;
-    line-height: 1.65;
-    text-align: justify;
-    hyphens: auto;
-    font-weight: 300;
-}
-.project-item-content p strong {
-    color: var(--light-text);
-    font-weight: 500;
-}
-
-.project-item-content > .button,
-.project-item-content > .status-note {
-    margin-top: var(--spacing-lg); /* 버튼/상태 노트 위에 여백 */
-}
-.status-note {
-    color: var(--mint-green-darker);
-    font-weight: 500; /* Pretendard */
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    align-self: flex-start;
-    position: relative;
-    overflow: hidden;
-}
-
-
-/* --- Button (공통 스타일 일부 수정) --- */
+/* --- Button --- */
 .button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--mint-green);
-    color: var(--dark-bg);
-    padding: 0.65rem var(--spacing-lg); /* 패딩 조정 */
-    border-radius: var(--border-radius-md); /* 둥근 정도 조정 */
-    font-weight: 400; /* Paperlogy */
+    background-color: transparent;
+    color: var(--mint-green-darker);
+    padding: 0.65rem var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    font-weight: 400;
     font-family: var(--font-heading);
-    font-size: 1rem; /* 폰트 크기 */
+    font-size: 1rem;
     text-align: center;
-    transition: background-color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
-    align-self: center;
+    border: var(--border-width) solid var(--mint-green);
     cursor: pointer;
-    border: none;
-    position: relative;
-    overflow: hidden;
+    transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
 }
 
 .button:hover, .button:focus {
-    background-color: var(--mint-green-darker);
+    background-color: var(--mint-green);
+    color: var(--dark-surface);
+}
+body[data-theme="aetherial-light"] .button:hover {
     color: var(--dark-bg);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 12px rgba(var(--mint-green-darker), 0.3); /* 호버 시 그림자 */
 }
 
-.button span,
-.hero-link span {
-    position: relative;
-    top: 0px; /* 수정됨: 이전 1px에서 0px로 */
-    display: inline-block;
-}
 
-.button.disabled { background-color: grey; cursor: not-allowed; }
+.button.disabled {
+    background-color: transparent;
+    color: var(--secondary-text);
+    border-color: var(--border-color);
+    cursor: not-allowed;
+}
 
 /* ==========================================================================
-   5. Minimalist Social Links
+   5. Social Links
    ========================================================================== */
-
-/* Hero 섹션의 소셜 링크 컨테이너 */
-.hero-social-links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--spacing-xl); /* 아이콘 사이 간격 */
-    margin-top: var(--spacing-xl);
-}
-
-/* 페이지 하단의 소셜 링크 컨테이너 */
-.social-links-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--spacing-xl); /* 아이콘 사이 간격 */
-    padding-top: var(--spacing-xxl); /* 위쪽 여백 */
-    padding-bottom: var(--spacing-xl); /* 아래쪽 여백 */
-}
-
-/* 개별 소셜 아이콘 링크 스타일 */
 .social-icon-link {
     display: inline-flex;
-    font-size: 1.8rem; /* 아이콘 크기 */
-    color: var(--secondary-text); /* 기본 색상 (회색) */
-    transition: color var(--transition-speed) var(--transition-timing), transform var(--transition-speed) var(--transition-timing);
+    font-size: 1.8rem;
+    color: var(--secondary-text);
+    transition: color var(--transition-speed) var(--transition-timing);
 }
 
 .social-icon-link:hover,
 .social-icon-link:focus {
-    color: var(--light-text); /* 호버 시 색상 (흰색) */
-    transform: translateY(-3px) scale(1.1); /* 살짝 떠오르는 효과 */
+    color: var(--light-text);
 }
 
 .social-icon-link svg {
     width: 1em;
     height: 1em;
-    fill: currentColor; /* 링크의 color 값을 상속받음 */
+    fill: currentColor;
 }
 
 /* ==========================================================================
@@ -641,21 +512,77 @@ h4 { /* Card Title & Modal Title & Vibe Project Title */
    ========================================================================== */
 
 footer {
-    background-color: var(--dark-bg); /* 배경색 body와 통일 */
-    padding: var(--spacing-xl) 0;
-    margin-top: var(--spacing-section);
+    background-color: var(--dark-surface);
+    padding: var(--spacing-sm) 0;
     text-align: center;
     color: var(--secondary-text);
     font-size: 0.9rem;
     border-top: var(--border-width) solid var(--border-color);
-    position: relative;
-    z-index: 1;
     font-weight: 300;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: var(--z-index-footer);
+    transition: background-color var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
 }
-footer p {
-    margin-bottom: var(--spacing-xs);
-    text-align: center;
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px; /* 푸터 높이 고정 */
 }
+footer p.copyright {
+    margin-bottom: 0;
+    text-align: left;
+}
+
+
+/* --- Theme Selector (Manual Page Style Applied) --- */
+.theme-selector {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--dark-surface);
+    transition: background-color var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
+}
+
+.theme-btn {
+    height: 38px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 15px;
+    transition: background-color 0.2s;
+}
+.theme-btn:first-child { 
+    border-right: 1px solid var(--border-color); 
+    transition: border-color var(--transition-speed) var(--transition-timing);
+}
+.theme-btn.active { 
+    background-color: var(--button-active-bg); 
+}
+.theme-btn:not(.active):hover { 
+    background-color: color-mix(in srgb, var(--dark-surface) 80%, var(--mint-green) 20%); 
+}
+.theme-btn .color-patch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    transition: background-color var(--transition-speed) var(--transition-timing), border-color var(--transition-speed) var(--transition-timing);
+}
+.theme-btn[data-theme="aetherial-light"] .color-patch {
+    background-color: #F8F9FA;
+}
+.theme-btn[data-theme="nordic-noir"] .color-patch {
+    background-color: #2E3440;
+}
+
 
 /* ==========================================================================
    7. Responsive Styles
@@ -663,123 +590,84 @@ footer p {
 
 @media (max-width: 1024px) {
     :root {
-        --base-font-size: 16px; /* 태블릿 기본 폰트 크기 */
+        --base-font-size: 16px;
         --spacing-section: 5rem;
     }
     h2 { font-size: 2.5rem; }
     h3 { font-size: 1.8rem; }
     .hero-headline { font-size: 3.5rem; }
-    .hero-intro { font-size: 1.15rem; max-width: 90%; }
 
     .vibe-project-item {
-        grid-template-columns: 240px 1fr; /* 태블릿에서 섬네일 크기 조정 */
+        grid-template-columns: 240px 1fr;
         gap: var(--spacing-lg);
         padding: var(--spacing-md);
     }
     .vibe-project-description h4 { font-size: 1.3rem; }
-
-    .ai-gallery {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: var(--spacing-md);
-    }
 }
 
 @media (max-width: 768px) {
     :root {
-        --base-font-size: 15px; /* 모바일 기본 폰트 크기 */
+        --base-font-size: 15px;
         --container-padding: 1rem;
     }
+    body {
+        padding-bottom: 80px; /* 모바일 푸터 높이 고려 */
+    }
+
     #main-header .container {
         flex-direction: column;
         gap: var(--spacing-md);
     }
     #main-header nav ul {
         gap: var(--spacing-md);
-        flex-wrap: wrap;
         justify-content: center;
     }
-    #main-header nav ul li a { font-size: 1rem; }
 
     #hero {
-        min-height: 70vh; /* 모바일 히어로 높이 조정 */
-        background-attachment: scroll; /* 모바일에서는 스크롤 */
-        margin-top: -82px; /* 헤더 높이 재조정 필요시 */
-        padding-top: 100px;
+        min-height: 70vh;
     }
     .hero-headline { font-size: 2.8rem; }
     .hero-intro {
-        font-size: 1.1rem;
-        max-width: 90%;
-        text-align: center; /* 모바일에서는 중앙 정렬 */
+        text-align: center;
+        hyphens: none;
     }
 
     .section { padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl); }
     h2 { font-size: 2.2rem; margin-bottom: var(--spacing-xl); }
     h3 { font-size: 1.6rem; }
 
-    /* 모든 .project-category > p 에 대한 모바일 정렬 */
-    .project-category > p {
-        /* text-align: left; */ /* 모바일에서 왼쪽 정렬을 원하시면 이 주석을 해제하세요. */
-                                 /* 현재는 데스크탑과 동일하게 justify 유지됩니다. */
-        /* hyphens: none;   */   /* 왼쪽 정렬 시 하이픈 불필요 */
-    }
-    #contact > p:first-of-type { text-align: center; } /* 연락처 설명은 중앙 유지 */
-
-
-    /* Vibe Coding List 모바일 반응형 */
     .vibe-project-item {
-        grid-template-columns: 1fr; /* 한 줄로 쌓이도록 변경 */
-        gap: var(--spacing-md); /* 요소간 간격 줄임 */
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
     }
     .vibe-project-thumbnail-wrapper {
-        max-width: 100%;
         margin-bottom: var(--spacing-md);
     }
     .vibe-project-description .button {
         align-self: center;
-        width: auto; /* 너비 자동 */
-        min-width: 180px; /* 최소 너비 */
+        width: auto;
+        min-width: 180px;
         padding: 0.7rem var(--spacing-lg);
     }
     .vibe-project-description p,
     .vibe-project-description .project-concept {
         text-align: left;
-        hyphens: none;
-        word-break: keep-all;
     }
-    .vibe-project-description h4 { font-size: 1.25rem; }
-    .vibe-project-description .project-title-en { font-size: 0.9rem; }
-    .project-last-updated { font-size: 0.75rem; }
-    .vibe-project-description .project-concept { font-size: 1rem; }
-    .vibe-project-description p { font-size: 0.9rem; }
 
-
-    .project-grid { grid-template-columns: 1fr; } /* 일반 카드도 한 줄 */
-    .ai-gallery {
-        grid-template-columns: repeat(2, 1fr);
+    footer .container {
+        flex-direction: column;
+        height: auto;
         gap: var(--spacing-sm);
-    }
-
-    .contact-list {
-        max-width: 90%;
-        padding: var(--spacing-lg);
+        padding-top: var(--spacing-sm);
+        padding-bottom: var(--spacing-sm);
     }
 }
 
 @media (max-width: 480px) {
      .hero-headline { font-size: 2.2rem; }
-     .hero-intro { font-size: 1rem; }
-
      h2 { font-size: 1.8rem; }
      h3 { font-size: 1.4rem; }
      .vibe-project-description h4 { font-size: 1.15rem; }
-
-     .ai-gallery { gap: var(--spacing-sm); }
-     .gallery-item::after { font-size: 1.8rem; }
-
-     .contact-list li { font-size: 1rem; }
-     .button, .hero-link { width: auto; min-width: 70%; padding: 0.6rem var(--spacing-md); font-size: 0.95rem;}
-     .vibe-project-description .button { min-width: auto; width: 80%; }
      .modal-content { max-width: 90%; padding: var(--spacing-lg); }
      .modal-content h4 { font-size: 1.3rem; }
 }
@@ -788,111 +676,95 @@ footer p {
    8. Accessibility & Print
    ========================================================================== */
 
-a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-visible 사용 */
+a:focus-visible, button:focus-visible {
     outline: 3px solid var(--mint-green-darker);
     outline-offset: 3px;
-    box-shadow: 0 0 0 4px var(--mint-green-transparent);
 }
-#main-header nav ul li a:focus-visible::after { /* focus-visible 사용 */
+#main-header nav ul li a:focus-visible::after {
     width: 100%;
 }
-/* 키보드 포커스 시 내부 요소에도 스타일 전달 (필요시) */
 .vibe-project-item:focus-within {
     outline: 2px solid var(--mint-green);
     outline-offset: 2px;
-    box-shadow: 0 0 0 3px var(--mint-green-transparent);
 }
 
 
 @media print {
     body {
-        background-image: none;
         background-color: #fff; color: #000;
-        font-family: serif; /* 인쇄용 폰트 */
+        font-family: serif;
+        padding-bottom: 0;
     }
-    #main-header, footer, #hero::before, .modal-overlay, .help-icon { display: none !important; }
-    #hero { background: none; min-height: auto; padding: 0; margin: 0; }
-    main, footer { position: static; z-index: auto; }
+    #main-header, footer, .modal-overlay, .help-icon { display: none !important; }
+    #hero { min-height: auto; padding: 0; margin: 0; }
+    main { position: static; }
     .section { padding: var(--spacing-md) 0; }
-    .project-item, .gallery-item, .vibe-project-item { border: 1px solid #ccc !important; box-shadow: none !important; background-color: transparent !important; }
+    .vibe-project-item { border: 1px solid #ccc !important; background-color: transparent !important; }
     a { color: #000 !important; text-decoration: underline !important; }
-    .contact-list {
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        max-width: none !important;
-    }
-    .button span, .hero-link span { top: auto; position: static; }
-    .vibe-project-thumbnail-wrapper { box-shadow: none !important; }
-    img { border-radius: 0 !important; }
 }
 
 /* ==========================================================================
    9. Library Customizations (Swiper, Lightbox)
    ========================================================================== */
 
-/* --- Swiper Customization --- */
+/* --- Swiper Customization (REVISED FOR THEMING) --- */
 .my-music-swiper {
     position: relative;
-    padding-left: 50px; /* 버튼 공간 확보 */
-    padding-right: 50px; /* 버튼 공간 확보 */
-    overflow: hidden; /* 중요: Swiper가 overflow: visible을 강제할 수 있음 */
+    padding-left: 50px;
+    padding-right: 50px;
+    overflow: hidden;
     margin-top: var(--spacing-xl);
 }
 .swiper-wrapper {
-     align-items: center; /* 수직 중앙 정렬 */
+     align-items: center;
 }
-.music-item { /* .swiper-slide 에 직접 스타일 적용 가능 */
+.music-item {
      flex-shrink: 0;
-     width: auto; /* 슬라이드 너비 자동 */
+     width: auto;
      text-align: center;
-     padding: 0 var(--spacing-sm); /* 슬라이드 간 좌우 패딩 */
+     padding: 0 var(--spacing-sm);
 }
 .music-item iframe {
     max-width: 100%;
     display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: var(--spacing-sm);
+    margin: 0 auto var(--spacing-sm);
     border: var(--border-width) solid var(--border-color);
-    border-radius: var(--border-radius-md); /* radius 조정 */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 5px 15px var(--shadow-color);
     aspect-ratio: 16 / 9;
+    transition: border-color var(--transition-speed) var(--transition-timing);
 }
 .music-item p {
     color: var(--light-text);
-    font-weight: 400; /* Pretendard */
+    font-weight: 400;
     font-family: var(--font-body);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-size: 0.9rem;
     margin-top: var(--spacing-sm);
+    transition: color var(--transition-speed) var(--transition-timing);
 }
 .swiper-button-prev,
 .swiper-button-next {
-    width: 48px; /* 버튼 크기 조정 */
-    height: 48px; /* 버튼 크기 조정 */
-    margin-top: -24px; /* 중앙 정렬 */
-    transition: opacity 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    width: 48px;
+    height: 48px;
+    margin-top: -24px;
+    transition: opacity 0.3s ease, color 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
     color: var(--swiper-navigation-color);
-    background-color: rgba(var(--dark-surface), 0.5); /* 버튼 배경 살짝 추가 */
+    background-color: color-mix(in srgb, transparent, var(--button-active-bg) 70%);
     border-radius: 50%;
 }
 .swiper-button-prev::after,
 .swiper-button-next::after {
-    font-size: calc(var(--swiper-navigation-size) * 0.7); /* 아이콘 크기 조정 */
+    font-size: calc(var(--swiper-navigation-size) * 0.7);
     font-weight: bold;
 }
-.swiper-button-prev { left: 0px; } /* 위치 조정 */
-.swiper-button-next { right: 0px; } /* 위치 조정 */
+.swiper-button-prev { left: 0px; }
+.swiper-button-next { right: 0px; }
 
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
     opacity: 1;
-    color: var(--mint-green-darker);
-    background-color: rgba(var(--dark-surface), 0.8);
+    color: var(--mint-green);
+    background-color: var(--button-active-bg);
     transform: scale(1.1);
 }
 .swiper-button-disabled {
@@ -902,19 +774,9 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
 
 
 @media (max-width: 768px) {
-    .music-item {
-         width: clamp(280px, 80%, 380px); /* 모바일 슬라이드 너비 조정 */
-    }
-    .my-music-swiper {
-        padding-left: 10px; /* 모바일 버튼 공간 축소 */
-        padding-right: 10px;
-    }
-    .swiper-button-prev,
-    .swiper-button-next {
-         width: 38px;
-         height: 38px;
-         margin-top: -19px;
-         --swiper-navigation-size: 24px;
+    .my-music-swiper { padding-left: 10px; padding-right: 10px; }
+    .swiper-button-prev, .swiper-button-next {
+         width: 38px; height: 38px; margin-top: -19px; --swiper-navigation-size: 24px;
     }
     .swiper-button-prev { left: -5px; }
     .swiper-button-next { right: -5px; }
@@ -929,55 +791,31 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
 .lb-data .lb-details .lb-caption {
     color: var(--light-text);
     font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 0.95rem;
-    line-height: 1.5;
 }
 .lb-data .lb-details .lb-number {
     color: var(--secondary-text);
     font-family: var(--font-body);
-    font-size: 0.85rem;
-}
-.lb-data .lb-close {
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-}
-.lb-data .lb-close:hover {
-    opacity: 1;
-}
-.lb-nav a.lb-prev, .lb-nav a.lb-next {
-    opacity: 0.5;
-    transition: opacity 0.2s ease;
-}
-.lb-nav a.lb-prev:hover, .lb-nav a.lb-next:hover {
-    opacity: 1;
 }
 .lightboxOverlay {
-    background-color: rgba(20, 22, 25, 0.9); /* 오버레이 더 어둡게 */
+    background-color: var(--overlay-color);
 }
 
-
 /* ==========================================================================
-   10. Background Decorative Lines (REMOVED)
-   ========================================================================== */
-/* This section is intentionally left empty as the effect was removed. */
-
-/* ==========================================================================
-   12. Help Icon & Modal Styles
+   10. Help Icon & Modal Styles
    ========================================================================== */
 
 .help-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.6rem; /* 크기 살짝 키움 */
+    width: 1.6rem;
     height: 1.6rem;
     background-color: var(--secondary-text);
     color: var(--dark-surface);
     border-radius: 50%;
     border: none;
-    font-size: 1.1rem; /* 아이콘 폰트 크기 */
-    font-weight: bold; /* Pretendard */
+    font-size: 1.1rem;
+    font-weight: bold;
     font-family: var(--font-body);
     line-height: 1;
     cursor: pointer;
@@ -986,11 +824,14 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
     margin-left: var(--spacing-xs);
     padding: 0;
 }
+body[data-theme="aetherial-light"] .help-icon {
+    color: var(--dark-bg);
+}
 
 .help-icon:hover, .help-icon:focus-visible {
     background-color: var(--mint-green);
     color: var(--dark-bg);
-    transform: scale(1.15) rotate(15deg);
+    transform: scale(1.1);
 }
 
 .modal-overlay {
@@ -998,15 +839,15 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
     inset: 0;
     background-color: var(--overlay-color);
     z-index: var(--z-index-modal);
-    display: none; /* JS toggles between none and flex */
+    display: none;
     align-items: center;
     justify-content: center;
     padding: var(--container-padding);
     cursor: pointer;
-    opacity: 0; /* 초기 투명도 0 */
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
-.modal-overlay.visible { /* JS로 추가될 클래스 */
+.modal-overlay.visible {
     display: flex;
     opacity: 1;
 }
@@ -1017,15 +858,15 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
     padding: var(--spacing-xl);
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--border-color);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-    max-width: 550px; /* 모달 너비 조정 */
+    box-shadow: 0 12px 40px var(--shadow-color);
+    max-width: 550px;
     width: 100%;
     position: relative;
     cursor: default;
     text-align: left;
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
-    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s; /* 등장 애니메이션 딜레이 */
+    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
 }
 
 .modal-overlay.visible .modal-content {
@@ -1033,9 +874,9 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
     transform: translateY(0) scale(1);
 }
 
-.modal-content h4 { /* 모달 제목 (h4 공통 스타일 사용) */
+.modal-content h4 {
     margin-bottom: var(--spacing-lg);
-    font-size: 1.6rem; /* 모달 제목 크기 */
+    font-size: 1.6rem;
 }
 
 .modal-content p {
@@ -1057,7 +898,7 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
     right: var(--spacing-md);
     background: none;
     border: none;
-    font-size: 2rem; /* 닫기 버튼 크기 */
+    font-size: 2rem;
     color: var(--secondary-text);
     cursor: pointer;
     line-height: 1;
@@ -1067,17 +908,5 @@ a:focus-visible, button:focus-visible, .gallery-item:focus-visible { /* focus-vi
 
 .modal-close:hover, .modal-close:focus-visible {
     color: var(--mint-green);
-    transform: scale(1.25) rotate(90deg);
+    transform: rotate(90deg);
 }
-
-/* ==========================================================================
-   13. Project Card Button Spacing (OBSOLETE - 각 항목별로 마진 조정됨)
-   ========================================================================== */
-/*
-.project-item-content > .button,
-.project-item-content > .status-note {
-    margin-top: var(--spacing-xl);
-}
-*/
-/* 이 부분은 각 프로젝트 카드/리스트 내부에서 버튼의 margin-top으로 개별 관리되므로
-   전역적인 스타일은 주석 처리하거나 삭제합니다. */

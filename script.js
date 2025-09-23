@@ -1,6 +1,5 @@
-// script.js (전체 코드 - Lightbox 활성 시 Swiper 키보드 비활성화 로직 추가 + 푸터 연도 업데이트)
+// script.js (전체 코드 - 테마 셀렉터 기능 추가)
 
-// Wait for the DOM to be fully loaded before running scripts
 document.addEventListener('DOMContentLoaded', function () {
 
     let musicSwiper = null; // Swiper 인스턴스를 저장할 변수
@@ -8,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Initialize Swiper for the music section ---
     const swiperContainer = document.querySelector('.my-music-swiper');
     if (swiperContainer) {
-        musicSwiper = new Swiper('.my-music-swiper', { // 변수에 할당
+        musicSwiper = new Swiper('.my-music-swiper', {
             loop: true,
             slidesPerView: 1,
             spaceBetween: 20,
@@ -20,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
             },
-            keyboard: { // 키보드 기본 설정은 활성화
+            keyboard: {
                 enabled: true,
                 onlyInViewport: false,
             },
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             }
         });
-    } // End of Swiper initialization check
+    }
 
 
     // --- Initialize Lightbox2 ---
@@ -54,43 +53,28 @@ document.addEventListener('DOMContentLoaded', function () {
           'imageFadeDuration': 300,
           'wrapAround': true,
           'showImageNumberLabel': true,
-          'disableScrolling': true // Lightbox 열렸을 때 배경 스크롤 막기
+          'disableScrolling': true
         });
 
-        // --- Logic to disable Swiper keyboard when Lightbox is open (NEW) ---
-        if (musicSwiper && musicSwiper.keyboard) { // Swiper 인스턴스와 keyboard 모듈 확인
+        if (musicSwiper && musicSwiper.keyboard) {
             const body = document.body;
-            const lightboxClass = 'lb-disable-scrolling'; // Lightbox가 body에 추가하는 클래스
+            const lightboxClass = 'lb-disable-scrolling';
 
-            // MutationObserver 콜백 함수: body 클래스 변경 감지
             const observerCallback = function(mutationsList, observer) {
                 for(let mutation of mutationsList) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         if (body.classList.contains(lightboxClass)) {
-                            // Lightbox가 열림 -> Swiper 키보드 비활성화
                             musicSwiper.keyboard.disable();
-                            // console.log('Lightbox opened, Swiper keyboard disabled.'); // 디버깅용
                         } else {
-                            // Lightbox가 닫힘 -> Swiper 키보드 활성화
                             musicSwiper.keyboard.enable();
-                            // console.log('Lightbox closed, Swiper keyboard enabled.'); // 디버깅용
                         }
                     }
                 }
             };
-
-            // MutationObserver 인스턴스 생성
             const observer = new MutationObserver(observerCallback);
-
-            // body 요소의 attribute(클래스 포함) 변경 감시 시작
             observer.observe(body, { attributes: true });
-
-            // 페이지를 떠날 때 observer 연결 해제 (선택 사항, 일반적으로 필요 X)
-            // window.addEventListener('unload', () => observer.disconnect());
         }
-        // --- End of Swiper keyboard control logic ---
-
-    } // End of Lightbox initialization check
+    }
 
 
     // --- Vibe Coding Modal Logic ---
@@ -127,16 +111,48 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     } else {
         console.warn('Modal elements not found, skipping modal initialization.');
-    } // End of modal elements check
+    }
 
 
-    // --- Dynamically update footer year (NEW) ---
+    // --- Dynamically update footer year ---
     const yearSpan = document.getElementById('current-year');
     if (yearSpan) {
         yearSpan.textContent = new Date().getFullYear();
     } else {
         console.warn('Footer year span (#current-year) not found.');
     }
-    // --- End of footer year update ---
+    
 
-}); // End of DOMContentLoaded listener
+    // --- Theme Selector Logic (NEW) ---
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    
+    function setActiveTheme(themeName) {
+        // body의 data-theme 속성을 변경합니다.
+        document.body.setAttribute('data-theme', themeName);
+
+        // 모든 버튼에서 'active' 클래스를 제거하고, 선택된 버튼에만 추가합니다.
+        themeButtons.forEach(btn => {
+            if (btn.dataset.theme === themeName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // 사용자의 테마 선택을 localStorage에 저장합니다.
+        localStorage.setItem('yakshawan-portfolio-theme', themeName);
+    }
+
+    // 각 테마 버튼에 클릭 이벤트를 추가합니다.
+    themeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedTheme = button.dataset.theme;
+            setActiveTheme(selectedTheme);
+        });
+    });
+
+    // 페이지 로드 시, localStorage에 저장된 테마가 있는지 확인하고 적용합니다.
+    const savedTheme = localStorage.getItem('yakshawan-portfolio-theme') || 'aetherial-light'; // 저장된 테마가 없으면 라이트 테마를 기본으로 사용
+    setActiveTheme(savedTheme);
+
+});
