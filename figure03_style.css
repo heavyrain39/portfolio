@@ -1,4 +1,4 @@
-/* DAEDALUS CSS REFACTOR - v3.4 FINAL (html2canvas 호환성 수정) */
+/* DAEDALUS CSS REFACTOR - v3.5 FINAL (html2canvas calc() 호환성 수정) */
 /* 원칙: 일관성, 위계, 리듬, 의미와 디자인의 분리 */
 
 /* --- 0. 폰트 및 기본 설정 --- */
@@ -14,8 +14,7 @@
 }
 
 :root {
-    /* [수정] 폰트 변수 제거 */
-    --base-spacing: 1rem; /* 16px */
+    --base-spacing: 1rem; /* 16px. 이 변수는 calc()와 함께 쓰이지 않는 곳에서만 참조용으로 사용 */
 }
 
 /* --- THEME COLORS --- */
@@ -37,9 +36,8 @@ body[data-theme="nordic-noir"] {
 
 /* --- 1. 전역 스타일 및 레이아웃 --- */
 body {
-    font-family: 'Pretendard', sans-serif; /* [수정] 폰트 직접 지정 */
-    line-height: 1.75; background-color: var(--color-bg);
-    color: var(--color-text); margin: 0; padding: calc(var(--base-spacing) * 2) var(--base-spacing);
+    font-family: 'Pretendard', sans-serif; line-height: 1.75; background-color: var(--color-bg);
+    color: var(--color-text); margin: 0; padding: 2rem 1rem; /* calc() 제거 */
     display: flex; flex-direction: column; align-items: center;
     transition: background-color 0.2s, color 0.2s;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
@@ -47,52 +45,52 @@ body {
 .container {
     max-width: 800px; width: 95%; margin: 0 auto; background-color: var(--color-surface);
     border: 1px solid var(--color-border); border-radius: 8px;
-    padding: calc(var(--base-spacing) * 3); box-sizing: border-box;
+    padding: 3rem; box-sizing: border-box; /* calc() 제거 */
     transition: background-color 0.2s, border-color 0.2s;
 }
 @media (max-width: 768px) {
-    .container { padding: calc(var(--base-spacing) * 2) calc(var(--base-spacing) * 1.5); }
+    .container { padding: 2rem 1.5rem; } /* calc() 제거 */
 }
 
 /* --- 2. 타이포그래피 위계 및 리듬감 있는 간격 --- */
 p, ul, ol, pre, blockquote, .table-container {
-    margin: 0 0 var(--base-spacing);
+    margin: 0 0 1rem; /* calc() 제거 */
 }
-h1 { font-family: 'Paperlogy', 'Pretendard', sans-serif; font-size: 2.8rem; font-weight: normal; text-align: center; margin: 0 0 calc(var(--base-spacing) * 2); }
-h2 { font-family: 'Paperlogy', 'Pretendard', sans-serif; font-size: 2rem; font-weight: normal; margin: calc(var(--base-spacing) * 3) 0 calc(var(--base-spacing) * 1.5) 0; padding-bottom: calc(var(--base-spacing) * 0.5); border-bottom: 1px solid var(--color-border); }
-h3 { font-family: 'Paperlogy', 'Pretendard', sans-serif; font-size: 1.6rem; font-weight: normal; margin: calc(var(--base-spacing) * 2.5) 0 var(--base-spacing) 0; }
-h4 { font-family: 'Pretendard', sans-serif; font-size: 1.2rem; font-weight: 600; margin: 0 0 calc(var(--base-spacing) * 0.75) 0; }
-h5 { font-family: 'Pretendard', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--color-text-secondary); margin: 0 0 calc(var(--base-spacing) * 0.5) 0; }
+h1 { font-family: 'Paperlogy', 'Pretendard', sans-serif; font-size: 2.8rem; font-weight: normal; text-align: center; margin: 0 0 2rem; }
+h2 { font-family: 'Paperlogy', 'Pretendard', sans-serif; font-size: 2rem; font-weight: normal; margin: 3rem 0 1.5rem 0; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+h3 { font-family: 'Paperlogy', 'Pretendard', sans-serif; font-size: 1.6rem; font-weight: normal; margin: 2.5rem 0 1rem 0; }
+h4 { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.75rem 0; }
+h5 { font-size: 1.1rem; font-weight: 600; color: var(--color-text-secondary); margin: 0 0 0.5rem 0; }
 
 p { text-align: justify; }
-ul, ol { padding-left: calc(var(--base-spacing) * 1.5); }
-li { margin-bottom: calc(var(--base-spacing) * 0.5); }
+ul, ol { padding-left: 1.5rem; } /* calc() 제거 */
+li { margin-bottom: 0.5rem; } /* calc() 제거 */
 strong { font-weight: 600; color: var(--color-accent); }
 em, i { font-style: italic; }
-hr { border: 0; border-top: 1px solid var(--color-border); margin: calc(var(--base-spacing) * 3) 0; }
+hr { border: 0; border-top: 1px solid var(--color-border); margin: 3rem 0; } /* calc() 제거 */
 
 /* --- 3. 컴포넌트 기반 디자인 --- */
 /* 3.1 컨트롤 버튼 */
-.controls-wrapper { display: flex; justify-content: space-between; align-items: center; max-width: 800px; width: 95%; margin-bottom: var(--base-spacing); }
-.theme-switcher button, #save-btn { font-family: 'Pretendard', sans-serif; background-color: var(--color-surface); color: var(--color-text-secondary); border: 1px solid var(--color-border); padding: 8px 15px; font-size: 14px; border-radius: 5px; cursor: pointer; }
+.controls-wrapper { display: flex; justify-content: space-between; align-items: center; max-width: 800px; width: 95%; margin-bottom: 1rem; }
+.theme-switcher button, #save-btn { background-color: var(--color-surface); color: var(--color-text-secondary); border: 1px solid var(--color-border); padding: 8px 15px; font-size: 14px; border-radius: 5px; cursor: pointer; }
 .theme-switcher button.active { background-color: var(--color-accent); color: var(--color-surface); border-color: var(--color-accent); font-weight: 600; }
 #save-btn { background-color: var(--color-accent); color: var(--color-surface); font-weight: 600; }
 
 /* 3.2 메타 쿼리 블록 */
-.meta-query { background-color: var(--color-card-bg); font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 0.9em; color: var(--color-text-secondary); padding: var(--base-spacing); border-radius: 4px; margin-bottom: calc(var(--base-spacing) * 2); }
+.meta-query { background-color: var(--color-card-bg); font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 0.9em; color: var(--color-text-secondary); padding: 1rem; border-radius: 4px; margin-bottom: 2rem; }
 .meta-query > :last-child { margin-bottom: 0; }
 
 /* 3.3 Passage 블록 구조 */
-.passage-block { margin-top: calc(var(--base-spacing) * 2.5); }
-.critical-lens { background-color: var(--color-card-bg); border: 1px solid var(--color-border); border-left: 3px solid var(--color-accent); padding: var(--base-spacing); border-radius: 4px; margin-bottom: calc(var(--base-spacing) * 1.5); }
-.constructive-expansion { border-left: 3px solid var(--color-border); padding-left: var(--base-spacing); }
-.lens-title, .expansion-title { font-family: 'Pretendard', sans-serif; font-size: 1.1em; font-weight: 600; display: block; margin: 0 0 calc(var(--base-spacing) * 0.5) 0; }
+.passage-block { margin-top: 2.5rem; }
+.critical-lens { background-color: var(--color-card-bg); border: 1px solid var(--color-border); border-left: 3px solid var(--color-accent); padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; }
+.constructive-expansion { border-left: 3px solid var(--color-border); padding-left: 1rem; }
+.lens-title, .expansion-title { font-size: 1.1em; font-weight: 600; display: block; margin: 0 0 0.5rem 0; }
 
 /* 3.4 강조/핵심 블록 (Essence) */
-.essence { background-color: var(--color-card-bg); font-style: italic; color: var(--color-text-secondary); padding: var(--base-spacing); border-radius: 4px; margin-top: calc(var(--base-spacing) * 1.5); }
+.essence { background-color: var(--color-card-bg); font-style: italic; color: var(--color-text-secondary); padding: 1rem; border-radius: 4px; margin-top: 1.5rem; }
 
 /* 3.5 코드 및 Pre 블록 */
-pre { background-color: var(--color-card-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: var(--base-spacing); line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+pre { background-color: var(--color-card-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: 1rem; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
 pre, p > code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 0.9em; }
 pre code { background: none; border: none; padding: 0; font-size: 1em; }
 p > code { background-color: var(--color-card-bg); border-radius: 3px; padding: 0.2em 0.4em; }
@@ -101,14 +99,14 @@ pre.plain-text-pre { font-family: 'Pretendard', sans-serif; font-size: 1em; text
 /* 3.6 테이블 */
 .table-container { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
-th, td { border: 1px solid var(--color-border); padding: calc(var(--base-spacing) * 0.75); text-align: left; }
-th { font-family: 'Pretendard', sans-serif; font-weight: 600; background-color: var(--color-card-bg); }
+th, td { border: 1px solid var(--color-border); padding: 0.75rem; text-align: left; }
+th { font-weight: 600; background-color: var(--color-card-bg); }
 
 /* 3.7 최종 인용구 (Final Quote) */
-.final-quote { text-align: center; margin-top: calc(var(--base-spacing) * 3); padding: calc(var(--base-spacing) * 1.5) 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.final-quote { text-align: center; margin-top: 3rem; padding: 1.5rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
 .final-quote p { margin: 0; font-size: 1.2rem; }
-.final-quote p:first-child { font-family: 'Pretendard', sans-serif; font-size: 1rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: calc(var(--base-spacing) * 0.75); }
+.final-quote p:first-child { font-size: 1rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
 .final-quote strong { color: inherit; }
 
 /* --- 4. 의미와 디자인의 분리 (클래스 기반 스타일링) --- */
-.subheading { display: block; font-family: 'Pretendard', sans-serif; font-weight: 600; color: var(--color-text); margin: 0 0 calc(var(--base-spacing) * 0.5) 0; }
+.subheading { display: block; font-weight: 600; color: var(--color-text); margin: 0 0 0.5rem 0; }

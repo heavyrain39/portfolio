@@ -26,33 +26,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // '이미지로 저장하기' 버튼 클릭 이벤트 처리
     saveButton.addEventListener('click', () => {
-        saveButton.innerText = '이미지 생성 중...';
+        // 1. 버튼을 비활성화하고 사용자에게 현재 상태를 알림
+        saveButton.innerText = '폰트 로딩 중...';
         saveButton.disabled = true;
 
-        // html2canvas를 사용하여 지정된 영역을 캡처
-        html2canvas(captureArea, {
-            scale: 2, // 고해상도 출력을 위해 2배율로 캡처
-            useCORS: true,
-            // 현재 테마의 배경색을 캡처 이미지의 배경으로 사용
-            backgroundColor: getComputedStyle(body).getPropertyValue('--color-background')
-        }).then(canvas => {
-            // 캡처된 캔버스를 PNG 이미지 URL로 변환
-            const imageURL = canvas.toDataURL('image/png');
-            
-            // 다운로드 링크를 동적으로 생성하여 클릭
-            const downloadLink = document.createElement('a');
-            downloadLink.href = imageURL;
-            downloadLink.download = 'Figure03_경제_영향_분석.png';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-            
-            saveButton.innerText = '이 분석 내용 이미지로 저장하기';
-            saveButton.disabled = false;
-        }).catch(err => {
-            console.error("Image capture failed:", err);
-            alert("이미지 생성에 실패했습니다. 콘솔을 확인해주세요.");
-            saveButton.innerText = '오류 발생! 다시 시도하세요.';
+        // 2. [핵심 해결책] 브라우저의 모든 폰트가 준비될 때까지 기다리는 Promise
+        document.fonts.ready.then(() => {
+            // 3. 폰트가 준비되면, 다시 한번 상태를 알림
+            saveButton.innerText = '이미지 생성 중...';
+
+            // 4. 이제 안전하게 html2canvas 실행
+            html2canvas(captureArea, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: getComputedStyle(body).getPropertyValue('--color-bg') // 배경색을 body에서 가져오도록 수정
+            }).then(canvas => {
+                const imageURL = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageURL;
+                downloadLink.download = 'Figure03_경제_영향_분석.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }).catch(err => {
+                // html2canvas 자체에서 에러가 발생한 경우
+                console.error("Image capture failed:", err);
+                alert("이미지 생성에 실패했습니다. 콘솔을 확인해주세요.");
+            }).finally(() => {
+                // 5. 성공하든 실패하든, 작업이 끝나면 버튼을 원래 상태로 복구
+                saveButton.innerText = '이 분석 내용 이미지로 저장하기';
+                saveButton.disabled = false;
+            });
+
+        }).catch(fontErr => {
+            // 폰트 로딩 자체에서 에러가 발생한 경우 (예: 폰트 파일 경로 오류 등)
+            console.error("Font loading failed:", fontErr);
+            alert("폰트 로딩에 실패하여 이미지를 생성할 수 없습니다. 폰트 파일 경로를 확인해주세요.");
+            saveButton.innerText = '폰트 로딩 실패! 다시 시도하세요.';
             saveButton.disabled = false;
         });
     });
