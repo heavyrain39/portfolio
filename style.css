@@ -2,7 +2,21 @@
    style.css (전체 코드 - 캡슐형 테마 셀렉터 및 캐러셀 테마 적용)
    ========================================================================== */
 
+/* --- Font Face --- */
+@font-face {
+    font-family: 'Pretendard Variable';
+    src: url('fonts/PretendardVariable.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
 
+@font-face {
+    font-family: 'Paperlogy';
+    src: url('fonts/Paperlogy-4Regular.woff2') format('woff2');
+    /* 폰트 파일이 하나뿐일 때는, 브라우저가 유연하게 사용하도록 font-weight와 font-style을 지정하지 않는 것이 가장 안전합니다. */
+    font-display: swap;
+}
 
 
 /* --- CSS Variables --- */
