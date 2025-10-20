@@ -123,14 +123,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
 
-    // --- Theme Selector Logic (NEW) ---
+    // --- Theme Selector Logic ---
     const themeButtons = document.querySelectorAll('.theme-btn');
     
     function setActiveTheme(themeName) {
-        // body의 data-theme 속성을 변경합니다.
         document.body.setAttribute('data-theme', themeName);
-
-        // 모든 버튼에서 'active' 클래스를 제거하고, 선택된 버튼에만 추가합니다.
         themeButtons.forEach(btn => {
             if (btn.dataset.theme === themeName) {
                 btn.classList.add('active');
@@ -138,12 +135,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.classList.remove('active');
             }
         });
-
-        // 사용자의 테마 선택을 localStorage에 저장합니다.
         localStorage.setItem('yakshawan-portfolio-theme', themeName);
     }
 
-    // 각 테마 버튼에 클릭 이벤트를 추가합니다.
     themeButtons.forEach(button => {
         button.addEventListener('click', () => {
             const selectedTheme = button.dataset.theme;
@@ -151,8 +145,202 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 페이지 로드 시, localStorage에 저장된 테마가 있는지 확인하고 적용합니다.
-    const savedTheme = localStorage.getItem('yakshawan-portfolio-theme') || 'aetherial-light'; // 저장된 테마가 없으면 라이트 테마를 기본으로 사용
+    const savedTheme = localStorage.getItem('yakshawan-portfolio-theme') || 'aetherial-light';
     setActiveTheme(savedTheme);
+
+
+    // ==========================================================================
+    // --- Hero Section Interactive Background ---
+    // ==========================================================================
+    const heroSection = document.getElementById('hero');
+    const canvas = document.getElementById('hero-canvas');
+
+    if (!heroSection || !canvas) {
+        console.warn('Hero section or canvas not found, skipping background animation.');
+    } else {
+        const context = canvas.getContext('2d');
+    
+        const parameters = {
+            size: 35,
+            radius: 1.2,
+            proximity: 130,
+            growth: 45,
+            ease: 0.08,
+        };
+
+        let circles = [];
+        let imageLoaded = false;
+        const image = new Image();
+        
+        class Point {
+            constructor(x, y) { this.x = x; this.y = y; }
+        }
+
+        class Circle {
+            constructor(radius, x, y) {
+                this._radius = radius;
+                this.radius = radius;
+                this.growthValue = 0;
+                this.position = new Point(x, y);
+            }
+
+            draw(context, ease) {
+                this.radius += ((this._radius + this.growthValue) - this.radius) * ease;
+                context.moveTo(this.position.x, this.position.y);
+                context.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+            }
+
+            addRadius(value) { this.growthValue = value; }
+        }
+        
+        function buildGrid() {
+            circles = [];
+            const { size, radius } = parameters;
+            const columns = Math.ceil(canvas.width / size) + 1;
+            const rows = Math.ceil(canvas.height / size) + 1;
+            const amount = Math.ceil(columns * rows);
+
+            for (let i = 0; i < amount; i++) {
+                const column = i % columns;
+                const row = ~~(i / columns);
+                circles.push(new Circle(radius, size * column, size * row));
+            }
+        }
+
+        function mouseMoveHandler(event) {
+            const { proximity, growth } = parameters;
+            const rect = heroSection.getBoundingClientRect();
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+
+            // 마우스가 Hero 섹션 안에 있을 때만 상호작용
+            const isMouseInHero = (
+                mouseX >= rect.left &&
+                mouseX <= rect.right &&
+                mouseY >= rect.top &&
+                mouseY <= rect.bottom
+            );
+
+            if (isMouseInHero) {
+                for (let c of circles) {
+                    const distance = Math.sqrt(Math.pow(c.position.x - mouseX, 2) + Math.pow(c.position.y - mouseY, 2));
+                    let d = ((proximity - distance) / proximity) * growth;
+                    if (d < 0) d = 0;
+                    c.addRadius(d);
+                }
+            } else {
+                for (let c of circles) {
+                    c.addRadius(0);
+                }
+            }
+        }
+        
+        function drawImage() {
+            context.clip();
+            const { naturalWidth, naturalHeight } = image;
+            const ratio = Math.max(canvas.width / naturalWidth, canvas.height / naturalHeight);
+            const w = naturalWidth * ratio;
+            const h = naturalHeight * ratio;
+            const x = canvas.width / 2 - w / 2;
+            const y = canvas.height / 2 - h / 2;
+            context.drawImage(image, 0, 0, naturalWidth, naturalHeight, x, y, w, h);
+        }
+
+        function drawGridLines(context, themeColors) {
+            context.beginPath();
+            context.strokeStyle = themeColors.gridColor;
+            context.lineWidth = 0.5;
+            const { size } = parameters;
+            const columns = Math.ceil(canvas.width / size);
+            const rows = Math.ceil(canvas.height / size);
+
+            for(let i = 0; i <= columns; i++) {
+                context.moveTo(i * size, 0);
+                context.lineTo(i * size, canvas.height);
+            }
+            for(let j = 0; j <= rows; j++) {
+                context.moveTo(0, j * size);
+                context.lineTo(canvas.width, j * size);
+            }
+            context.stroke();
+        }
+
+        function animate() {
+            const computedStyle = getComputedStyle(document.body);
+            const themeColors = {
+                pointColor: computedStyle.getPropertyValue('--secondary-text').trim(),
+                gridColor: computedStyle.getPropertyValue('--border-color').trim(),
+            };
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // [핵심 수정] 그리기 영역을 Hero 섹션으로 제한 (Clipping)
+            const rect = heroSection.getBoundingClientRect();
+            // 화면 밖에 완전히 나갔으면 그리지 않음 (성능 최적화)
+            if (rect.bottom < 0 || rect.top > canvas.height) {
+                 requestAnimationFrame(animate);
+                 return;
+            }
+
+            context.save();
+            context.beginPath();
+            // 현재 Hero 섹션의 위치와 크기만큼만 그리기 영역으로 설정
+            context.rect(rect.left, rect.top, rect.width, rect.height);
+            context.clip();
+
+            // --- 이 아래로는 원래 그리기 로직과 동일 ---
+            drawGridLines(context, themeColors);
+            
+            context.save();
+            context.beginPath();
+            for (let circle of circles) {
+                circle.draw(context, parameters.ease);
+            }
+            
+            if (imageLoaded) {
+                drawImage();
+            } else {
+                context.fillStyle = themeColors.pointColor;
+                context.fill();
+            }
+            context.restore(); // 점 그리기 restore
+            context.restore(); // Clipping 영역 restore
+
+            requestAnimationFrame(animate);
+        }
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            buildGrid();
+        }
+        
+        image.onload = () => { imageLoaded = true; };
+        image.src = "images/hero_background.jpg";
+
+        resizeCanvas();
+        animate();
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', mouseMoveHandler);
+        window.addEventListener('touchmove', (e) => mouseMoveHandler(e.touches[0]), { passive: true });
+    }
+
+
+    // ==========================================================================
+    // --- Hero Section Height Adjustment ---
+    // ==========================================================================
+    function adjustHeroHeight() {
+        const header = document.getElementById('main-header');
+        const hero = document.getElementById('hero');
+        
+        if (header && hero) {
+            const headerHeight = header.offsetHeight;
+            hero.style.minHeight = `calc(100vh - ${headerHeight}px)`;
+        }
+    }
+
+    adjustHeroHeight();
+    window.addEventListener('resize', adjustHeroHeight);
 
 });

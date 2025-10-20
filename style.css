@@ -32,6 +32,7 @@
     --button-active-bg: #e9ecef;
     --overlay-color: rgba(52, 58, 64, 0.75);
     --shadow-color: rgba(0, 0, 0, 0.05);
+    --hero-card-bg: rgba(255, 255, 255, 0.7);
 
     /* Typography */
     --font-heading: 'Paperlogy', sans-serif;
@@ -83,6 +84,7 @@ body[data-theme="nordic-noir"] {
     --button-active-bg: #292E39;
     --overlay-color: rgba(46, 52, 64, 0.85);
     --shadow-color: rgba(0, 0, 0, 0.15);
+    --hero-card-bg: rgba(59, 66, 82, 0.6);
 }
 
 
@@ -132,6 +134,10 @@ main {
 .section {
     padding-top: var(--spacing-section);
     padding-bottom: var(--spacing-section);
+    background-color: var(--dark-bg);
+    position: relative;
+    z-index: 1;
+    transition: background-color var(--transition-speed) var(--transition-timing);
 }
 
 img, iframe {
@@ -270,20 +276,46 @@ h4 {
    ========================================================================== */
 
 #hero {
-    min-height: 85vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: var(--spacing-xl) var(--container-padding);
-    background-color: var(--dark-bg);
+    background-color: transparent;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* --- Hero Canvas Background --- */
+#hero-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .hero-content {
     max-width: 700px;
     width: 100%;
     position: relative;
+    z-index: 2;
+}
+
+/* --- Hero Card --- */
+.hero-card {
+    background-color: var(--hero-card-bg);
+    padding: var(--spacing-xxl) var(--spacing-xl);
+    border-radius: var(--border-radius-md);
+    border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+    box-shadow: 0 10px 30px var(--shadow-color);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 }
 
 .hero-headline {
@@ -397,16 +429,43 @@ h4 {
 }
 
 .vibe-project-description h4 {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: 0;
 }
-.vibe-project-description .project-title-en {
-    display: block;
-    font-size: 1rem;
-    color: var(--secondary-text);
+
+/* --- Project Title Hover Effect (NEW) --- */
+.project-title-wrapper {
+    position: relative;
+    margin-bottom: var(--spacing-xs);
+    display: inline-block;
+}
+
+.project-title-wrapper h4 {
+    transition: opacity var(--transition-speed) var(--transition-timing);
+    opacity: 1;
+}
+
+.project-title-wrapper .project-title-en {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--mint-green);
     font-weight: 400;
-    font-family: var(--font-body);
-    margin-bottom: var(--spacing-sm);
-    font-style: normal;
+    line-height: var(--line-height-heading);
+    opacity: 0;
+    transition: opacity var(--transition-speed) var(--transition-timing);
+    pointer-events: none;
+}
+
+.project-title-wrapper:hover h4 {
+    opacity: 0;
+}
+
+.project-title-wrapper:hover .project-title-en {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .project-last-updated {
@@ -601,7 +660,8 @@ footer p.copyright {
         gap: var(--spacing-lg);
         padding: var(--spacing-md);
     }
-    .vibe-project-description h4 { font-size: 1.3rem; }
+    .vibe-project-description h4,
+    .project-title-wrapper .project-title-en { font-size: 1.3rem; }
 }
 
 @media (max-width: 768px) {
@@ -624,6 +684,9 @@ footer p.copyright {
 
     #hero {
         min-height: 70vh;
+    }
+    .hero-card {
+        padding: var(--spacing-xl) var(--spacing-lg);
     }
     .hero-headline { font-size: 2.8rem; }
     .hero-intro {
@@ -666,7 +729,9 @@ footer p.copyright {
      .hero-headline { font-size: 2.2rem; }
      h2 { font-size: 1.8rem; }
      h3 { font-size: 1.4rem; }
-     .vibe-project-description h4 { font-size: 1.15rem; }
+     .hero-card { padding: var(--spacing-lg); }
+     .vibe-project-description h4,
+     .project-title-wrapper .project-title-en { font-size: 1.15rem; }
      .modal-content { max-width: 90%; padding: var(--spacing-lg); }
      .modal-content h4 { font-size: 1.3rem; }
 }

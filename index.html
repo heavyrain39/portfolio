@@ -34,28 +34,31 @@
     <main>
         <!-- ====== Hero Section ====== -->
         <section id="hero">
+            <canvas id="hero-canvas"></canvas>
             <div class="hero-content container">
-                <h1 class="hero-headline">야차완 | 夜叉腕</h1>
-                <p class="hero-intro">
-                    안녕하세요. 이곳은 작가, 바이브 코더, 기획자, 트위터리안인 야차완의 포트폴리오 웹페이지입니다.
-                    재미있게 둘러보고 가시면 좋겠습니다. 😙<a href="#projects" class="scroll-down-indicator" aria-label="Scroll to projects section"></a>
-                </p>
-                <div class="hero-social-links">
-                    <a href="https://github.com/heavyrain39" target="_blank" rel="noopener noreferrer" class="social-icon-link" aria-label="GitHub 프로필 방문">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
-                        </svg>
-                    </a>
-                    <a href="https://x.com/yakshawan" target="_blank" rel="noopener noreferrer" class="social-icon-link" aria-label="Twitter(X) 프로필 방문">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 16 16">
-                            <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
-                        </svg>
-                    </a>
-                    <a href="mailto:ggolem@naver.com" class="social-icon-link" aria-label="이메일 보내기">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-envelope-fill" viewBox="0 0 16 16">
-                            <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586zm3.436-.586L16 11.801V4.697z"/>
-                        </svg>
-                    </a>
+                <div class="hero-card">
+                    <h1 class="hero-headline">야차완 | 夜叉腕</h1>
+                    <p class="hero-intro">
+                        안녕하세요. 이곳은 작가, 바이브 코더, 기획자, 트위터리안인 야차완의 포트폴리오 웹페이지입니다.
+                        재미있게 둘러보고 가시면 좋겠습니다. 😙<a href="#projects" class="scroll-down-indicator" aria-label="Scroll to projects section"></a>
+                    </p>
+                    <div class="hero-social-links">
+                        <a href="https://github.com/heavyrain39" target="_blank" rel="noopener noreferrer" class="social-icon-link" aria-label="GitHub 프로필 방문">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+                            </svg>
+                        </a>
+                        <a href="https://x.com/yakshawan" target="_blank" rel="noopener noreferrer" class="social-icon-link" aria-label="Twitter(X) 프로필 방문">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 16 16">
+                                <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
+                            </svg>
+                        </a>
+                        <a href="mailto:ggolem@naver.com" class="social-icon-link" aria-label="이메일 보내기">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-envelope-fill" viewBox="0 0 16 16">
+                                <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586zm3.436-.586L16 11.801V4.697z"/>
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -71,14 +74,36 @@
                     <button id="vibe-coding-help" class="help-icon" aria-label="바이브 코딩이란? 도움말 보기">?</button>
                 </h3>
                 <div class="vibe-coding-list">
+                    <!-- Project: Prognos (추가됨) -->
+                    <article class="vibe-project-item">
+                        <div class="vibe-project-thumbnail-wrapper">
+                            <img src="images/thumbnail_prognos.png" alt="프로그노스 섬네일" class="vibe-project-thumbnail">
+                        </div>
+                        <div class="vibe-project-description">
+                            <div class="project-title-wrapper">
+                                <h4>프로그노스</h4>
+                                <span class="project-title-en">Prognos</span>
+                            </div>
+                            <p class="project-last-updated">last updated: 2025-10-20</p>
+                            <p class="project-concept">AI가 예측하는 한 달 뒤의 주가</p>
+                            <p><strong>컨셉:</strong> 700개 이상의 미국 주식/ETF 데이터를 학습한 딥러닝 모델이 다음 한 달간(20거래일)의 캔들 차트를 예측한다. 믿으면 안 되지만 동전 던지기보다는 믿을 만하다. 공격적인 GRU와 안정적인 LSTM, 두 가지 AI 중 선택 가능.</p>
+                            <p><strong>사용 기술:</strong> Python (Flask, TensorFlow, Keras), Google Cloud Platform (GCP), Vercel, HTML5, CSS3, JavaScript, ApexCharts.js, Twelve Data API</p>
+                            <a href="https://prognos-web.vercel.app/" target="_blank" rel="noopener noreferrer" class="button">
+                                <span>사용해 보기</span>
+                            </a>
+                        </div>
+                    </article>
+
                     <!-- Project: 하루나 온 스크린 -->
                     <article class="vibe-project-item">
                         <div class="vibe-project-thumbnail-wrapper">
                             <img src="images/thumbnail_haruna.png" alt="하루나 온 스크린 앱 섬네일" class="vibe-project-thumbnail">
                         </div>
                         <div class="vibe-project-description">
-                            <h4>하루나 온 스크린</h4>
-                            <span class="project-title-en">(Haruna on Screen)</span>
+                            <div class="project-title-wrapper">
+                                <h4>하루나 온 스크린</h4>
+                                <span class="project-title-en">Haruna on Screen</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-09-24</p>
                             <p class="project-concept">당신의 데스크탑에 머무는 AI 미소녀</p>
                             <p><strong>컨셉:</strong> PC 바탕화면에 상주하며 사용자와 소통하는 AI 스크린메이트. 사용자와의 모든 대화를 기억하며, 페르소나 프롬프트 에디터로 성격과 기억을 편집할 수 있다. 캐릭터 3종, 의상 9종.</p>
@@ -95,8 +120,10 @@
                             <img src="images/thumbnail_webplified.png" alt="WebP 변환기 웹플리파이드 섬네일" class="vibe-project-thumbnail">
                         </div>
                         <div class="vibe-project-description">
-                            <h4>웹플리파이드</h4>
-                            <span class="project-title-en">(Webplified.)</span>
+                            <div class="project-title-wrapper">
+                                <h4>웹플리파이드</h4>
+                                <span class="project-title-en">Webplified.</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-07-05</p>
                             <p class="project-concept">초고속 일괄 Webp 변환기</p>
                             <p><strong>컨셉:</strong> 최대 100개의 JPG/PNG 파일을 브라우저에서 Webp 파일로 변환/역변환하는 고성능 컨버터 웹앱. 이미지를 서버에 올리지 않아 100% 프라이버시 보장. 보안, 속도, 사용자 경험이라는 세 마리 토끼를 잡았다. 자매품은 AVIF 컨버터 <strong><a href="https://heavyrain39.github.io/avified/" target="_blank" rel="noopener noreferrer">에이비파이드(Avified)</a></strong>.</p>
@@ -113,8 +140,10 @@
                             <img src="images/thumbnail_archive03.png" alt="아카이브03 섬네일" class="vibe-project-thumbnail">
                         </div>
                         <div class="vibe-project-description">
-                            <h4>아카이브 03</h4>
-                            <span class="project-title-en">(Archive 03)</span>
+                            <div class="project-title-wrapper">
+                                <h4>아카이브 03</h4>
+                                <span class="project-title-en">Archive 03</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-07-05</p>
                             <p class="project-concept">세 인외 미소녀가 전하는 투자 인사이트</p>
                             <p><strong>컨셉:</strong> 딱딱하고 어려운 투자 콘텐츠를 탈피. 천사, 악마, 안드로이드라는 세 명의 인외 미소녀 캐릭터가 최신 데이터를 바탕으로 전하는 대화 형식의 투자 정보 연재 블로그. 데이터/성장성/리스크를 대표하는 세 캐릭터의 티키타카를 보다 보면 어느새 당신도 경제 전문가. </p>
@@ -131,8 +160,10 @@
                             <img src="images/thumbnail_forge.png" alt="던대용 섬네일" class="vibe-project-thumbnail">
                         </div>
                         <div class="vibe-project-description">
-                            <h4>던전 앞 대장간 아저씨는 용사를 서포트한다</h4>
-                            <span class="project-title-en">(The Heroes' Forge)</span>
+                            <div class="project-title-wrapper">
+                                <h4>던전 앞 대장간 아저씨는 용사를 서포트한다</h4>
+                                <span class="project-title-en">The Heroes' Forge</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-06-10</p>
                             <p class="project-concept">루프 기반 성장+방치형 RPG</p>
                             <p><strong>컨셉:</strong> 싸움은 용사에게, 무기는 대장장이에게. 전설의 무기를 벼려내기 위한 당신의 전투는 이곳, 던전 앞 대장간에서 시작된다. 신개념 서포트 RPG.</p>
@@ -149,8 +180,10 @@
                             <img src="images/thumbnail04.png" alt="프롬프트 뷰어 섬네일" class="vibe-project-thumbnail">
                         </div>
                         <div class="vibe-project-description">
-                            <h4>프롬프트 뷰어</h4>
-                            <span class="project-title-en">(Prompt Viewer)</span>
+                            <div class="project-title-wrapper">
+                                <h4>프롬프트 뷰어</h4>
+                                <span class="project-title-en">Prompt Viewer</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-06-04</p>
                             <p class="project-concept">간편하게 확인하는 AI 이미지 프롬프트</p>
                             <p><strong>컨셉:</strong> 인터넷에서 본 AI 이미지의 프롬프트, 모델, 세팅이 궁금했다면? 간편하고 강력한 크롬 익스텐션 '프롬프트 뷰어'로 해결. 우클릭 후 '프롬프트 보기'를 선택하면 WebUI, NAI 이미지 생성 정보가 즉시 나타난다.</p>
@@ -167,8 +200,10 @@
                              <img src="images/thumbnail03.png" alt="웹 라디오닉스 머신 에테르 튜너 섬네일" class="vibe-project-thumbnail">
                         </div>
                          <div class="vibe-project-description">
-                            <h4>에테르 튜너 v1.0</h4>
-                            <span class="project-title-en">(Aether Tuner v1.0)</span>
+                            <div class="project-title-wrapper">
+                                <h4>에테르 튜너 v1.0</h4>
+                                <span class="project-title-en">Aether Tuner v1.0</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-05-17</p>
                             <p class="project-concept">웹페이지로 굴리는 라디오닉스 머신</p>
                             <p><strong>컨셉:</strong> 나만의 커스텀 소원성취 주파수를 원한다면? 사용자가 입력한 의도를 기반으로 브라운 노이즈를 생성하는 스태틱 웹사이트 형식의 라디오닉스 머신. 매력적인 비주얼라이저와 깔끔한 UI로 언제 어디서나 사용 가능.</p>
@@ -185,8 +220,10 @@
                              <img src="images/thumbnail02.png" alt="AI 타로카드 프로그램 아르카나 코드 섬네일" class="vibe-project-thumbnail">
                         </div>
                          <div class="vibe-project-description">
-                            <h4>아르카나 코드 v1.0</h4>
-                            <span class="project-title-en">(Arcana Code v1.0)</span>
+                            <div class="project-title-wrapper">
+                                <h4>아르카나 코드 v1.0</h4>
+                                <span class="project-title-en">Arcana Code v1.0</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-05-03</p>
                             <p class="project-concept">AI가 해석해 주는 무료 타로카드 프로그램</p>
                             <p><strong>컨셉:</strong> 진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다!</p>
@@ -203,8 +240,10 @@
                             <img src="images/thumbnail01.png" alt="방치형 스트리머 육성 게임 라이브 온! 와카바 섬네일" class="vibe-project-thumbnail">
                         </div>
                         <div class="vibe-project-description">
-                            <h4>라이브 온! 와카바</h4>
-                            <span class="project-title-en">(Live on! Wakaba)</span>
+                            <div class="project-title-wrapper">
+                                <h4>라이브 온! 와카바</h4>
+                                <span class="project-title-en">Live on! Wakaba</span>
+                            </div>
                             <p class="project-last-updated">last updated: 2025-04-27</p>
                             <p class="project-concept">방치형 스트리머 육성 시뮬레이션 게임</p>
                             <p><strong>컨셉:</strong> PC에서 키우는 나만의 미소녀 다마고치. 나무의 정령 '이부키 와카바'를 SSS급 스트리머로 육성하고, 호감도를 높여 특별 일러스트를 모두 해금하자.</p>
