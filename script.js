@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         image.onload = () => { imageLoaded = true; };
-        image.src = "images/hero_background.jpg";
+        image.src = "images/hero_background.webp";
 
         resizeCanvas();
         animate();
