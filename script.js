@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function drawGridLines(context, themeColors) {
             context.beginPath();
             context.strokeStyle = themeColors.gridColor;
-            context.lineWidth = 0.5;
+            context.lineWidth = 0.1;
             const { size } = parameters;
             const columns = Math.ceil(canvas.width / size);
             const rows = Math.ceil(canvas.height / size);
