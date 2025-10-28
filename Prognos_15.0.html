@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prognos: Chart your path.</title>
+    <style>
+        /* 1. 폰트 설정 (로컬 파일 직접 참조) */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('PretendardVariable.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Paperlogy';
+            src: url('Paperlogy.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* 2. 컬러 테마 변수 설정 */
+        :root { /* 기본 테마 (Default Light) */
+            --font-title: 'Paperlogy', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            
+            --color-background: #f8f9fa;
+            --color-surface: #ffffff;
+            --color-text-primary: #212529;
+            --color-text-secondary: #495057;
+            --color-accent: #007bff;
+            --color-accent-darker: #0056b3;
+            --color-border: #dee2e6;
+            --color-card-bg: #f1f3f5;
+            
+            --status-completed: #28a745;
+            --status-inprogress: #ffc107;
+            --status-inprogress-text: #333;
+            --status-planned: #6c757d;
+        }
+
+        body[data-theme="aetherial-light"] {
+            --color-background: #FDFEFF;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #343A40;
+            --color-text-secondary: #6C757D;
+            --color-border: #E3E8EC;
+            --color-accent: #86B3D1;
+            --color-accent-darker: #6A9FB9;
+            --color-card-bg: #F8F9FA;
+            
+            --status-completed: #63C0A3;
+            --status-inprogress: #F0D68A;
+            --status-inprogress-text: #594812;
+            --status-planned: #AAB3BC;
+        }
+
+        body[data-theme="nordic-noir"] {
+            --color-background: #2E3440;
+            --color-surface: #3B4252;
+            --color-text-primary: #ECEFF4;
+            --color-text-secondary: #D8DEE9;
+            --color-border: #4C566A;
+            --color-accent: #88C0D0;
+            --color-accent-darker: #B4E5F3;
+            --color-card-bg: #292E39;
+
+            --status-completed: #A3BE8C;
+            --status-inprogress: #EBCB8B;
+            --status-inprogress-text: #3B4252;
+            --status-planned: #B48EAD;
+        }
+
+        /* 3. 기본 스타일 및 레이아웃 */
+        body {
+            font-family: var(--font-body);
+            line-height: 1.75;
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 95%;
+            margin: 0 auto;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 2rem 3rem;
+            box-sizing: border-box;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding-top: 1rem; padding-bottom: 1rem; }
+            .container {
+                width: 100%;
+                padding: 1.5rem;
+                border-radius: 0;
+                border: solid var(--color-border);
+                border-width: 1px 0;
+            }
+        }
+
+        /* 4. 테마 버튼 스타일 */
+        .controls-wrapper {
+            max-width: 800px;
+            width: 95%;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .theme-switcher button {
+            background-color: var(--color-surface);
+            color: var(--color-text-secondary);
+            border: 1px solid var(--color-border);
+            padding: 8px 15px;
+            font-size: 14px;
+            font-family: var(--font-body);
+            font-weight: 500;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .theme-switcher button.active {
+            background-color: var(--color-accent);
+            color: var(--color-surface);
+            border-color: var(--color-accent);
+            font-weight: bold;
+        }
+
+        /* 5. 타이포그래피 (제목, 본문 등) */
+        h1, h2, h3, h4 {
+            font-family: var(--font-title);
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--color-text-primary);
+            word-break: keep-all;
+        }
+
+        h1 { font-size: 2.5rem; text-align: center; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.8rem; margin-top: 3rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--color-accent); }
+        h3 { font-size: 1.4rem; margin-top: 2.5rem; margin-bottom: 1rem; color: var(--color-text-secondary); }
+        p, ul, ol { margin-bottom: 1.25rem; text-align: justify; }
+        ul, ol { padding-left: 1.5rem; }
+        li { margin-bottom: 0.5rem; }
+
+        strong { font-weight: 600; color: var(--color-accent); }
+        code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; background-color: var(--color-card-bg); padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 3px; }
+
+        /* 6. 컴포넌트 스타일 */
+        .header-meta { text-align: center; font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 2rem; }
+        .revision-history { background-color: var(--color-card-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: 1.5rem; margin: 2rem 0 3rem 0; }
+        .revision-history ul { padding-left: 1.2rem; margin-bottom: 0; }
+        .revision-history li { font-size: 0.95rem; }
+        .revision-history p { text-align: left; }
+        .status { font-weight: bold; padding: 0.1em 0.5em; border-radius: 4px; font-size: 0.9em; color: white; }
+        .status.completed { background-color: var(--status-completed); }
+        .status.in-progress { background-color: var(--status-inprogress); color: var(--status-inprogress-text); }
+        .status.planned { background-color: var(--status-planned); }
+        .model-card { margin-top: 1.5rem; padding: 1.5rem; border-left: 4px solid var(--color-accent); background-color: var(--color-card-bg); }
+        .model-card .card-title { font-family: var(--font-title); font-size: 1.1rem; font-style: italic; color: var(--color-text-secondary); margin: 0 0 1rem 0; }
+        .model-card ul { margin-bottom: 0; }
+
+        /* 7. 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.55rem;
+        }
+        th, td {
+            border: 1px solid var(--color-border);
+            padding: 10px 12px;
+            text-align: left;
+        }
+        thead {
+            background-color: var(--color-card-bg);
+            font-weight: 600;
+        }
+        tbody tr:nth-child(even) {
+            background-color: var(--color-card-bg);
+        }
+        table strong {
+            color: var(--color-text-primary);
+        }
+    </style>
+</head>
+<body data-theme="default-light">
+
+    <!-- 컨트롤 영역: 테마 선택 -->
+    <div class="controls-wrapper">
+        <div class="theme-switcher">
+            <button data-theme="default-light" class="active">기본</button>
+            <button data-theme="aetherial-light">Aetherial Light</button>
+            <button data-theme="nordic-noir">Nordic Noir</button>
+        </div>
+    </div>
+
+    <!-- 콘텐츠 영역 -->
+    <div class="container" id="capture-area">
+        <!-- 머리말 -->
+        <h1>― Prognos ―</h1>
+        <p class="header-meta">개인용 주식 차트 예측 웹 서비스 개발 기획서 (Ver. 15.0)</p>
+        
+        <div class="revision-history">
+            <p style="margin-bottom: 0.5rem;"><strong>문서 버전:</strong> 15.0 (5-Layer Architecture Confirmed & Final R&D Started)</p>
+            <p style="margin-bottom: 0.5rem;"><strong>최종 수정일:</strong> 2025년 10월 28일</p>
+            <p style="margin-bottom: 1rem;"><strong>작성 목적:</strong> 프로젝트의 전체적인 개발 철학, R&D 히스토리, 라이브 아키텍처를 총정리하고, <strong>5계층 아키텍처의 우위성을 최종 확립</strong>하며, <strong>'차세대 듀얼 챔피언' 선발의 마지막 단계인 5계층 LSTM 모델 훈련 시작</strong>에 대한 전 과정을 명시하여 안정적인 서비스 운영 및 향후 고도화를 위한 마스터플랜으로 활용함.</p>
+            <p style="margin-bottom: 1rem; font-weight: bold;">리비전 히스토리 요약:</p>
+            <ul>
+                <li><strong>Ver 1~12:</strong> 최초 버전의 듀얼 챔피언(4-Layer GRU/LSTM) 모델 확립 및 <code>Twelve Data</code> API 기반의 안정적인 라이브 서비스 배포 완료.</li>
+                <li><strong>Ver 13.0:</strong> 라이브 서비스 안정화 이후, 모델 성능 향상을 위한 'Post-Launch R&D'에 진입. 4계층과 5계층 아키텍처의 성능 비교를 계획하고 훈련 파이프라인을 실행함.</li>
+                <li><strong>Ver 14.0:</strong> <code>y_test</code> 데이터의 스케일 오류를 유발하는 치명적인 버그를 수정. 오염된 데이터셋 기반의 모든 훈련 결과를 폐기하고, 데이터셋 생성부터 R&D 파이프라인 전체를 처음부터 다시 시작하기로 결정함.</li>
+                <li><strong>Ver 15.0 (현재 버전):</strong> 5계층 GRU 모델 그룹의 훈련 및 평가를 성공적으로 완료. 이를 통해 기존 4계층 아키텍처 대비 <strong>5계층 아키텍처의 통계적 우위성을 최종 확립함.</strong>
+                    <ul>
+                        <li><strong>주요 성과:</strong> <code>seed_7323</code> (5-Layer GRU) 모델을 모든 평가지표에서 가장 안정적인 성능을 보여준 <strong>'차세대 GRU 챔피언'으로 임명함.</strong></li>
+                        <li><strong>다음 단계 진입:</strong> 이 결정에 따라, 프로젝트의 최종 목표인 <strong>'5계층 기반 듀얼 챔피언' 체제 완성을 위해 5계층 LSTM 모델 그룹의 훈련을 시작함.</strong></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 본문 내용 -->
+        <section>
+            <h2>1. 프로젝트 개요 (Project Concept)</h2>
+            <p><strong>'프로그노스(Prognos)'</strong>는 700개 이상의 미국 상장 주식 및 ETF의 일봉(Daily Chart) 데이터를 기반으로 딥러닝 모델을 학습하여, <strong>미래 20거래일(약 1개월) 동안의 주가 추세 및 캔들 패턴을 예측</strong>하는 개인용 AI 분석 도구입니다.</p>
+            <p>본 프로젝트의 핵심 철학은 특정 종목의 시계열적 흐름을 암기하는 것이 아니라, 시장 전반에 걸쳐 반복되는 상승과 하락의 <strong>'보편적인 패턴 문법(Universal Pattern Grammar)'</strong>을 학습하는 것입니다. 이를 위해, <strong>'패턴-중심 비순차적 학습(Pattern-Centric, Non-Sequential Learning)'</strong> 전략을 채택하여 모델이 특정 종목이나 시대적 트렌드에 과적합되는 것을 방지하고, 처음 보는 차트에서도 통계적 우위를 가진 예측을 제공하는 것을 목표로 합니다.</p>
+            <p>현재 서비스는 라이브 운영과 동시에, 보다 정교한 예측 모델을 개발하기 위한 엄격한 검증 및 R&D 사이클을 지속적으로 수행하고 있습니다.</p>
+        </section>
+        
+        <section>
+            <h2>2. 단계적 개발 로드맵 (Development Roadmap)</h2>
+            
+            <h3>Phase 1 ~ 9 (R&D, 모델 확립, 최초 배포)</h3>
+            <p><strong>진행 상태:</strong> <span class="status completed">완료</span><br>최초 버전의 '듀얼 챔피언' 모델(4-Layer GRU/LSTM)을 확립하고, <code>Twelve Data</code> API 기반의 안정적인 하이브리드 클라우드 웹 서비스를 성공적으로 론칭함.</p>
+
+            <h3>Phase 10 (Post-Launch R&D 및 차세대 모델 확립)</h3>
+            <p><strong>진행 상태:</strong> <span class="status in-progress">진행 중</span><br><strong>목표:</strong> 더 복잡하고 추상적인 패턴 학습을 통해 예측 성능을 한 단계 끌어올린 '차세대 듀얼 챔피언' 모델을 선발하고, 라이브 서버에 적용.</p>
+            <p><strong>핵심 진행 과정:</strong></p>
+            <ol>
+                <li><strong>4계층 vs 5계층 아키텍처 경쟁 (<span class="status completed">완료</span>):</strong> 수정된 데이터 파이프라인 위에서 4계층 및 5계층 GRU 모델 그룹의 훈련과 평가를 모두 완료.
+                    <ul>
+                        <li><strong>주요 성과:</strong> 5계층 아키텍처가 기존 4계층 대비 더 높은 방향 정확도(DA)를 달성하며 통계적 우위성을 입증함.</li>
+                        <li><strong>차세대 GRU 챔피언 확정:</strong> 모든 평가지표(DA, Final DA, MAPE, VCR)에서 가장 뛰어난 종합 성능을 보여준 <strong><code>seed_7323</code> (5-Layer)</strong> 모델을 <strong>'차세대 GRU 챔피언'으로 최종 확정함.</strong></li>
+                    </ul>
+                </li>
+                <li><strong>최종 듀얼 챔피언 확립 (<span class="status in-progress">진행 중</span>):</strong> 이제 확정된 5계층 아키텍처의 우수성을 바탕으로, LSTM 모델 그룹 역시 5계층으로 훈련을 시작함. 이 훈련이 완료되면 최종 GRU 챔피언과 LSTM 챔피언을 비교하여 '차세대 듀얼 챔피언' 라인업을 완성할 예정.</li>
+            </ol>
+
+            <h3>※ 주요 평가지표(DA, Final DA) 해설</h3>
+            <ul>
+                <li><strong>방향 정확도 (Directional Accuracy, DA):</strong> "20일 후의 종가가 예측 시작점(첫날 시가)보다 오를 것인가, 내릴 것인가?"를 맞추는 능력입니다. 모델의 <strong>궁극적인 결과 예측 능력</strong>을 측정하는 <strong>가장 핵심적인 지표</strong>입니다.</li>
+                <li><strong>최종 방향 정확도 (Final DA):</strong> "예측 기간 자체의 추세(첫날 종가 대비 마지막 날 종가)를 모델이 얼마나 일관성 있게 예측하는가?"를 봅니다. 이는 모델이 예측한 <strong>차트의 전반적인 모양(기울기)</strong>이 실제와 얼마나 유사한지를 평가하는 <strong>보조 지표</strong>입니다.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>3. 주요 기능 및 UI/UX 명세 (변경 없음)</h2>
+            <ul>
+                <li><strong>기술 스택:</strong> HTML/CSS/JS, <strong><code>ApexCharts.js</code></strong> (Frontend) / Python <strong><code>Flask</code></strong> (Backend)</li>
+                <li><strong>구현 완료된 기능:</strong> 모델 선택, 미래 예측 시각화, 방향성 시각화, 다국어/테마 지원, About 페이지 등 모든 기능 정상 운영 중.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>4. 데이터 전략</h2>
+            <h3>4.1. 모델 학습 데이터 (변경 없음)</h3>
+            <ul>
+                <li><strong>데이터 소스:</strong> <code>yfinance</code></li>
+                <li><strong>데이터셋:</strong> S&P 500, 주요 ETF 등 약 800여 개 티커의 2000년 이후 일봉 데이터.</li>
+            </ul>
+
+            <h3>4.2. 실시간 서비스 데이터 (변경 없음)</h3>
+            <ul>
+                <li><strong>데이터 소스:</strong> <strong><code>Twelve Data</code> 공식 API</strong></li>
+            </ul>
+
+            <h3>4.3. 데이터 무결성 주석 (Lesson Learned)</h3>
+            <ul>
+                <li>모델 평가의 신뢰도를 좌우하는 가장 중요한 요소는 <strong>평가 데이터(<code>y_test</code>)의 스케일 일관성</strong>임.</li>
+                <li><code>02_build_dataset.py</code>는 모델이 학습할 <code>X_train</code>, <code>y_train</code>, <code>X_val</code>, <code>y_val</code>, <code>X_test</code>는 모두 정규화된 <strong>비율값</strong>으로 생성해야 한다.</li>
+                <li>그러나, 최종 성능 평가에 사용될 정답지인 <code>y_test</code>는 반드시 <strong>정규화되지 않은 원본 '가격'</strong>으로 저장해야 한다. 이 원칙을 위반하면 MAPE, VCR과 같은 가격 기반 평가 지표가 완전히 왜곡된다. (Ver 13.0의 실패 원인)</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>5. 모델 아키텍처</h2>
+
+            <h3>5.1. 현재 라이브 챔피언 (Ver 12.0 기준)</h3>
+            <div class="model-card">
+                <p class="card-title">5.7세대 GRU (<code>seed 7225</code>): "추천 (공격형)" 챔피언</p>
+                <ul>
+                    <li><strong>아키텍처:</strong> Prognos-XXL (4-Layer GRU, BatchNormalization, Dropout)</li>
+                    <li><strong>성능:</strong> <strong>DA 56.29% (최고)</strong>, <strong>VCR 0.70 (최고)</strong>, MAPE 6.57%</li>
+                    <li><strong>특징:</strong> 실제 시장보다도 때로는 더 역동적인 변동성을 예측합니다. 시각적으로 매우 인상적인 차트를 생성하며, 방향 정확도 또한 가장 높습니다. 웹앱의 <strong>기본 모델로 추천</strong>됩니다.</li>
+                </ul>
+            </div>
+            <div class="model-card">
+                <p class="card-title">6.2세대 LSTM (<code>seed 6226</code>): "안정 (균형형)" 챔피언</p>
+                <ul>
+                    <li><strong>아키텍처:</strong> Prognos-XXL-LSTM (4-Layer LSTM, BatchNormalization, Dropout)</li>
+                    <li><strong>성능:</strong> DA 56.27%, VCR 0.65, <strong>MAPE 5.78% (최우수)</strong></li>
+                    <li><strong>특징:</strong> GRU 대비 훈련 과정이 안정적이었으며, 변동성 확보와 정밀도 유지 사이에서 완벽한 균형을 보여줍니다. 더 신중하고 정교한 예측을 원하는 사용자에게 적합합니다.</li>
+                </ul>
+            </div>
+
+            <h3>5.2. 차세대 챔피언 후보 아키텍처 (R&D 진행 중)</h3>
+            <div class="model-card">
+                <p class="card-title">Prognos-XXXL (5-Layer) 아키텍처</p>
+                <ul>
+                    <li><strong>구조:</strong> 기존 4-Layer 구조의 마지막 GRU/LSTM 층 뒤에 <code>GRU/LSTM(128)</code> 층을 하나 더 추가한 딥(Deep) 아키텍처.</li>
+                    <li><strong>가설:</strong> 추가된 계층을 통해, 더 긴 시간 단위의 복합적인 패턴이나 추상적인 시장 시나리오를 학습할 수 있을 것으로 기대됨 (고차원 특징 추출).</li>
+                    <li><strong>리스크:</strong> 과적합(Overfitting) 위험성이 증가하므로, 기존의 <code>Dropout</code> 및 <code>L2 규제</code>가 효과적으로 작동하는지 면밀히 관찰해야 함. <code>EarlyStopping</code> 콜백을 통해 과적합 발생 시 훈련을 조기 중단하는 전략이 필수적.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>6. 최종 시스템 아키텍처 (Hybrid Cloud)</h2>
+            <h3>프론트엔드 (UI): Vercel</h3>
+            <ul>
+                <li>정적 파일(HTML/CSS/JS) 호스팅 및 서버리스 함수를 통한 API 프록시 역할 수행.</li>
+            </ul>
+            <h3>백엔드 (AI Server): Google Cloud Platform (GCP) Free Tier VM (<code>e2-micro</code>)</h3>
+            <ul>
+                <li><strong>핵심 역할:</strong> Python <code>Flask</code> 애플리케이션을 <code>Gunicorn</code>으로 24시간 구동.</li>
+                <li><strong>데이터 흐름:</strong> <code>TTLCache</code>(30분)를 통해 API 호출을 최소화하고, Cache Miss 발생 시 <code>Twelve Data</code> API를 호출하여 데이터 수급.</li>
+                <li><strong>보안:</strong> <code>Twelve Data</code>의 API 키는 <code>systemd</code> 서비스 파일에 정의된 환경 변수를 통해 안전하게 로드됨.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>7. 현재 진행 과업 및 향후 계획</h2>
+            
+            <h3>1. 완료된 핵심 과업 (Recently Completed)</h3>
+            <ul>
+                <li><strong>파이프라인 복구 및 4-Layer 모델 평가:</strong> <code>y_test</code> 스케일 오류를 유발하는 <code>02_build_dataset.py</code>의 버그를 수정하고 4-Layer GRU 모델 그룹의 재평가를 완료.</li>
+                <li><strong>5-Layer GRU 모델 평가 및 아키텍처 확정:</strong> 5-Layer GRU 모델 그룹의 훈련 및 평가를 완료. 4계층 대비 5계층 아키텍처의 우위성을 확인하고, <strong><code>seed_7323</code>을 '차세대 GRU 챔피언'으로 최종 선발함.</strong></li>
+            </ul>
+
+            <h3>2. 진행 중인 핵심 과업 (Current Tasks)</h3>
+            <ul>
+                <li><strong>5-Layer LSTM 모델 훈련:</strong> 확정된 5계층 아키텍처를 사용하여, '차세대 LSTM 챔피언'을 선발하기 위한 <strong>5-Layer LSTM 모델 그룹의 훈련을 시작.</strong></li>
+            </ul>
+
+            <h3>3. 다음 단계 과업 (Next Steps)</h3>
+            <ul>
+                <li><strong>5-Layer LSTM 모델 평가:</strong> 5-Layer LSTM 모델 그룹의 훈련이 완료되면, <code>05_evaluate_model.py</code>를 통해 성능을 정량적으로 평가.</li>
+                <li><strong>차세대 듀얼 챔피언 최종 선발:</strong> '차세대 GRU 챔피언(<code>seed_7323</code>)'과 새롭게 선발될 '차세대 LSTM 챔피언'의 성능을 최종 비교하여, 라이브 서버에 배포할 <strong>'차세대 듀얼 챔피언' 라인업을 최종 확정.</strong></li>
+                <li><strong>라이브 서버 배포:</strong> 선발된 챔피언 모델들을 (선택사항) 양자화한 후, GCP 서버에 업로드하여 기존 모델 파일을 교체하고 서비스를 재시작.</li>
+                <li><strong>최종 기획서 업데이트 (Ver 15.0):</strong> 모든 R&D 과정과 최종 선발된 모델의 성능을 반영하여 기획서 최종 버전을 완성.</li>
+            </ul>
+
+            <h3>4. 장기적인 개선 과제 (Potential Future Improvements)</h3>
+            <ul>
+                <li><strong>모니터링 시스템 도입:</strong> UptimeRobot 같은 무료 서비스를 이용해 API 엔드포인트가 다운될 경우 알림을 받는 모니터링 체계 구축.</li>
+                <li><strong>백업 API 도입 (Failover):</strong> Twelve Data에 문제가 생길 경우 Alpaca 등 다른 무료 API를 2순위로 호출하는 로직 추가.</li>
+                <li><strong>지속적 통합/배포(CI/CD):</strong> GitHub Actions를 설정하여, 코드 변경사항이 푸시될 때마다 자동으로 Vercel과 GCP 서버에 배포되도록 파이프라인 구축.</li>
+                <li><strong>모델 재학습 파이프라인:</strong> 주기적으로 최신 시장 데이터를 반영하여 챔피언 모델들을 재학습하고 성능을 검증하는 프로세스 정립.</li>
+                <li><strong>🔥 [신규 추가] 모델 양자화(Quantization) 적용 🔥</strong>
+                    <ul>
+                        <li><strong>목표:</strong> 최종 선발된 챔피언 모델(<code>.keras</code>)을 경량화하여, GCP <code>e2-micro</code> VM과 같은 <strong>리소스 제한 환경에서의 운영 효율성을 극대화</strong>하는 것.</li>
+                        <li><strong>핵심 원리:</strong> 모델 가중치의 정밀도를 낮추는(예: 32-bit 부동소수점 -> 16-bit 부동소수점 또는 8-bit 정수) 기술. 이를 통해 모델의 성능 저하는 최소화하면서 크기와 연산 속도를 획기적으로 개선.</li>
+                        <li><strong>기대 효과:</strong>
+                            <ol>
+                                <li><strong>모델 크기 감소:</strong> 모델 파일(<code>*.tflite</code>)의 크기를 <strong>약 50% ~ 75%까지 감소</strong>시켜 서버의 디스크 공간 부담을 줄임.</li>
+                                <li><strong>추론 속도 향상:</strong> 예측(Inference)에 필요한 계산량이 줄어들어 API의 응답 속도를 개선.</li>
+                                <li><strong>메모리 사용량 감소:</strong> 모델 로드 시 차지하는 RAM 사용량을 줄여, 서비스의 전반적인 안정성을 높임.</li>
+                            </ol>
+                        </li>
+                        <li><strong>실행 계획:</strong>
+                            <ol>
+                                <li><strong>변환:</strong> '차세대 듀얼 챔피언' 모델 선발이 완료되면, <code>TensorFlow Lite (TFLite)</code> 변환기를 사용하여 Post-training Quantization (훈련 후 양자화)을 적용한 <code>*.tflite</code> 모델 파일을 생성.</li>
+                                <li><strong>검증 (필수):</strong> 양자화된 모델(<code>*.tflite</code>)의 성능을 <code>05_evaluate_model.py</code>를 통해 <strong>반드시 재평가</strong>. 원본 <code>.keras</code> 모델 대비 성능 하락 폭이 허용 가능한 범위(예: 방향 정확도(DA) 0.5%p 이내)에 있는지 검증하는 과정을 거침.</li>
+                                <li><strong>적용:</strong> 검증을 통과하면, Flask 백엔드 코드가 기존 <code>.keras</code> 모델 대신 경량화된 <code>*.tflite</code> 모델을 로드하고 예측을 수행하도록 수정하여 서버에 배포.</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>부록 (1): 최종 챔피언 모델 성능 비교표 (Test Set 기준)</h2>
+            <p><strong>※ 주의: 아래는 현재 라이브(Ver 12.0) 서버에 배포된 모델 기준입니다. 평가 데이터 파이프라인의 치명적 버그 수정 후, '차세대 챔피언' 선발을 위한 R&D가 현재 처음부터 재시작되었습니다. 새로운 챔피언 모델의 최종 성능은 R&D 완료 후 이곳에 업데이트될 예정입니다.</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>모델 (별칭)</th>
+                        <th>아키텍처</th>
+                        <th>방향 정확도 (DA)</th>
+                        <th>변동성 비율 (VCR)</th>
+                        <th>오차율 (MAPE)</th>
+                        <th>성격 요약</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong><code>seed_7225</code> (추천/공격형)</strong></td>
+                        <td><strong>GRU (4-Layer)</strong></td>
+                        <td><strong>56.29%</strong></td>
+                        <td><strong>0.70</strong></td>
+                        <td>6.57%</td>
+                        <td><strong>가장 역동적이고 대담함.</strong> 시각적 임팩트 큼.</td>
+                    </tr>
+                    <tr>
+                        <td><strong><code>seed_6226</code> (안정/균형형)</strong></td>
+                        <td><strong>LSTM (4-Layer)</strong></td>
+                        <td>56.27%</td>
+                        <td>0.65</td>
+                        <td><strong>5.78%</strong></td>
+                        <td>변동성과 정밀도의 <strong>최적 균형.</strong> 신뢰도 높음.</td>
+                    </tr>
+                    <tr>
+                        <td><em>(참고) 구 5.6세대</em></td>
+                        <td><em>GRU (4-Layer)</em></td>
+                        <td><em>56.06%</em></td>
+                        <td><em>0.30</em></td>
+                        <td><em>5.40%</em></td>
+                        <td><em>(폐기됨) Flatline 문제로 실사용 불가.</em></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>부록 (2): 차세대 챔피언 후보 성능 비교표 (4-Layer GRU 결과)</h2>
+            <p><strong>※ 2025년 10월 27일, 수정된 데이터 파이프라인으로 4-Layer GRU 모델 그룹의 재훈련 및 평가를 완료한 결과입니다. 5-Layer 아키텍처와의 최종 비교가 예정되어 있습니다.</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>모델 (별칭)</th>
+                        <th>아키텍처</th>
+                        <th>방향 정확도 (DA)</th>
+                        <th>변동성 비율 (VCR)</th>
+                        <th>오차율 (MAPE)</th>
+                        <th>성격 요약</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong><code>seed_7326</code> (현 4계층 챔피언)</strong></td>
+                        <td><strong>GRU (4-Layer)</strong></td>
+                        <td><strong>56.40%</strong></td>
+                        <td><strong>0.75</strong></td>
+                        <td>5.79%</td>
+                        <td><strong>압도적인 종합 1위.</strong> DA/VCR 모두 최고. '공격형' 챔피언.</td>
+                    </tr>
+                    <tr>
+                        <td><strong><code>seed_7321</code></strong></td>
+                        <td>GRU (4-Layer)</td>
+                        <td>54.76%</td>
+                        <td>0.61</td>
+                        <td>5.74%</td>
+                        <td>DA 2위. 모든 지표가 준수한 균형잡힌 모델.</td>
+                    </tr>
+                    <tr>
+                        <td><strong><code>seed_7325</code> (최고 정밀도)</strong></td>
+                        <td>GRU (4-Layer)</td>
+                        <td>54.48%</td>
+                        <td>0.72</td>
+                        <td><strong>5.52%</strong></td>
+                        <td><strong>MAPE 1위.</strong> 가격 예측이 가장 정교함. '안정형' 챔피언 후보.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seed_7324</code></td>
+                        <td>GRU (4-Layer)</td>
+                        <td>53.45%</td>
+                        <td>0.74</td>
+                        <td>6.20%</td>
+                        <td>VCR은 높으나 DA가 상대적으로 낮아 경쟁력 부족.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seed_7322</code></td>
+                        <td>GRU (4-Layer)</td>
+                        <td>51.01%</td>
+                        <td>0.71</td>
+                        <td>5.89%</td>
+                        <td>DA가 55% 목표치에 미달하여 유의미한 성능 확보 실패.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seed_7323</code></td>
+                        <td>GRU (4-Layer)</td>
+                        <td>47.88%</td>
+                        <td>0.55</td>
+                        <td>5.88%</td>
+                        <td>DA 50% 미만으로 예측 능력을 신뢰하기 어려움. (폐기 대상)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ensemble (Top 3)</strong></td>
+                        <td>GRU (4-Layer)</td>
+                        <td>55.60%</td>
+                        <td>0.54</td>
+                        <td>5.51%</td>
+                        <td>안정적이나, <code>seed_7326</code> 단일 모델의 성능을 넘어서지 못함.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>부록 (3): 차세대 챔피언 후보 성능 비교표 (5-Layer GRU 결과)</h2>
+            <p><strong>※ 2025년 10월 28일, 5-Layer GRU 모델 그룹의 훈련 및 평가를 완료한 결과입니다. 이 결과를 통해 5계층 아키텍처의 우위성을 확립했습니다.</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>모델 (별칭)</th>
+                        <th>아키텍처</th>
+                        <th>방향 정확도 (DA)</th>
+                        <th>변동성 비율 (VCR)</th>
+                        <th>오차율 (MAPE)</th>
+                        <th>성격 요약</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong><code>seed_7323</code> (차세대 GRU 챔피언)</strong></td>
+                        <td><strong>GRU (5-Layer)</strong></td>
+                        <td>56.65%</td>
+                        <td>0.55</td>
+                        <td><strong>5.62%</strong></td>
+                        <td><strong>완벽한 올라운더.</strong> DA, MAPE, VCR 모든 지표 최상위권. '안정/균형형' 챔피언.</td>
+                    </tr>
+                    <tr>
+                        <td><strong><code>seed_7324</code> (최고 정확도)</strong></td>
+                        <td>GRU (5-Layer)</td>
+                        <td><strong>56.80%</strong></td>
+                        <td>0.50</td>
+                        <td>5.97%</td>
+                        <td><strong>DA 1위.</strong> 방향 예측에 특화되었으나 VCR/MAPE는 다소 아쉬움.</td>
+                    </tr>
+                    <tr>
+                        <td><strong><code>seed_7322</code></strong></td>
+                        <td>GRU (5-Layer)</td>
+                        <td>56.43%</td>
+                        <td><strong>0.66</strong></td>
+                        <td>5.65%</td>
+                        <td>5계층 중 <strong>VCR 1위.</strong> 역동성은 좋으나 DA가 2위 그룹에 속함.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seed_7326</code></td>
+                        <td>GRU (5-Layer)</td>
+                        <td>55.63%</td>
+                        <td>0.59</td>
+                        <td>5.60%</td>
+                        <td>모든 지표가 준수하지만, 각 부문별 챔피언에 비해 경쟁력 부족.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seed_7321</code></td>
+                        <td>GRU (5-Layer)</td>
+                        <td>55.50%</td>
+                        <td>0.60</td>
+                        <td>5.76%</td>
+                        <td>"</td>
+                    </tr>
+                    <tr>
+                        <td><code>seed_7325</code></td>
+                        <td>GRU (5-Layer)</td>
+                        <td>49.29%</td>
+                        <td>0.38</td>
+                        <td>5.81%</td>
+                        <td>DA 55% 목표치 미달로 유의미한 성능 확보 실패. (폐기 대상)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ensemble (Top 3)</strong></td>
+                        <td>GRU (5-Layer)</td>
+                        <td><strong>56.87%</strong></td>
+                        <td>0.49</td>
+                        <td>5.67%</td>
+                        <td>DA는 가장 높으나, VCR이 낮아 <code>seed_7323</code> 단일 모델이 더 매력적임.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- 기능 실행 스크립트 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeButtons = document.querySelectorAll('.theme-switcher button');
+            const body = document.body;
+
+            // 테마 설정 함수
+            const setTheme = (themeName) => {
+                body.dataset.theme = themeName;
+                localStorage.setItem('prognos-theme', themeName);
+
+                themeButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.theme === themeName);
+                });
+            };
+
+            // 테마 버튼에 클릭 이벤트 추가
+            themeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    setTheme(button.dataset.theme);
+                });
+            });
+
+            // 페이지 로드 시 저장된 테마 적용
+            const savedTheme = localStorage.getItem('prognos-theme') || 'default-light';
+            setTheme(savedTheme);
+        });
+    </script>
+</body>
+</html>
