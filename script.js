@@ -1,13 +1,18 @@
-// script.js (전체 코드 - 테마 셀렉터 기능 추가)
+// script.js (전체 코드 - 테마 셀렉터 기능 추가 및 다중 Swiper 지원)
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    let musicSwiper = null; // Swiper 인스턴스를 저장할 변수
+    // --- Initialize Swiper for the music sections (Multiple Instances) ---
+    // 기존의 단일 인스턴스 로직을 forEach 반복문으로 수정하여, 여러 개의 슬라이더를 독립적으로 초기화합니다.
+    const swiperContainers = document.querySelectorAll('.my-music-swiper');
+    const swiperInstances = []; // 나중에 키보드 제어를 위해 인스턴스 저장
 
-    // --- Initialize Swiper for the music section ---
-    const swiperContainer = document.querySelector('.my-music-swiper');
-    if (swiperContainer) {
-        musicSwiper = new Swiper('.my-music-swiper', {
+    swiperContainers.forEach(container => {
+        // 각 컨테이너 내부의 버튼을 찾아서 지정합니다.
+        const nextBtn = container.querySelector('.swiper-button-next');
+        const prevBtn = container.querySelector('.swiper-button-prev');
+
+        const swiper = new Swiper(container, {
             loop: true,
             slidesPerView: 1,
             spaceBetween: 20,
@@ -16,12 +21,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 1024: { slidesPerView: 2, spaceBetween: 40 }
             },
             navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
+                nextEl: nextBtn,
+                prevEl: prevBtn,
             },
             keyboard: {
                 enabled: true,
-                onlyInViewport: false,
+                onlyInViewport: true, // 화면에 보이는 슬라이더만 키보드로 제어
             },
             a11y: {
                 prevSlideMessage: 'Previous slide',
@@ -29,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             on: {
                 slideChangeTransitionStart: function () {
+                    // 슬라이드 넘길 때 유튜브 영상 일시정지
                     const iframes = this.el.querySelectorAll('iframe');
                     iframes.forEach(iframe => {
                         if (iframe.src.includes('youtube.com') && iframe.contentWindow) {
@@ -42,7 +48,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             }
         });
-    }
+        swiperInstances.push(swiper);
+    });
 
 
     // --- Initialize Lightbox2 ---
@@ -56,18 +63,24 @@ document.addEventListener('DOMContentLoaded', function () {
           'disableScrolling': true
         });
 
-        if (musicSwiper && musicSwiper.keyboard) {
+        // 라이트박스가 열렸을 때 Swiper의 키보드 제어를 비활성화
+        if (swiperInstances.length > 0) {
             const body = document.body;
             const lightboxClass = 'lb-disable-scrolling';
 
             const observerCallback = function(mutationsList, observer) {
                 for(let mutation of mutationsList) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        if (body.classList.contains(lightboxClass)) {
-                            musicSwiper.keyboard.disable();
-                        } else {
-                            musicSwiper.keyboard.enable();
-                        }
+                        const isLightboxOpen = body.classList.contains(lightboxClass);
+                        swiperInstances.forEach(instance => {
+                            if (instance.keyboard) {
+                                if (isLightboxOpen) {
+                                    instance.keyboard.disable();
+                                } else {
+                                    instance.keyboard.enable();
+                                }
+                            }
+                        });
                     }
                 }
             };

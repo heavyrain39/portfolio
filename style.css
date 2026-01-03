@@ -14,7 +14,6 @@
 @font-face {
     font-family: 'Paperlogy';
     src: url('fonts/Paperlogy-4Regular.woff2') format('woff2');
-    /* 폰트 파일이 하나뿐일 때는, 브라우저가 유연하게 사용하도록 font-weight와 font-style을 지정하지 않는 것이 가장 안전합니다. */
     font-display: swap;
 }
 

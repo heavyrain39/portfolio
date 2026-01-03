@@ -74,7 +74,28 @@
                     <button id="vibe-coding-help" class="help-icon" aria-label="바이브 코딩이란? 도움말 보기">?</button>
                 </h3>
                 <div class="vibe-coding-list">
-                <!-- Project: 한줄한줄 (New) -->
+                    
+                    <!-- Project: fréquence (New) -->
+                    <article class="vibe-project-item">
+                        <div class="vibe-project-thumbnail-wrapper">
+                            <img src="images/thumbnail_frequence.png" alt="프레캉스 오디오 비주얼라이저 섬네일" class="vibe-project-thumbnail">
+                        </div>
+                        <div class="vibe-project-description">
+                            <div class="project-title-wrapper">
+                                <h4>프레캉스</h4>
+                                <span class="project-title-en">fréquence</span>
+                            </div>
+                            <p class="project-last-updated">last updated: 2026-01-04</p>
+                            <p class="project-concept">브라우저 기반의 미니멀리스트 오디오 비주얼라이저</p>
+                            <p><strong>컨셉:</strong> 눈송이(Snowflakes)와 구체(Orb)를 모티브로 한 몽환적인 시각 효과를 제공하는 웹 애플리케이션. 별도의 프로그램 설치 없이 브라우저만으로 고품질의 비주얼라이제이션 영상을 렌더링하고 MP4로 내보낼 수 있다.</p>
+                            <p><strong>사용 기술:</strong> React 19, TypeScript, Web Audio API, Canvas API, WebCodecs API (Hardware Accelerated Encoding)</p>
+                            <a href="https://frequence-one.vercel.app/" target="_blank" rel="noopener noreferrer" class="button">
+                                <span>사용해 보기</span>
+                            </a>
+                        </div>
+                    </article>
+
+                    <!-- Project: 한줄한줄 -->
                     <article class="vibe-project-item">
                         <div class="vibe-project-thumbnail-wrapper">
                             <img src="images/thumbnail_hanjul.png" alt="한줄한줄 크롬 익스텐션 섬네일" class="vibe-project-thumbnail">
@@ -84,18 +105,17 @@
                                 <h4>한줄한줄: 내 생각의 타임라인</h4>
                                 <span class="project-title-en">Hanjul Hanjul: My Thought Timeline</span>
                             </div>
-                            <!-- 최신 업데이트 날짜 -->
                             <p class="project-last-updated">last updated: 2025-11-25</p>
                             <p class="project-concept">새 탭에서 만나는 나만의 한 줄 기록</p>
                             <p><strong>컨셉:</strong> 무의식적인 새 탭 열기를 의식적인 성찰의 순간으로. 별도 서버 없이 구글 드라이브만으로 작동하는 미니멀한 기록 앱. 3가지 성격의 AI가 당신의 기록을 읽고 유익한 (혹은 흥미로운) 피드백을 제공한다.</p>
                             <p><strong>사용 기술:</strong> JavaScript (ES6+ Modules), Chrome Extension API (Manifest V3), Google Drive API (App Data Sync), Google Gemini API (AI Feedback), HTML5/CSS3</p>
-                            <!-- 실제 스토어 링크를 href에 넣어주세요 -->
                             <a href="https://chromewebstore.google.com/detail/%ED%95%9C%EC%A4%84%ED%95%9C%EC%A4%84-%EB%82%B4-%EC%83%9D%EA%B0%81%EC%9D%98-%ED%83%80%EC%9E%84%EB%9D%BC%EC%9D%B8/daifopgmpjihbacogkoabenddmnkfbdl" target="_blank" rel="noopener noreferrer" class="button">
                                 <span>사용해 보기</span>
                             </a>
                         </div>
                     </article>
-                    <!-- Project: Prognos (추가됨) -->
+
+                    <!-- Project: Prognos -->
                     <article class="vibe-project-item">
                         <div class="vibe-project-thumbnail-wrapper">
                             <img src="images/thumbnail_prognos.png" alt="프로그노스 섬네일" class="vibe-project-thumbnail">
@@ -247,7 +267,7 @@
                             </div>
                             <p class="project-last-updated">last updated: 2025-05-03</p>
                             <p class="project-concept">AI가 해석해 주는 무료 타로카드 프로그램</p>
-                            <p><strong>컨셉:</strong> 진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다!</p>
+                            <p><strong>컨셉:</strong> 진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다! (v2.0 개발 중)</p>
                             <p><strong>사용 기술:</strong> 프론트엔드(HTML5, CSS3, JS ES6+), 백엔드(Node.js, Express.js), LLM API(Google Gemini 2.5 Flash), 이미지(Stable Diffusion)</p>
                             <a href="https://heavyrain39.github.io/arcana-code/" target="_blank" rel="noopener noreferrer" class="button">
                                 <span>소개 페이지</span>
@@ -277,17 +297,61 @@
                 </div>
             </div>
 
+            <!-- 발매 앨범 섹션 (New) -->
+            <div class="project-category">
+                <h3>발매 음원</h3>
+                <p>
+                    EP 〈Seraphim〉은 2025년 12월 12일 발매된 앨범입니다.<br>
+                    컨셉 기획 및 작사 이후 Suno AI 작업을 통해 완성했습니다.<br>
+                    스포티파이를 비롯한 각종 음원 플랫폼에서 <strong>Ezra - Seraphim</strong>을 검색하시면 전곡을 들어보실 수 있습니다.
+                </p>
+                <div class="swiper my-music-swiper">
+                    <div class="swiper-wrapper">
+                        <!-- 1. Seraphim -->
+                        <div class="music-item swiper-slide">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/1rQIBfAq6KE?enablejsapi=1" title="Seraphim" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>1. Seraphim</p>
+                        </div>
+                        <!-- 2. Dream Boy -->
+                        <div class="music-item swiper-slide">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/xgzEbzEfmr8?enablejsapi=1" title="Dream Boy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>2. Dream Boy</p>
+                        </div>
+                        <!-- 3. Whisper -->
+                        <div class="music-item swiper-slide">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/1yNEZR_We-4?enablejsapi=1" title="Whisper" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>3. Whisper</p>
+                        </div>
+                        <!-- 4. Listen -->
+                        <div class="music-item swiper-slide">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/_WmByI8j93o?enablejsapi=1" title="Listen" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>4. Listen</p>
+                        </div>
+                        <!-- 5. 珊瑚色の記憶 -->
+                        <div class="music-item swiper-slide">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/r1z_xLy0kMM?enablejsapi=1" title="珊瑚色の記憶" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>5. 珊瑚色の記憶</p>
+                        </div>
+                        <!-- 6. Seraphim (Midnight Mix) -->
+                        <div class="music-item swiper-slide">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/enuDklZNrwQ?enablejsapi=1" title="Seraphim (Midnight Mix)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                            <p>6. Seraphim (Midnight Mix)</p>
+                        </div>
+                    </div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                </div>
+            </div>
+
+            <!-- 전자음악 섹션 (Updated) -->
             <div class="project-category">
                 <h3>전자음악</h3>
                  <p>
-                    여기까지 내려오셨다면 제가 쓴 노래들도 들어보고 가세요.
+                    여기까지 내려오셨다면 제가 예전에 쓴 노래들도 들어보고 가세요.
                  </p>
                  <div class="swiper my-music-swiper">
                     <div class="swiper-wrapper">
-                        <div class="music-item swiper-slide">
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/RDTDI7jp6OY?enablejsapi=1" title="Seraphim (2025) by Yakshawan" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                            <p>Seraphim (2025)</p>
-                        </div>
+                        <!-- Seraphim 삭제됨 -->
                         <div class="music-item swiper-slide">
                             <iframe width="560" height="315" src="https://www.youtube.com/embed/NEQKjyKhVUI?enablejsapi=1" title="Pattern Completion (2022) by Yakshawan" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
                             <p>Pattern Completion (2022)</p>
@@ -319,9 +383,9 @@
     <footer>
         <div class="container">
             <!-- 저작권 텍스트 -->
-            <p class="copyright">© <span id="current-year">2025</span> 야차완. All Rights Reserved.</p>
+            <p class="copyright">© <span id="current-year">2026</span> 야차완. All Rights Reserved.</p>
             
-            <!-- 테마 셀렉터 (추가됨) -->
+            <!-- 테마 셀렉터 -->
             <div class="theme-selector">
                 <button class="theme-btn" data-theme="aetherial-light" title="Light Theme">
                     <div class="color-patch"></div>
