@@ -18,13 +18,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 <span>{project.lastUpdated}</span>
             </div>
 
-            {/* Thumbnail Container (Square) */}
             <div className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-border/50 group-hover:border-foreground/50 transition-colors duration-300">
-                {/* Image with saturation and brightness effects */}
-                <img
+                {/* Next.js Image component handles basePath automatically when src starts with / */}
+                <Image
                     src={project.thumbnail}
                     alt={project.title}
-                    className="h-full w-full object-cover saturate-[0.8] brightness-[0.9] group-hover:saturate-100 group-hover:brightness-100 transition-all duration-300"
+                    fill
+                    className="object-cover saturate-[0.8] brightness-[0.9] group-hover:saturate-100 group-hover:brightness-100 transition-all duration-300"
+                    unoptimized
                 />
             </div>
 

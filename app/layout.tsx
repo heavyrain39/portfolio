@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "야차완 | 夜叉腕 Portfolio",
     description: "Writer, Vibe Coder, Planner. Portfolio of Yakshawan.",
     icons: {
-        icon: "/images/favicon.png",
+        icon: "/portfolio/images/favicon.png",
     },
 };
 
