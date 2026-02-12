@@ -40,7 +40,7 @@ export const projects: Project[] = [
         techStack: ["React", "Vite", "Chrome Extension API", "Offscreen API", "Node.js Crypto"],
         link: "https://chromewebstore.google.com/detail/takt/kfgbaeikmjkommheilhphiageempppph",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail_takt.png",
+        thumbnail: "/portfolio/images/thumbnail_takt.png",
         category: "vibe-coding"
     },
     {
@@ -53,7 +53,7 @@ export const projects: Project[] = [
         techStack: ["JavaScript", "Chrome Extension API", "Google Drive API", "Gemini API"],
         link: "https://chromewebstore.google.com/detail/%ED%95%9C%EC%A4%84%ED%95%9C%EC%A4%84-%EB%82%B4-%EC%83%9D%EA%B0%81%EC%9D%98-%ED%83%80%EC%9E%84%EB%9D%BC%EC%9D%B8/daifopgmpjihbacogkoabenddmnkfbdl",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail_hanjul.png",
+        thumbnail: "/portfolio/images/thumbnail_hanjul.png",
         category: "vibe-coding"
     },
     {
@@ -66,7 +66,7 @@ export const projects: Project[] = [
         techStack: ["Electron", "Python (Flask)", "Gemini API", "HTML5/CSS3"],
         link: "https://yakshawan.itch.io/haruna-on-screen",
         linkText: "스토어 페이지",
-        thumbnail: "/images/thumbnail_haruna.png",
+        thumbnail: "/portfolio/images/thumbnail_haruna.png",
         category: "vibe-coding"
     },
     {
@@ -79,7 +79,7 @@ export const projects: Project[] = [
         techStack: ["Next.js 14", "TypeScript", "Tailwind CSS", "Framer Motion", "Redis"],
         link: "https://tojeong.vercel.app",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail_tojeong.png",
+        thumbnail: "/portfolio/images/thumbnail_tojeong.png",
         category: "vibe-coding"
     },
     {
@@ -92,7 +92,7 @@ export const projects: Project[] = [
         techStack: ["React 19", "Web Audio API", "Canvas API", "WebCodecs API"],
         link: "https://frequence-one.vercel.app/",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail_frequence.png",
+        thumbnail: "/portfolio/images/thumbnail_frequence.png",
         category: "vibe-coding"
     },
     {
@@ -105,7 +105,7 @@ export const projects: Project[] = [
         techStack: ["Python (Flask, TensorFlow)", "GCP", "ApexCharts.js"],
         link: "https://prognos-web.vercel.app/",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail_prognos.png",
+        thumbnail: "/portfolio/images/thumbnail_prognos.png",
         category: "vibe-coding"
     },
     {
@@ -118,7 +118,7 @@ export const projects: Project[] = [
         techStack: ["JavaScript", "Web Workers API", "JSZip"],
         link: "https://heavyrain39.github.io/webplified/",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail_webplified.png",
+        thumbnail: "/portfolio/images/thumbnail_webplified.png",
         category: "web-app"
     },
     {
@@ -131,7 +131,7 @@ export const projects: Project[] = [
         techStack: ["Hugo", "GitHub Pages", "SCSS", "Gemini"],
         link: "https://archive03.online/",
         linkText: "보러 가기",
-        thumbnail: "/images/thumbnail_archive03.png",
+        thumbnail: "/portfolio/images/thumbnail_archive03.png",
         category: "web-app"
     },
     {
@@ -144,7 +144,7 @@ export const projects: Project[] = [
         techStack: ["JavaScript", "Firebase", "Web Workers API"],
         link: "#",
         linkText: "Coming soon...",
-        thumbnail: "/images/thumbnail_forge.png",
+        thumbnail: "/portfolio/images/thumbnail_forge.png",
         category: "game"
     },
     {
@@ -157,7 +157,7 @@ export const projects: Project[] = [
         techStack: ["JavaScript", "Chrome Extension API"],
         link: "https://chromewebstore.google.com/detail/pdjhokodhiaaphbgopajhalchjhmflae",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail04.png",
+        thumbnail: "/portfolio/images/thumbnail04.png",
         category: "web-app"
     },
     {
@@ -170,7 +170,7 @@ export const projects: Project[] = [
         techStack: ["Web Audio API", "Three.js", "GLSL"],
         link: "https://heavyrain39.github.io/aether-tuner/",
         linkText: "사용해 보기",
-        thumbnail: "/images/thumbnail03.png",
+        thumbnail: "/portfolio/images/thumbnail03.png",
         category: "web-app"
     },
     {
@@ -183,7 +183,7 @@ export const projects: Project[] = [
         techStack: ["Node.js", "Express.js", "Gemini API", "Stable Diffusion"],
         link: "https://heavyrain39.github.io/arcana-code/",
         linkText: "소개 페이지",
-        thumbnail: "/images/thumbnail02.png",
+        thumbnail: "/portfolio/images/thumbnail02.png",
         category: "web-app"
     },
     {
@@ -196,7 +196,7 @@ export const projects: Project[] = [
         techStack: ["Python/Pygame", "Stable Diffusion"],
         link: "https://heavyrain39.github.io/wakaba/",
         linkText: "소개 페이지",
-        thumbnail: "/images/thumbnail01.png",
+        thumbnail: "/portfolio/images/thumbnail01.png",
         category: "game"
     }
 ];
