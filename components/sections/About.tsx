@@ -4,11 +4,11 @@ import TypewriterText from "@/components/ui/TypewriterText";
 
 export default function About() {
     return (
-        <section id="about" className="container mx-auto px-6 py-32 border-t border-border/20 grid grid-cols-1 md:grid-cols-12 gap-12">
+        <section id="about" className="container mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-12 gap-12">
 
             <div className="md:col-span-4">
                 <h2 className="text-4xl font-serif font-bold mb-6">Entity Profile</h2>
-                <div className="w-12 h-1 bg-foreground mb-6" />
+                <div className="w-12 h-1 bg-current mb-6" />
                 <p className="font-mono text-sm opacity-60">
                     SYSTEM_ID: YAKSHAWAN<br />
                     ROLE: WRITER / VIBE CODER / PLANNER<br />
@@ -17,7 +17,7 @@ export default function About() {
             </div>
 
             <div className="md:col-span-8 flex flex-col gap-8 text-lg opacity-80 leading-relaxed text-justify break-keep">
-                <div className="text-2xl md:text-3xl font-serif font-bold text-foreground opacity-100 mb-4 min-h-12 flex items-center">
+                <div className="text-2xl md:text-3xl font-serif font-bold opacity-100 mb-4 min-h-12 flex items-center">
                     <TypewriterText text="이야기와 기술의 교차점." className="block" />
                 </div>
                 <p>

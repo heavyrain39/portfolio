@@ -116,7 +116,7 @@ export default function TypewriterText({ text, className }: TypewriterTextProps)
         <span ref={ref} className={className}>
             {renderText()}
             <span
-                className={`inline-block w-[2px] h-[1em] bg-foreground ml-1 align-middle transition-opacity duration-500 ${showCursor ? 'opacity-100 animate-pulse' : 'opacity-0'
+                className={`inline-block w-[2px] h-[1em] bg-current ml-1 align-middle transition-opacity duration-500 ${showCursor ? 'opacity-100 animate-pulse' : 'opacity-0'
                     }`}
             />
         </span>
