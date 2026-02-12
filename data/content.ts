@@ -127,7 +127,7 @@ export const projects: Project[] = [
         enTitle: "Archive 03",
         lastUpdated: "2025-07-05",
         concept: "세 인외 미소녀가 전하는 투자 인사이트",
-        description: "딱딱하고 어려운 투자 콘텐츠를 탈피. 천사, 악마, 안드로이드라는 세 명의 인외 미소녀 캐릭터가 최신 데이터를 바탕으로 전하는 대화 형식의 투자 정보 연재 블로그. 데이터/성장성/리스크를 대표하는 세 캐릭터의 티키타카를 보다 보면 어느새 당신도 경제 전문가.",
+        description: "천사, 악마, 안드로이드라는 세 명의 인외 미소녀가 최신 데이터를 바탕으로 전하는 대화 형식의 투자 정보 연재 블로그. 데이터/성장성/리스크를 대표하는 세 캐릭터의 티키타카를 보다 보면 어느새 당신도 경제 전문가.",
         techStack: ["Hugo", "GitHub Pages", "SCSS", "Gemini"],
         link: "https://archive03.online/",
         linkText: "보러 가기",

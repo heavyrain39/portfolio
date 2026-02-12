@@ -22,7 +22,7 @@ export default function Projects() {
                         initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                        transition={{ duration: 0.3, delay: index * 0.05, ease: "easeOut" }}
                     >
                         <ProjectCard project={project} />
                     </motion.div>

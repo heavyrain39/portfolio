@@ -54,7 +54,7 @@ export default function TypewriterText({ text, className }: TypewriterTextProps)
                     setShowCursor(false);
                 }, 1500);
             }
-        }, 30); // 30ms per character for smooth typing
+        }, 15); // 15ms per character for faster, snappy typing
 
         return () => clearInterval(interval);
     }, [text, isInView]);

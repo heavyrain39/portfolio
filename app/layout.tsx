@@ -28,6 +28,9 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
     title: "야차완 | 夜叉腕 Portfolio",
     description: "Writer, Vibe Coder, Planner. Portfolio of Yakshawan.",
+    icons: {
+        icon: "/images/favicon.png",
+    },
 };
 
 export default function RootLayout({

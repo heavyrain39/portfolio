@@ -10,7 +10,7 @@ export default function Music() {
     const scroll = (direction: "left" | "right") => {
         if (scrollRef.current) {
             const { current } = scrollRef;
-            const scrollAmount = direction === "left" ? -400 : 400;
+            const scrollAmount = direction === "left" ? -600 : 600;
             current.scrollBy({ left: scrollAmount, behavior: "smooth" });
         }
     };

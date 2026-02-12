@@ -18,7 +18,7 @@ export default function Hero() {
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                 className="max-w-4xl z-10"
             >
                 <span className="block font-mono text-sm mb-4 opacity-60 tracking-widest">PORTFOLIO.2026</span>
