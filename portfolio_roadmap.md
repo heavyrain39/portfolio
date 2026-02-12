@@ -114,14 +114,38 @@
 -   [ ] **Blog Integration**: `archive03` 같은 외부 블로그 글을 RSS로 가져와 보여주는 섹션 추가.
 -   [ ] **3D Elements**: Three.js / React Three Fiber를 활용한 미묘한 3D 오브젝트 인터랙션 추가 (성능 저하 주의).
 -   [ ] **Sound Design**: 버튼 클릭이나 호버 시 아주 작은 기계적 SFX(Sound Effects) 추가 고려 (음소거 옵션 필수).
+- [x] **Deploy to GitHub Pages**: GitHub Actions를 통한 자동 배포 및 정적 호스팅 환경 구축 완료 (2026-02-13).
 
 ---
 
-## 6. Maintenance Guide (유지보수)
+## 6. Deployment & Troubleshooting Log (2026-02-13 Update)
+
+### 6.1. GitHub Pages Configuration
+GitHub Pages 배포 성공을 위해 다음과 같은 설정을 적용했습니다.
+1.  **Static Export**: `next.config.mjs`에 `output: 'export'` 설정 추가.
+2.  **Manual Build Workflow**: GitHub Actions의 자동 설정(`configure-pages`) 대신 `npm run build`를 직접 실행하는 수동 워크플로우(`nextjs.yml`) 채택. 이는 자동 설정이 커스텀 `basePath`와 충돌하는 문제를 방지합니다.
+3.  **Branch Configuration**: 리포지토리의 기본 브랜치가 `master`인 경우, 워크플로우의 트리거 브랜치도 `master`로 일치시켜야 합니다.
+
+### 6.2. Path Issues & Solutions (Lessons Learned)
+배포 과정에서 발생한 경로 문제와 해결책입니다.
+-   **404 Error**: `next.config.mjs`에 `trailingSlash: true`를 추가하여 경로 끝에 `/`를 붙이지 않으면 페이지를 찾지 못하는 문제를 해결했습니다.
+-   **Favicon**: `app/layout.tsx`의 메타데이터에 `/portfolio/images/favicon.png`와 같이 리포지토리 이름이 포함된 절대 경로를 명시해야 합니다.
+-   **Image Assets**:
+    -   Next.js의 하위 경로(`basePath: '/portfolio'`) 설정이 정적 HTML의 `<img>` 태그나 CSS 배경 이미지에는 자동으로 적용되지 않습니다.
+    -   **Solution**: `content.ts` 내의 모든 이미지 경로 앞에 `/portfolio` 접두사를 하드코딩(Hard-coding)하여 해결했습니다. (`next/image` 컴포넌트 사용 시에도 외부 데이터 소스의 경로는 명시적이어야 안전합니다.)
+
+### 6.3. UX Optimization (Apparent Speed)
+초기 디자인의 "답답함"을 해소하기 위해 애니메이션 속도를 전반적으로 상향 조정했습니다.
+-   **Snappy Feel**: `framer-motion`의 `duration`을 절반 수준(0.8s -> 0.4s)으로 단축하고, `easeOut` 또는 `spring` 효과를 강화하여 민첩한 반응성을 구현했습니다.
+-   **Typewriter**: 타이핑 효과 속도를 30ms에서 15ms로 단축하여 지루함을 제거했습니다.
+
+---
+
+## 7. Maintenance Guide (유지보수)
 
 ### How to Update Content
 모든 텍스트와 프로젝트 데이터는 [data/content.ts](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/data/content.ts) 파일에 정의되어 있습니다.
--   **새 프로젝트 추가**: `projects` 배열에 객체를 추가하면 자동으로 갤러리에 반영됩니다.
+-   **새 프로젝트 추가**: `projects` 배열에 객체를 추가합니다. **주의**: 썸네일 이미지 경로에 반드시 `/portfolio` 접두사를 포함해야 합니다. (e.g., `/portfolio/images/new_project.png`)
 -   **음악 추가**: `musicAlbums` 또는 `electronicMusic` 배열에 YouTube ID를 추가하세요.
 
 ### How to Modify Theme
