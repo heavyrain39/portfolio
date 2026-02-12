@@ -21,7 +21,7 @@ export default function Hero() {
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                 className="max-w-4xl z-10"
             >
-                <span className="block font-mono text-sm mb-4 opacity-60 tracking-widest">PORTFOLIO.2026</span>
+                <span className="block font-mono text-sm mb-4 opacity-60 tracking-widest">PORTFOLIO.2026 ■■■■</span>
                 <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight mb-8 leading-[0.9] w-fit">
                     {heroContent.headline.split("|").map((part, i) => (
                         <span key={i} className={i === 1 ? "opacity-30 font-light ml-2 inline-block" : ""}>{part}</span>
