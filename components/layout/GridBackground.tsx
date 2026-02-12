@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, useMotionTemplate } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export default function GridBackground() {
@@ -9,9 +9,23 @@ export default function GridBackground() {
     const scale = useTransform(scrollY, [0, 1000], [1, 1.2]);
     const [mounted, setMounted] = useState(false);
 
+    // Mouse tracking for glow effect
+    const mouseX = useMotionValue(-100);
+    const mouseY = useMotionValue(-100);
+
     useEffect(() => {
         setMounted(true);
-    }, []);
+
+        const handleMouseMove = (e: MouseEvent) => {
+            mouseX.set(e.clientX);
+            mouseY.set(e.clientY);
+        };
+
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, [mouseX, mouseY]);
+
+    const maskImage = useMotionTemplate`radial-gradient(300px circle at ${mouseX}px ${mouseY}px, black, transparent)`;
 
     if (!mounted) return null;
 
@@ -25,6 +39,18 @@ export default function GridBackground() {
                     backgroundImage: `linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)`,
                     backgroundSize: `8rem 8rem`,
                     backgroundPosition: "center"
+                }}
+            />
+
+            {/* Glow Grid Layer */}
+            <motion.div
+                className="absolute inset-0 z-0 bg-repeat opacity-[0.5]"
+                style={{
+                    backgroundImage: `linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)`,
+                    backgroundSize: `8rem 8rem`,
+                    backgroundPosition: "center",
+                    maskImage,
+                    WebkitMaskImage: maskImage,
                 }}
             />
 
