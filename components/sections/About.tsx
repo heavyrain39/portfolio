@@ -26,7 +26,7 @@ export default function About() {
 
                 <div className="pt-12 mt-12 border-t border-border/50">
                     <h4 className="font-mono text-sm uppercase mb-4 opacity-50">Career Highlights</h4>
-                    <ul className="space-y-4 list-disc pl-5 marker:text-foreground/50">
+                    <ul className="space-y-4 list-disc pl-5 marker:text-current/50">
                         <li>現 웹소설 작가</li>
                         <li>前 카카오 콘텐츠 기획자</li>
                         <li>1인 인디게임 / 웹앱 개발</li>
