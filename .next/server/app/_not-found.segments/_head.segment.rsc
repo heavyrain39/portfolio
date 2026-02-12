@@ -1,5 +1,0 @@
-1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/c40608b666f6edf0.js","/_next/static/chunks/5efebc89e3bcb76d.js","/_next/static/chunks/2f236954d6a65e12.js"],"ViewportBoundary"]
-3:I[97367,["/_next/static/chunks/c40608b666f6edf0.js","/_next/static/chunks/5efebc89e3bcb76d.js","/_next/static/chunks/2f236954d6a65e12.js"],"MetadataBoundary"]
-4:"$Sreact.suspense"
-0:{"buildId":"YttMzJuS0Z-w59BAArp7E","rsc":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"야차완 | 夜叉腕 Portfolio"}],["$","meta","1",{"name":"description","content":"Writer, Vibe Coder, Planner. Portfolio of Yakshawan."}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}
