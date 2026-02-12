@@ -1,13 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'export',
+    // GitHub Pages 저장소 이름이 'portfolio'인 경우 반드시 설정해야 합니다.
+    basePath: '/portfolio',
+    // GitHub Pages에서 폴더 구조와 URL을 일치시키기 위해 true로 설정하는 것이 권장됩니다.
+    trailingSlash: true,
     images: {
         unoptimized: true,
     },
-    // GitHub Pages 저장소 이름이 'portfolio'이므로 해당 경로를 basePath로 설정합니다.
-    basePath: '/portfolio',
-    // 에셋 경로(CSS, JS 등)도 basePath를 따르도록 합니다.
-    assetPrefix: '/portfolio',
 };
 
 export default nextConfig;
