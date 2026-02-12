@@ -22,7 +22,7 @@ export default function Music() {
             <div className="flex justify-between items-end mb-12">
                 <div>
                     <h2 className="text-4xl font-serif font-bold">Auditory Log</h2>
-                    <p className="font-mono text-sm opacity-50 mt-2">SERAPHIM & ELECTRONIC WORKS</p>
+                    <p className="font-mono text-sm opacity-50 mt-2">SERAPHIM EP & ELECTRONIC WORKS</p>
                 </div>
 
                 <div className="flex gap-2">
