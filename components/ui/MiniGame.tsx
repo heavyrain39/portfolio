@@ -372,28 +372,28 @@ export default function MiniGame() {
                 />
                 <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-red-500 rounded-full"
-                    animate={{ scale: isShooting ? 1.5 : 1 }}
+                // Removed scaling animation
                 />
 
                 {/* Top Pipe */}
                 <motion.div
-                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-2 bg-current"
-                    animate={{ y: isShooting ? 4 : -4 }} // Moves down inward / up outward
+                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
+                    animate={{ y: isShooting ? 4 : -8 }} // Starts further out (-8), moves in (4)
                 />
                 {/* Bottom Pipe */}
                 <motion.div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-0.5 h-2 bg-current"
-                    animate={{ y: isShooting ? -4 : 4 }}
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
+                    animate={{ y: isShooting ? -4 : 8 }} // Starts further out (8), moves in (-4)
                 />
                 {/* Left Pipe */}
                 <motion.div
-                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-0.5 bg-current"
-                    animate={{ x: isShooting ? 4 : -4 }}
+                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
+                    animate={{ x: isShooting ? 4 : -8 }} // Starts further out (-8), moves in (4)
                 />
                 {/* Right Pipe */}
                 <motion.div
-                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-0.5 bg-current"
-                    animate={{ x: isShooting ? -4 : 4 }}
+                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
+                    animate={{ x: isShooting ? -4 : 8 }} // Starts further out (8), moves in (-4)
                 />
             </motion.div>
 
