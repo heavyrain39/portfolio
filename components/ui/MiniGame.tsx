@@ -85,6 +85,7 @@ export default function MiniGame() {
     const mousePos = useRef<Point>({ x: 0, y: 0 });
     const isMouseDown = useRef(false);
     const lastShotTime = useRef(0);
+    const burstShotCount = useRef(0);
     const frameCount = useRef(0);
     const shakeIntensity = useRef(0);
     const cachedIsDark = useRef(false);
@@ -235,6 +236,7 @@ export default function MiniGame() {
             isMouseDown.current = true;
             setIsShooting(true);
             lastShotTime.current = 0; // Guarantee instant first shot
+            burstShotCount.current = 0;
 
             // Initialize/Resume Audio Context
             getAudioContext();
@@ -242,6 +244,7 @@ export default function MiniGame() {
         const handleMouseUp = () => {
             isMouseDown.current = false;
             setIsShooting(false);
+            burstShotCount.current = 0;
         };
         const handleMouseLeave = () => {
             // Don't reset isMouseDown here — window-level mouseup handles that.
@@ -437,8 +440,8 @@ export default function MiniGame() {
                 const dy = mousePos.current.y - startY;
                 const angle = Math.atan2(dy, dx);
 
-                // Spread
-                const spread = (Math.random() - 0.5) * 0.15;
+                // First shot is perfectly accurate. Follow-up shots get light spread.
+                const spread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
 
                 bullets.current.push({
                     id: Math.random(),
@@ -449,6 +452,7 @@ export default function MiniGame() {
                     life: 1.0
                 });
 
+                burstShotCount.current++;
                 playSound("shoot"); // Audio Feedback
                 lastShotTime.current = time;
             }
@@ -697,7 +701,23 @@ export default function MiniGame() {
                 <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-foreground/20" />
                 <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-foreground/20" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-foreground/20" />
-                <div className="absolute inset-0 border border-foreground/5 bg-foreground/[0.02]" />
+                <svg
+                    className="absolute inset-0 w-full h-full text-foreground"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                    shapeRendering="geometricPrecision"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M0 0 H100 V100 H84.8 L83.8 99 H76.2 L75.2 100 H24.8 L23.8 99 H16.2 L15.2 100 H0 Z"
+                        fill="currentColor"
+                        fillOpacity="0.02"
+                        stroke="currentColor"
+                        strokeOpacity="0.05"
+                        strokeWidth="1"
+                        vectorEffect="non-scaling-stroke"
+                    />
+                </svg>
             </div>
 
             {/* Bottom HUD (Aligned Left/Right) */}
