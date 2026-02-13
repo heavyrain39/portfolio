@@ -20,20 +20,20 @@ export default function Hero() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                className="max-w-4xl z-10"
+                className="max-w-4xl z-10 pointer-events-none"
             >
-                <span className="block font-mono text-sm mb-4 opacity-60 tracking-widest">PORTFOLIO.2026 ■■■■</span>
-                <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight mb-8 leading-[0.9] w-fit">
+                <span className="block font-mono text-sm mb-4 opacity-60 tracking-widest pointer-events-auto select-none">PORTFOLIO.2026 ■■■■</span>
+                <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight mb-8 leading-[0.9] w-fit pointer-events-auto select-none">
                     {heroContent.headline.split("|").map((part, i) => (
                         <span key={i} className={i === 1 ? "opacity-30 font-light ml-2 inline-block" : ""}>{part}</span>
                     ))}
                 </h1>
 
-                <p className="text-lg md:text-xl opacity-80 leading-relaxed text-justify break-keep max-w-[28rem] md:max-w-[36rem]">
+                <p className="text-lg md:text-xl opacity-80 leading-relaxed text-justify break-keep max-w-[28rem] md:max-w-[36rem] pointer-events-auto select-none">
                     {heroContent.introduction}
                 </p>
 
-                <div className="flex gap-6 mt-12">
+                <div className="flex gap-6 mt-12 pointer-events-auto">
                     <a href={heroContent.socials.github} target="_blank" rel="noopener noreferrer" className="hover:opacity-50 transition-opacity" aria-label="GitHub">
                         <Github size={20} />
                     </a>
