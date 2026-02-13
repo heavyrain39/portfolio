@@ -34,8 +34,6 @@ export default function DecorativeSymbol() {
                 <line x1="50" y1="0" x2="50" y2="100" stroke="currentColor" strokeWidth="6" />
                 {/* Horizontal Line (Length: 100) */}
                 <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="6" />
-                {/* Diagonal Line (Length: 100, centered) */}
-                <line x1="14.6" y1="85.4" x2="85.4" y2="14.6" stroke="currentColor" strokeWidth="6" />
             </motion.svg>
         </motion.span>
     );
