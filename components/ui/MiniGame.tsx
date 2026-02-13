@@ -45,7 +45,7 @@ export default function MiniGame() {
     // Refs for Game Loop
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const requestRef = useRef<number>();
+    const requestRef = useRef<number | null>(null);
     const scoreRef = useRef(0);
 
     // Game State Refs (Mutable for performance in loop)

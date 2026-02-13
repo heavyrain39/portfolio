@@ -44,11 +44,10 @@ export default function Hero() {
                         <Mail size={20} />
                     </a>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
 
-            {/* Mini Game (PC Only, Right Side) */ }
-    <MiniGame />
+            {/* Mini Game (PC Only, Right Side) */}
+            <MiniGame />
         </section >
     );
 }
