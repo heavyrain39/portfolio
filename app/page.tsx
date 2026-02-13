@@ -21,8 +21,8 @@ export default function Home() {
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{
                     type: "spring",
-                    stiffness: 1100,
-                    damping: 50, // Slightly higher damping to prevent excessive oscillation at high stiffness
+                    stiffness: 500,
+                    damping: 35, // Slightly higher damping to prevent excessive oscillation at high stiffness
                     mass: 1
                 }}
             >
