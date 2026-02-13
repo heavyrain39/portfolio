@@ -395,22 +395,22 @@ export default function MiniGame() {
                 {/* Top Pipe */}
                 <motion.div
                     className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? 4 : -10 }} // Starts further out (-10), moves in (6)
+                    animate={{ y: isShooting ? 4 : -10 }} // Starts further out (-16), moves in (12)
                 />
                 {/* Bottom Pipe */}
                 <motion.div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? -4 : 10 }} // Starts further out (10), moves in (-6)
+                    animate={{ y: isShooting ? -4 : 10 }} // Starts further out (16), moves in (-12)
                 />
                 {/* Left Pipe */}
                 <motion.div
                     className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? 4 : -10 }} // Starts further out (-10), moves in (6)
+                    animate={{ x: isShooting ? 4 : -10 }} // Starts further out (-16), moves in (12)
                 />
                 {/* Right Pipe */}
                 <motion.div
                     className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? -4 : 8 }} // Starts further out (10), moves in (-6)
+                    animate={{ x: isShooting ? -4 : 8 }} // Starts further out (16), moves in (-12)
                 />
             </motion.div>
 
