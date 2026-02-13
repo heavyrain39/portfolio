@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { heroContent } from "@/data/content";
 import { Github, Twitter, Mail } from "lucide-react";
+import MiniGame from "@/components/ui/MiniGame";
 
 export default function Hero() {
     return (
@@ -43,7 +44,11 @@ export default function Hero() {
                         <Mail size={20} />
                     </a>
                 </div>
-            </motion.div>
-        </section>
+            </div>
+        </motion.div>
+
+            {/* Mini Game (PC Only, Right Side) */ }
+    <MiniGame />
+        </section >
     );
 }
