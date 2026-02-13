@@ -279,3 +279,39 @@
 
 ### How to Modify Theme
 [tailwind.config.ts](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/tailwind.config.ts) 諛?[app/globals.css](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/app/globals.css)?먯꽌 ?됱긽 蹂??`--background`, `--foreground`)瑜??섏젙?섏뿬 ?꾩껜 ?뚮쭏瑜?蹂寃쏀븷 ???덉뒿?덈떎.
+
+---
+
+## 8. Operator Comment System Fix Log (Updated 2026-02-13)
+
+### Issue 7: Typewriter stuck after first character / resume only after re-hover
+- Situation:
+  - Operator comment sometimes printed only the first character and then stalled.
+  - Text resumed only after mouse leave + re-enter.
+- Root Cause:
+  - Typing timeout was cleared by effect cleanup during state-driven re-renders.
+  - `isTypingRef` stayed `true`, so restart guard blocked re-entry into typing.
+- Fix:
+  - Reworked `components/ui/OperatorComments.tsx` timer state machine.
+  - Separated responsibilities:
+    - typing loop (`typeNextChar`)
+    - complete-state transition (blink -> fade out -> next message)
+  - Added explicit timer refs and centralized cleanup for all timeout channels.
+  - Used refs for async timeout guards to avoid stale closure state.
+
+### Issue 8: Completed line stayed visible (no fade-out) and hover-out visibility rule
+- Situation:
+  - After cursor blinking on complete text (e.g. "Very... dominant."), fade-out could fail.
+  - Requirement: operator comment should not be visible when not hovered.
+- Root Cause:
+  - Completion transition timing and render lifecycle were coupled in one path.
+  - Visibility control and transition timers could desynchronize.
+- Fix:
+  - Moved completion transition into dedicated effect keyed by `isComplete`.
+  - Enforced `hover` as single visibility gate:
+    - hover on: show and continue state machine
+    - hover off: hide immediately and clear all timers
+- Result:
+  - Stable sequence on hover:
+    - typewriter -> cursor blink -> fade out -> next line
+  - Immediate hide when hover is released.
