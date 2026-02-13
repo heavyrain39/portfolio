@@ -41,6 +41,22 @@ interface Particle {
     size: number;
 }
 
+interface FloatingText {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number;
+    text: string;
+}
+
+interface HitFlash {
+    x: number;
+    y: number;
+    life: number;
+    radius: number;
+}
+
 export default function MiniGame() {
     // Refs for Game Loop
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,10 +69,14 @@ export default function MiniGame() {
     const bullets = useRef<Bullet[]>([]);
     const targets = useRef<Target[]>([]);
     const particles = useRef<Particle[]>([]);
+    const floatingTexts = useRef<FloatingText[]>([]);
+    const hitFlashes = useRef<HitFlash[]>([]);
     const mousePos = useRef<Point>({ x: 0, y: 0 });
     const isMouseDown = useRef(false);
     const lastShotTime = useRef(0);
     const frameCount = useRef(0);
+    const shakeIntensity = useRef(0);
+    const cachedIsDark = useRef(false);
 
     // React State for UI
     const [uiScore, setUiScore] = useState(0);
@@ -79,16 +99,22 @@ export default function MiniGame() {
     // Constants
     const GRAVITY = 0.2; // For particles
 
+    // Consolidated AudioContext initializer
+    const getAudioContext = (): AudioContext => {
+        if (!audioCtxRef.current) {
+            audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (audioCtxRef.current.state === "suspended") {
+            audioCtxRef.current.resume();
+        }
+        return audioCtxRef.current;
+    };
+
     // Sound Generation (Synth)
     const playSound = (type: "shoot" | "hit") => {
         if (isMutedRef.current) return;
 
-        // Initialize Audio Context if needed
-        if (!audioCtxRef.current) {
-            audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
-        const ctx = audioCtxRef.current;
-        if (ctx.state === "suspended") ctx.resume();
+        const ctx = getAudioContext();
 
         const osc = ctx.createOscillator();
         const gainNode = ctx.createGain();
@@ -99,9 +125,10 @@ export default function MiniGame() {
         const now = ctx.currentTime;
 
         if (type === "shoot") {
-            // High-pitch pew
+            // High-pitch pew — subtle pitch variation per shot
             osc.type = "triangle";
-            osc.frequency.setValueAtTime(800, now);
+            const baseFreq = 800 + (Math.random() - 0.5) * 120; // 740~860 range
+            osc.frequency.setValueAtTime(baseFreq, now);
             osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
 
             gainNode.gain.setValueAtTime(0.05, now); // Very low volume
@@ -131,6 +158,16 @@ export default function MiniGame() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
+        // Cache theme state via MutationObserver (instead of per-frame DOM query)
+        cachedIsDark.current = document.documentElement.getAttribute('data-theme') === 'dark';
+        const themeObserver = new MutationObserver(() => {
+            cachedIsDark.current = document.documentElement.getAttribute('data-theme') === 'dark';
+        });
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+
         // Resize Handlers
         const handleResize = () => {
             if (canvas && container) {
@@ -157,31 +194,34 @@ export default function MiniGame() {
             e.preventDefault(); // Prevent text selection/dragging
             isMouseDown.current = true;
             setIsShooting(true);
+            lastShotTime.current = 0; // Guarantee instant first shot
 
             // Initialize/Resume Audio Context
-            if (!audioCtxRef.current) {
-                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-            }
-            if (audioCtxRef.current.state === "suspended") {
-                audioCtxRef.current.resume();
-            }
+            getAudioContext();
         };
         const handleMouseUp = () => {
             isMouseDown.current = false;
             setIsShooting(false);
         };
         const handleMouseLeave = () => {
-            isMouseDown.current = false;
-            setIsShooting(false);
+            // Don't reset isMouseDown here — window-level mouseup handles that.
+            // This prevents the "click release" bug when cursor briefly exits container.
             setIsHovered(false);
         };
+        const handleMouseEnter = () => {
+            setIsHovered(true);
+        };
+        const handleContextMenu = (e: Event) => {
+            e.preventDefault(); // Suppress right-click menu in game area
+        };
 
-        // Attach listeners to container
+        // Attach listeners
         container.addEventListener("mousemove", handleMouseMove);
         container.addEventListener("mousedown", handleMouseDown);
-        container.addEventListener("mouseup", handleMouseUp);
+        window.addEventListener("mouseup", handleMouseUp); // Window-level: prevents stuck clicks
         container.addEventListener("mouseleave", handleMouseLeave);
-        container.addEventListener("mouseenter", () => setIsHovered(true));
+        container.addEventListener("mouseenter", handleMouseEnter);
+        container.addEventListener("contextmenu", handleContextMenu);
 
         // --- GAME LOGIC ---
 
@@ -230,7 +270,15 @@ export default function MiniGame() {
         const animate = (time: number) => {
             if (!canvas || !ctx) return;
 
+            // Screen shake offset
+            const shakeX = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
+            const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
+            shakeIntensity.current *= 0.85; // Rapid decay
+            if (shakeIntensity.current < 0.3) shakeIntensity.current = 0;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
 
             // 1. Spawning
             frameCount.current++;
@@ -267,7 +315,6 @@ export default function MiniGame() {
             }
 
             // 3. Update & Draw Bullets
-            ctx.fillStyle = "#06b6d4";
             for (let i = bullets.current.length - 1; i >= 0; i--) {
                 const b = bullets.current[i];
                 b.x += b.vx;
@@ -279,7 +326,15 @@ export default function MiniGame() {
                     continue;
                 }
 
-                // Draw Bullet
+                // Tracer Glow (wider, translucent underlayer)
+                ctx.beginPath();
+                ctx.moveTo(b.x - b.vx * 0.6, b.y - b.vy * 0.6);
+                ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+                ctx.lineWidth = 6;
+                ctx.stroke();
+
+                // Core Tracer (sharp)
                 ctx.beginPath();
                 ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
                 ctx.lineTo(b.x, b.y);
@@ -292,7 +347,7 @@ export default function MiniGame() {
                     const t = targets.current[j];
                     const dist = Math.hypot(b.x - t.x, b.y - t.y);
 
-                    if (dist < t.radius + 5) {
+                    if (dist < t.radius + 7) { // Hitbox: +7 (was +5)
                         bullets.current.splice(i, 1);
 
                         // Damage
@@ -303,11 +358,31 @@ export default function MiniGame() {
 
                         createExplosion(b.x, b.y, 4, "#06b6d4");
 
+                        // Small hit flash on damage
+                        hitFlashes.current.push({ x: b.x, y: b.y, life: 1.0, radius: 8 });
+
                         if (t.hp <= 0) {
                             // Destroy
                             createExplosion(t.x, t.y, 20, "#06b6d4");
                             playSound("hit"); // Audio Feedback
                             targets.current.splice(j, 1);
+
+                            // Screen shake
+                            shakeIntensity.current = 3;
+
+                            // Large hit flash on kill
+                            hitFlashes.current.push({ x: t.x, y: t.y, life: 1.0, radius: t.radius * 0.8 });
+
+                            // Floating "+1" text
+                            const dir = Math.random() > 0.5 ? 1 : -1;
+                            floatingTexts.current.push({
+                                x: t.x,
+                                y: t.y,
+                                vx: dir * (Math.random() * 0.5 + 0.5),
+                                vy: -1.5,
+                                life: 1.0,
+                                text: "+1"
+                            });
 
                             scoreRef.current++;
                             setUiScore(scoreRef.current);
@@ -319,7 +394,7 @@ export default function MiniGame() {
             }
 
             // 4. Update & Draw Targets
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const isDark = cachedIsDark.current;
             const targetBorder = isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)";
             const targetCenter = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
 
@@ -379,6 +454,50 @@ export default function MiniGame() {
                 ctx.globalAlpha = 1.0;
             }
 
+            // 6. Update & Draw Hit Flashes
+            for (let i = hitFlashes.current.length - 1; i >= 0; i--) {
+                const f = hitFlashes.current[i];
+                f.life -= 0.2; // Very fast decay (~5 frames)
+
+                if (f.life <= 0) {
+                    hitFlashes.current.splice(i, 1);
+                    continue;
+                }
+
+                ctx.globalAlpha = f.life * 0.5;
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.radius * f.life, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+
+            // 7. Update & Draw Floating Texts (+1 popup)
+            const textColor = isDark ? "255, 255, 255" : "0, 0, 0";
+            for (let i = floatingTexts.current.length - 1; i >= 0; i--) {
+                const ft = floatingTexts.current[i];
+                ft.x += ft.vx;
+                ft.y += ft.vy;
+                ft.vx *= 1.06; // Accelerating scatter
+                ft.life -= 0.028; // ~35 frames total (~0.58s)
+
+                if (ft.life <= 0) {
+                    floatingTexts.current.splice(i, 1);
+                    continue;
+                }
+
+                // Full opacity for first ~0.3s, then fade out
+                const alpha = Math.min(ft.life * 2, 1);
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = `rgba(${textColor}, ${alpha})`;
+                ctx.font = "bold 12px 'JetBrains Mono', monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.restore(); // End screen shake transform
+
             requestRef.current = requestAnimationFrame(animate);
         };
 
@@ -388,9 +507,11 @@ export default function MiniGame() {
             window.removeEventListener("resize", handleResize);
             container.removeEventListener("mousemove", handleMouseMove);
             container.removeEventListener("mousedown", handleMouseDown);
-            container.removeEventListener("mouseup", handleMouseUp);
+            window.removeEventListener("mouseup", handleMouseUp);
             container.removeEventListener("mouseleave", handleMouseLeave);
-            container.removeEventListener("mouseenter", () => setIsHovered(true));
+            container.removeEventListener("mouseenter", handleMouseEnter);
+            container.removeEventListener("contextmenu", handleContextMenu);
+            themeObserver.disconnect();
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
             if (audioCtxRef.current) audioCtxRef.current.close();
         };
