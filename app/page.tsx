@@ -20,7 +20,7 @@ export default function Home() {
                 <SquircleTopBorder className="text-foreground" />
 
                 {/* Main Body (Inverted Colors) */}
-                <div className="bg-foreground text-background pb-8">
+                <div className="bg-foreground text-background pb-8 -mt-px">
                     <About />
 
                     <footer className="py-12 text-center font-mono text-xs opacity-40 text-inherit">

@@ -24,7 +24,7 @@ export default function About() {
                     <TypewriterText text={'야차완은 콘텐츠 창작자이자 바이브 코더입니다. LLM을 활용해 다양한 콘텐츠 경험을 설계·개발하고 있습니다.<br>문의는 <a href="https://www.threads.com/@yakshawan">스레드</a> 혹은 <a href="mailto:ggolem@naver.com">이메일</a>로 부탁드립니다. 감사합니다.'} />
                 </p>
 
-                <div className="pt-12 mt-12 border-t border-border/50">
+                <div className="pt-8 mt-8">
                     <h4 className="font-mono text-sm uppercase mb-4 opacity-50">Career Highlights</h4>
                     <ul className="space-y-4 list-disc pl-5 marker:text-current/50">
                         <li>現 웹소설 작가</li>

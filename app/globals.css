@@ -3,6 +3,8 @@
 :root {
     --background: #f5f5f0;
     --foreground: #1a1a1a;
+    --grid-line: rgba(0, 0, 0, 0.05);
+    --border-color: rgba(0, 0, 0, 0.08);
 }
 
 [data-theme='dark'] {
