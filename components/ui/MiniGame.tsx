@@ -47,6 +47,7 @@ export default function MiniGame() {
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
     const scoreRef = useRef(0);
+    const audioCtxRef = useRef<AudioContext | null>(null);
 
     // Game State Refs (Mutable for performance in loop)
     const bullets = useRef<Bullet[]>([]);
@@ -60,8 +61,14 @@ export default function MiniGame() {
     // React State for UI
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
-
     const [isHovered, setIsHovered] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
+    const isMutedRef = useRef(true);
+
+    // Sync Ref with State for Game Loop
+    useEffect(() => {
+        isMutedRef.current = isMuted;
+    }, [isMuted]);
 
     // Motion Values for Crosshair (Smooth)
     const rawMouseX = useMotionValue(0);
@@ -70,10 +77,51 @@ export default function MiniGame() {
     const smoothMouseY = useSpring(rawMouseY, { stiffness: 500, damping: 30 });
 
     // Constants
-    const BULLET_SPEED = 25;
-    const FIRE_RATE = 50; // ms
-    const TARGET_SPAWN_RATE = 120; // frames
     const GRAVITY = 0.2; // For particles
+
+    // Sound Generation (Synth)
+    const playSound = (type: "shoot" | "hit") => {
+        if (isMutedRef.current) return;
+
+        // Initialize Audio Context if needed
+        if (!audioCtxRef.current) {
+            audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        const ctx = audioCtxRef.current;
+        if (ctx.state === "suspended") ctx.resume();
+
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+
+        if (type === "shoot") {
+            // High-pitch pew
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+
+            gainNode.gain.setValueAtTime(0.05, now); // Very low volume
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === "hit") {
+            // Crunch/Explosion
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+
+            gainNode.gain.setValueAtTime(0.08, now); // Low volume
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            osc.start(now);
+            osc.stop(now + 0.15);
+        }
+    };
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -109,6 +157,14 @@ export default function MiniGame() {
             e.preventDefault(); // Prevent text selection/dragging
             isMouseDown.current = true;
             setIsShooting(true);
+
+            // Initialize/Resume Audio Context
+            if (!audioCtxRef.current) {
+                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            }
+            if (audioCtxRef.current.state === "suspended") {
+                audioCtxRef.current.resume();
+            }
         };
         const handleMouseUp = () => {
             isMouseDown.current = false;
@@ -130,7 +186,7 @@ export default function MiniGame() {
         // --- GAME LOGIC ---
 
         const spawnTarget = () => {
-            if (targets.current.length >= 8) return; // Increased max targets
+            if (targets.current.length >= 8) return; // Max targets
 
             const side = Math.random() > 0.5 ? "left" : "right";
             const startX = side === "left" ? -50 : canvas.width + 50;
@@ -140,10 +196,10 @@ export default function MiniGame() {
                 id: Math.random(),
                 x: startX,
                 y: startY,
-                vx: side === "left" ? Math.random() * 3 + 2 : -(Math.random() * 3 + 2), // Faster targets
+                vx: side === "left" ? Math.random() * 3 + 2 : -(Math.random() * 3 + 2),
                 vy: (Math.random() - 0.5) * 3,
                 radius: 25 + Math.random() * 10,
-                hp: 5, // Slightly tougher
+                hp: 5,
                 maxHp: 5,
                 phase: Math.random() * Math.PI * 2
             });
@@ -152,7 +208,7 @@ export default function MiniGame() {
         const createExplosion = (x: number, y: number, count: number, color: string) => {
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 8 + 4; // Faster particles
+                const speed = Math.random() * 8 + 4;
                 particles.current.push({
                     id: Math.random(),
                     x,
@@ -171,14 +227,14 @@ export default function MiniGame() {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Spawning (Faster rate)
+            // 1. Spawning
             frameCount.current++;
-            if (frameCount.current % 40 === 0) { // Much faster spawn (was 120)
+            if (frameCount.current % 40 === 0) {
                 spawnTarget();
             }
 
             // 2. Shooting
-            if (isMouseDown.current && time - lastShotTime.current > 40) { // Slight fire rate increase (was 50)
+            if (isMouseDown.current && time - lastShotTime.current > 40) {
                 // Determine origin (20% and 80%)
                 const originSide = Math.random() > 0.5 ? "left" : "right";
                 const startX = originSide === "left" ? canvas.width * 0.2 : canvas.width * 0.8;
@@ -190,17 +246,18 @@ export default function MiniGame() {
                 const angle = Math.atan2(dy, dx);
 
                 // Spread
-                const spread = (Math.random() - 0.5) * 0.15; // More spread
+                const spread = (Math.random() - 0.5) * 0.15;
 
                 bullets.current.push({
                     id: Math.random(),
                     x: startX,
                     y: startY,
-                    vx: Math.cos(angle + spread) * 45, // Much faster bullets (was 25)
+                    vx: Math.cos(angle + spread) * 45,
                     vy: Math.sin(angle + spread) * 45,
                     life: 1.0
                 });
 
+                playSound("shoot"); // Audio Feedback
                 lastShotTime.current = time;
             }
 
@@ -217,7 +274,7 @@ export default function MiniGame() {
                     continue;
                 }
 
-                // Draw Bullet (Longer Trace for speed)
+                // Draw Bullet
                 ctx.beginPath();
                 ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
                 ctx.lineTo(b.x, b.y);
@@ -225,28 +282,26 @@ export default function MiniGame() {
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Collision Check loop
+                // Collision Check
                 for (let j = targets.current.length - 1; j >= 0; j--) {
                     const t = targets.current[j];
                     const dist = Math.hypot(b.x - t.x, b.y - t.y);
 
-                    if (dist < t.radius + 5) { // Slightly generous hit box
-                        // Hit!
+                    if (dist < t.radius + 5) {
                         bullets.current.splice(i, 1);
 
-                        // Damage Target
+                        // Damage
                         t.hp--;
                         t.vx *= 0.8;
-                        // Stronger Knockback specifically in Y axis to push them up/away
-                        t.x += b.vx * 0.3; // Increased knockback (was 0.1)
+                        t.x += b.vx * 0.3;
                         t.y += b.vy * 0.3;
 
-                        // Hit specific logic
                         createExplosion(b.x, b.y, 4, "#ef4444");
 
                         if (t.hp <= 0) {
-                            // Destroy Target
+                            // Destroy
                             createExplosion(t.x, t.y, 20, "#ef4444");
+                            playSound("hit"); // Audio Feedback
                             targets.current.splice(j, 1);
 
                             scoreRef.current++;
@@ -260,42 +315,36 @@ export default function MiniGame() {
 
             // 4. Update & Draw Targets
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            // Lighter/thinner colors for sophisticated look
             const targetBorder = isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)";
             const targetCenter = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
 
             for (let i = targets.current.length - 1; i >= 0; i--) {
                 const t = targets.current[i];
 
-                // Organic Movement with more noise
                 t.phase += 0.08;
                 t.x += t.vx;
-                t.y += t.vy + Math.sin(t.phase) * 1.5; // More vertical bobbing
+                t.y += t.vy + Math.sin(t.phase) * 1.5;
 
-                // Boundary bounce/removal
                 if ((t.vx > 0 && t.x > canvas.width + 150) || (t.vx < 0 && t.x < -150)) {
                     targets.current.splice(i, 1);
                     continue;
                 }
 
-                // Draw Target (Refined Design)
-                // 1. Outer dashed ring
+                // Draw Target
                 ctx.beginPath();
                 ctx.setLineDash([5, 5]);
                 ctx.arc(t.x, t.y, t.radius, 0 + t.phase, Math.PI * 2 + t.phase);
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = targetBorder;
                 ctx.stroke();
-                ctx.setLineDash([]); // Reset
+                ctx.setLineDash([]);
 
-                // 2. Inner Rotating Square/Diamond
                 ctx.save();
                 ctx.translate(t.x, t.y);
                 ctx.rotate(-t.phase * 1.5);
                 ctx.strokeStyle = targetBorder;
                 ctx.strokeRect(-t.radius * 0.5, -t.radius * 0.5, t.radius, t.radius);
 
-                // 3. Center Core
                 ctx.fillStyle = targetCenter;
                 ctx.fillRect(-t.radius * 0.2, -t.radius * 0.2, t.radius * 0.4, t.radius * 0.4);
                 ctx.restore();
@@ -318,7 +367,7 @@ export default function MiniGame() {
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
                 ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2); // Streak particles
+                ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
                 ctx.lineWidth = p.size;
                 ctx.strokeStyle = p.color;
                 ctx.stroke();
@@ -336,7 +385,9 @@ export default function MiniGame() {
             container.removeEventListener("mousedown", handleMouseDown);
             container.removeEventListener("mouseup", handleMouseUp);
             container.removeEventListener("mouseleave", handleMouseLeave);
+            container.removeEventListener("mouseenter", () => setIsHovered(true));
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            if (audioCtxRef.current) audioCtxRef.current.close();
         };
     }, []);
 
@@ -345,7 +396,7 @@ export default function MiniGame() {
             ref={containerRef}
             className="absolute right-0 top-0 w-1/2 h-full hidden md:block cursor-none z-0"
         >
-            {/* Canvas Layer for Bullets/Targets */}
+            {/* Canvas Layer */}
             <canvas
                 ref={canvasRef}
                 className="absolute inset-0 w-full h-full block"
@@ -353,27 +404,41 @@ export default function MiniGame() {
 
             {/* Boundary Hint Layer */}
             <div className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-0"}`}>
-                {/* Corners */}
                 <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-foreground/20" />
                 <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-foreground/20" />
                 <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-foreground/20" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-foreground/20" />
-
-                {/* Subtle border fade */}
                 <div className="absolute inset-0 border border-foreground/5 bg-foreground/[0.02]" />
             </div>
 
-            {/* UI Layer - Bottom Left */}
+            {/* Mute Button */}
+            <button
+                onClick={() => setIsMuted(!isMuted)}
+                className="absolute top-8 right-8 p-2 opacity-50 hover:opacity-100 transition-opacity z-10 pointer-events-auto text-foreground"
+                title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            >
+                {isMuted ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                        <line x1="23" y1="9" x2="17" y2="15" />
+                        <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    </svg>
+                )}
+            </button>
+
+            {/* UI Score */}
             <div className="absolute bottom-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none">
                 TARGET TERMINATED: <span className="text-red-500">{uiScore.toString().padStart(3, '0')}</span>
             </div>
 
-            {/* Crosshair Layer (Framer Motion) */}
+            {/* Crosshair */}
             <motion.div
-                className="fixed w-8 h-8 pointer-events-none z-50 mix-blend-difference" // Fixed to viewport to ensure smoothness if container is relative?
-                // Actually container is absolute, mouse coordinates are relative to container.
-                // If we use 'fixed' we need clientX/Y. My logic managed offset logic.
-                // Let's stick to absolute within container for correct positioning relative to game
+                className="fixed w-8 h-8 pointer-events-none z-50 mix-blend-difference"
                 style={{
                     x: smoothMouseX,
                     y: smoothMouseY,
@@ -382,39 +447,34 @@ export default function MiniGame() {
                     position: "absolute"
                 }}
             >
-                {/* Crosshair Graphics */}
                 <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border border-current rounded-full opacity-80"
                     animate={{ scale: isShooting ? 0.8 : 1.2, opacity: isShooting ? 1 : 0.5 }}
                 />
                 <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-red-500 rounded-full"
-                // Removed scaling animation
                 />
 
-                {/* Top Pipe */}
+                {/* Pipes - Using exact values from previous iteration */}
                 <motion.div
                     className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? 4 : -10 }} // Starts further out (-16), moves in (12)
+                    animate={{ y: isShooting ? 10 : -16 }}
                 />
-                {/* Bottom Pipe */}
                 <motion.div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? -4 : 10 }} // Starts further out (16), moves in (-12)
+                    animate={{ y: isShooting ? -10 : 16 }}
                 />
-                {/* Left Pipe */}
                 <motion.div
                     className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? 4 : -10 }} // Starts further out (-16), moves in (12)
+                    animate={{ x: isShooting ? 10 : -16 }}
                 />
-                {/* Right Pipe */}
                 <motion.div
                     className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? -4 : 8 }} // Starts further out (16), moves in (-12)
+                    animate={{ x: isShooting ? -10 : 16 }}
                 />
             </motion.div>
 
-            {/* Hint Text - Bottom Right */}
+            {/* Hint Text */}
             <div className="absolute bottom-8 right-8 text-[10px] font-mono opacity-30 pointer-events-none text-right">
                 <div>VECTOR_SYS_V2.0</div>
                 <div>CLICK_TO_ENGAGE</div>
