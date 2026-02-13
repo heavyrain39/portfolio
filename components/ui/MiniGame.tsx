@@ -59,6 +59,7 @@ export default function MiniGame() {
 
     // React State for UI
     const [uiScore, setUiScore] = useState(0);
+    const [isShooting, setIsShooting] = useState(false);
 
     // Motion Values for Crosshair (Smooth)
     const rawMouseX = useMotionValue(0);
@@ -104,9 +105,16 @@ export default function MiniGame() {
         const handleMouseDown = (e: MouseEvent) => {
             e.preventDefault(); // Prevent text selection/dragging
             isMouseDown.current = true;
+            setIsShooting(true);
         };
-        const handleMouseUp = () => { isMouseDown.current = false; };
-        const handleMouseLeave = () => { isMouseDown.current = false; };
+        const handleMouseUp = () => {
+            isMouseDown.current = false;
+            setIsShooting(false);
+        };
+        const handleMouseLeave = () => {
+            isMouseDown.current = false;
+            setIsShooting(false);
+        };
 
         // Attach listeners to container
         container.addEventListener("mousemove", handleMouseMove);
@@ -338,8 +346,8 @@ export default function MiniGame() {
                 className="absolute inset-0 w-full h-full block"
             />
 
-            {/* UI Layer */}
-            <div className="absolute top-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none">
+            {/* UI Layer - Bottom Left */}
+            <div className="absolute bottom-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none">
                 TARGET TERMINATED: <span className="text-red-500">{uiScore.toString().padStart(3, '0')}</span>
             </div>
 
@@ -358,15 +366,38 @@ export default function MiniGame() {
                 }}
             >
                 {/* Crosshair Graphics */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border border-current rounded-full opacity-80" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-red-500 rounded-full" />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-2 bg-current" />
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-0.5 h-2 bg-current" />
-                <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-0.5 bg-current" />
-                <div className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-0.5 bg-current" />
+                <motion.div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border border-current rounded-full opacity-80"
+                    animate={{ scale: isShooting ? 0.8 : 1.2, opacity: isShooting ? 1 : 0.5 }}
+                />
+                <motion.div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-red-500 rounded-full"
+                    animate={{ scale: isShooting ? 1.5 : 1 }}
+                />
+
+                {/* Top Pipe */}
+                <motion.div
+                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-2 bg-current"
+                    animate={{ y: isShooting ? 4 : -4 }} // Moves down inward / up outward
+                />
+                {/* Bottom Pipe */}
+                <motion.div
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-0.5 h-2 bg-current"
+                    animate={{ y: isShooting ? -4 : 4 }}
+                />
+                {/* Left Pipe */}
+                <motion.div
+                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-0.5 bg-current"
+                    animate={{ x: isShooting ? 4 : -4 }}
+                />
+                {/* Right Pipe */}
+                <motion.div
+                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-0.5 bg-current"
+                    animate={{ x: isShooting ? -4 : 4 }}
+                />
             </motion.div>
 
-            {/* Hint Text */}
+            {/* Hint Text - Bottom Right */}
             <div className="absolute bottom-8 right-8 text-[10px] font-mono opacity-30 pointer-events-none text-right">
                 <div>VECTOR_SYS_V2.0</div>
                 <div>CLICK_TO_ENGAGE</div>
