@@ -61,6 +61,8 @@ export default function MiniGame() {
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
 
+    const [isHovered, setIsHovered] = useState(false);
+
     // Motion Values for Crosshair (Smooth)
     const rawMouseX = useMotionValue(0);
     const rawMouseY = useMotionValue(0);
@@ -100,6 +102,7 @@ export default function MiniGame() {
             mousePos.current = { x, y };
             rawMouseX.set(x);
             rawMouseY.set(y);
+            setIsHovered(true);
         };
 
         const handleMouseDown = (e: MouseEvent) => {
@@ -114,6 +117,7 @@ export default function MiniGame() {
         const handleMouseLeave = () => {
             isMouseDown.current = false;
             setIsShooting(false);
+            setIsHovered(false);
         };
 
         // Attach listeners to container
@@ -121,6 +125,7 @@ export default function MiniGame() {
         container.addEventListener("mousedown", handleMouseDown);
         container.addEventListener("mouseup", handleMouseUp);
         container.addEventListener("mouseleave", handleMouseLeave);
+        container.addEventListener("mouseenter", () => setIsHovered(true));
 
         // --- GAME LOGIC ---
 
@@ -346,6 +351,18 @@ export default function MiniGame() {
                 className="absolute inset-0 w-full h-full block"
             />
 
+            {/* Boundary Hint Layer */}
+            <div className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-0"}`}>
+                {/* Corners */}
+                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-foreground/20" />
+                <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-foreground/20" />
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-foreground/20" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-foreground/20" />
+
+                {/* Subtle border fade */}
+                <div className="absolute inset-0 border border-foreground/5 bg-foreground/[0.02]" />
+            </div>
+
             {/* UI Layer - Bottom Left */}
             <div className="absolute bottom-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none">
                 TARGET TERMINATED: <span className="text-red-500">{uiScore.toString().padStart(3, '0')}</span>
@@ -378,22 +395,22 @@ export default function MiniGame() {
                 {/* Top Pipe */}
                 <motion.div
                     className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? 4 : -8 }} // Starts further out (-8), moves in (4)
+                    animate={{ y: isShooting ? 4 : -10 }} // Starts further out (-10), moves in (6)
                 />
                 {/* Bottom Pipe */}
                 <motion.div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? -4 : 8 }} // Starts further out (8), moves in (-4)
+                    animate={{ y: isShooting ? -4 : 10 }} // Starts further out (10), moves in (-6)
                 />
                 {/* Left Pipe */}
                 <motion.div
                     className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? 4 : -8 }} // Starts further out (-8), moves in (4)
+                    animate={{ x: isShooting ? 4 : -10 }} // Starts further out (-10), moves in (6)
                 />
                 {/* Right Pipe */}
                 <motion.div
                     className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? -4 : 8 }} // Starts further out (8), moves in (-4)
+                    animate={{ x: isShooting ? -4 : 8 }} // Starts further out (10), moves in (-6)
                 />
             </motion.div>
 
