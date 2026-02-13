@@ -7,7 +7,7 @@ import MiniGame from "@/components/ui/MiniGame";
 
 export default function Hero() {
     return (
-        <section className="min-h-[80vh] flex flex-col justify-center container mx-auto px-6 pt-32 pb-20 relative">
+        <section className="h-[95vh] min-h-[95vh] flex flex-col justify-center container mx-auto px-6 pt-32 pb-20 relative">
 
             {/* Decorative Grid Numbers */}
             <div className="absolute top-32 right-6 text-xs font-mono opacity-30 flex flex-col gap-1 items-end">
@@ -20,16 +20,16 @@ export default function Hero() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                className="max-w-4xl z-10 pointer-events-none"
+                className="max-w-3xl z-10 pointer-events-none"
             >
                 <span className="block font-mono text-sm mb-4 opacity-60 tracking-widest pointer-events-auto select-none">PORTFOLIO.2026 ■■■■</span>
-                <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight mb-8 leading-[0.9] w-fit pointer-events-auto select-none">
+                <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight mb-8 leading-[0.9] w-fit pointer-events-auto select-none">
                     {heroContent.headline.split("|").map((part, i) => (
                         <span key={i} className={i === 1 ? "opacity-30 font-light ml-2 inline-block" : ""}>{part}</span>
                     ))}
                 </h1>
 
-                <p className="text-lg md:text-xl opacity-80 leading-relaxed text-justify break-keep max-w-[28rem] md:max-w-[36rem] pointer-events-auto select-none">
+                <p className="text-base md:text-lg opacity-80 leading-relaxed text-justify break-keep max-w-[26rem] md:max-w-[28rem] pointer-events-auto select-none">
                     {heroContent.introduction}
                 </p>
 
