@@ -179,7 +179,7 @@ export const projects: Project[] = [
         enTitle: "Arcana Code v1.0",
         lastUpdated: "2025-05-03",
         concept: "AI가 해석해 주는 무료 타로카드 프로그램",
-        description: "진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다!",
+        description: "진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다! 현재 2.0 버전 개발 중.",
         techStack: ["Node.js", "Express.js", "Gemini API", "Stable Diffusion"],
         link: "https://heavyrain39.github.io/arcana-code/",
         linkText: "소개 페이지",
