@@ -192,6 +192,11 @@ export default function MiniGame() {
             const startX = side === "left" ? -50 : canvas.width + 50;
             const startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1); // Keep high
 
+            const r = Math.random();
+            let hp = 4; // Default 80%
+            if (r < 0.1) hp = 3; // 10% Weak
+            else if (r > 0.9) hp = 5; // 10% Strong
+
             targets.current.push({
                 id: Math.random(),
                 x: startX,
@@ -199,8 +204,8 @@ export default function MiniGame() {
                 vx: side === "left" ? Math.random() * 3 + 2 : -(Math.random() * 3 + 2),
                 vy: (Math.random() - 0.5) * 3,
                 radius: 25 + Math.random() * 10,
-                hp: 5,
-                maxHp: 5,
+                hp: hp,
+                maxHp: hp,
                 phase: Math.random() * Math.PI * 2
             });
         };
@@ -208,7 +213,7 @@ export default function MiniGame() {
         const createExplosion = (x: number, y: number, count: number, color: string) => {
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 8 + 4;
+                const speed = (Math.random() * 8 + 4) * 1.2; // 20% faster
                 particles.current.push({
                     id: Math.random(),
                     x,
@@ -262,7 +267,7 @@ export default function MiniGame() {
             }
 
             // 3. Update & Draw Bullets
-            ctx.fillStyle = "#ef4444";
+            ctx.fillStyle = "#06b6d4";
             for (let i = bullets.current.length - 1; i >= 0; i--) {
                 const b = bullets.current[i];
                 b.x += b.vx;
@@ -278,7 +283,7 @@ export default function MiniGame() {
                 ctx.beginPath();
                 ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
                 ctx.lineTo(b.x, b.y);
-                ctx.strokeStyle = "#ef4444";
+                ctx.strokeStyle = "#06b6d4";
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
@@ -296,11 +301,11 @@ export default function MiniGame() {
                         t.x += b.vx * 0.3;
                         t.y += b.vy * 0.3;
 
-                        createExplosion(b.x, b.y, 4, "#ef4444");
+                        createExplosion(b.x, b.y, 4, "#06b6d4");
 
                         if (t.hp <= 0) {
                             // Destroy
-                            createExplosion(t.x, t.y, 20, "#ef4444");
+                            createExplosion(t.x, t.y, 20, "#06b6d4");
                             playSound("hit"); // Audio Feedback
                             targets.current.splice(j, 1);
 
@@ -441,8 +446,16 @@ export default function MiniGame() {
             </div>
 
             {/* UI Score */}
-            <div className="absolute bottom-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none">
-                TARGET TERMINATED: <span className="text-red-500">{uiScore.toString().padStart(3, '0')}</span>
+            <div className="absolute bottom-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none flex items-center gap-2">
+                TARGET TERMINATED:
+                <motion.span
+                    key={uiScore}
+                    animate={{ scale: [1.5, 1] }}
+                    transition={{ duration: 0.15 }}
+                    className="text-cyan-500 inline-block"
+                >
+                    {uiScore.toString().padStart(3, '0')}
+                </motion.span>
             </div>
 
             {/* Crosshair */}
@@ -461,7 +474,7 @@ export default function MiniGame() {
                     animate={{ scale: isShooting ? 0.8 : 1.2, opacity: isShooting ? 1 : 0.5 }}
                 />
                 <motion.div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-red-500 rounded-full"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-500 rounded-full"
                 />
 
                 {/* Pipes - Adjusted to minimal contraction */}
