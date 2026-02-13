@@ -3,12 +3,16 @@
 import { projects } from "@/data/content";
 import ProjectCard from "@/components/ui/ProjectCard";
 import { motion } from "framer-motion";
+import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
 
 export default function Projects() {
     return (
         <section id="projects" className="container mx-auto px-6 py-32 border-t border-border/20">
             <div className="flex flex-col md:flex-row justify-between items-baseline mb-20 gap-4">
-                <h2 className="text-4xl font-serif font-bold">Selected Works</h2>
+                <h2 className="text-4xl font-serif font-bold flex items-center gap-1">
+                    Selected Works
+                    <DecorativeSymbol />
+                </h2>
                 <div className="flex gap-6 text-sm font-mono opacity-50 uppercase tracking-widest">
                     <span>Total {projects.length}</span>
                     <span>Vibe Coding / Web / Game</span>

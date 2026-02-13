@@ -1,13 +1,17 @@
 "use client";
 
 import TypewriterText from "@/components/ui/TypewriterText";
+import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
 
 export default function About() {
     return (
         <section id="about" className="container mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-12 gap-12">
 
             <div className="md:col-span-4">
-                <h2 className="text-4xl font-serif font-bold mb-6">Entity Profile</h2>
+                <h2 className="text-4xl font-serif font-bold mb-6 flex items-center gap-1">
+                    Entity Profile
+                    <DecorativeSymbol />
+                </h2>
                 <div className="w-12 h-1 bg-current mb-6" />
                 <p className="font-mono text-sm opacity-60">
                     SYSTEM_ID: YAKSHAWAN<br />
