@@ -326,15 +326,7 @@ export default function MiniGame() {
                     continue;
                 }
 
-                // Tracer Glow (subtle underlayer)
-                ctx.beginPath();
-                ctx.moveTo(b.x - b.vx * 0.6, b.y - b.vy * 0.6);
-                ctx.lineTo(b.x, b.y);
-                ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
-                ctx.lineWidth = 4;
-                ctx.stroke();
-
-                // Core Tracer (sharp)
+                // Draw Bullet
                 ctx.beginPath();
                 ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
                 ctx.lineTo(b.x, b.y);
