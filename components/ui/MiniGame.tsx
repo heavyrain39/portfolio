@@ -24,10 +24,20 @@ interface Target {
     y: number;
     vx: number;
     vy: number;
+    dir: 1 | -1;
     radius: number;
+    mass: number;
+    baseSpeed: number;
+    maxSpeed: number;
+    driftAmp: number;
+    driftFreq: number;
+    steer: number;
+    damping: number;
+    restitution: number;
     hp: number;
     maxHp: number;
     phase: number; // For organic movement
+    squareSpinDir: 1 | -1;
 }
 
 interface Particle {
@@ -96,8 +106,37 @@ export default function MiniGame() {
     const smoothMouseX = useSpring(rawMouseX, { stiffness: 500, damping: 30 });
     const smoothMouseY = useSpring(rawMouseY, { stiffness: 500, damping: 30 });
 
+    type PhysicsPreset = {
+        collisionRatio: number;
+        restitutionMin: number;
+        restitutionMax: number;
+        knockbackBase: number;
+    };
+
     // Constants
     const GRAVITY = 0.2; // For particles
+    const PHYSICS_PRESETS: Record<"subtle" | "balanced" | "punchy", PhysicsPreset> = {
+        subtle: {
+            collisionRatio: 0.78,
+            restitutionMin: 0.14,
+            restitutionMax: 0.24,
+            knockbackBase: 1.9
+        },
+        balanced: {
+            collisionRatio: 0.82,
+            restitutionMin: 0.22,
+            restitutionMax: 0.37,
+            knockbackBase: 2.5
+        },
+        punchy: {
+            collisionRatio: 0.88,
+            restitutionMin: 0.34,
+            restitutionMax: 0.52,
+            knockbackBase: 3.2
+        }
+    };
+    const ACTIVE_PHYSICS_PRESET: keyof typeof PHYSICS_PRESETS = "balanced";
+    const physicsPreset = PHYSICS_PRESETS[ACTIVE_PHYSICS_PRESET];
 
     // Consolidated AudioContext initializer
     const getAudioContext = (): AudioContext => {
@@ -229,24 +268,57 @@ export default function MiniGame() {
             if (targets.current.length >= 8) return; // Max targets
 
             const side = Math.random() > 0.5 ? "left" : "right";
-            const startX = side === "left" ? -50 : canvas.width + 50;
-            const startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1); // Keep high
+            const radius = 25 + Math.random() * 10;
+            const startXBase = side === "left" ? -50 : canvas.width + 50;
+            const spawnOffset = Math.random() * 30;
+            const startX = side === "left" ? startXBase + spawnOffset : startXBase - spawnOffset;
+            const dir: 1 | -1 = side === "left" ? 1 : -1;
+
+            let startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1); // Keep high
+            let spawnOk = false;
+            for (let attempt = 0; attempt < 10; attempt++) {
+                startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1);
+                const hasOverlap = targets.current.some((t) => {
+                    const minDist = (radius + t.radius) * physicsPreset.collisionRatio;
+                    return Math.hypot(startX - t.x, startY - t.y) < minDist;
+                });
+                if (!hasOverlap) {
+                    spawnOk = true;
+                    break;
+                }
+            }
+            if (!spawnOk && targets.current.length > 4) return;
 
             const r = Math.random();
             let hp = 4; // Default 80%
             if (r < 0.1) hp = 3; // 10% Weak
             else if (r > 0.9) hp = 5; // 10% Strong
 
+            const isSpeedster = Math.random() < 0.08;
+            const speedMultiplier = isSpeedster ? 1.5 : 1;
+            const baseSpeed = (Math.random() * 1.8 + 2.1) * 1.1 * speedMultiplier; // +10% global speed
+            const mass = Math.max(1, (radius * radius) / 700);
+
             targets.current.push({
                 id: Math.random(),
                 x: startX,
                 y: startY,
-                vx: side === "left" ? Math.random() * 3 + 2 : -(Math.random() * 3 + 2),
-                vy: (Math.random() - 0.5) * 3,
-                radius: 25 + Math.random() * 10,
+                vx: dir * baseSpeed,
+                vy: (Math.random() - 0.5) * 1.2,
+                dir,
+                radius,
+                mass,
+                baseSpeed,
+                maxSpeed: baseSpeed + Math.random() * 1.2 + 1.2,
+                driftAmp: Math.random() * 0.9 + 0.7,
+                driftFreq: Math.random() * 0.055 + 0.05,
+                steer: Math.random() * 0.028 + 0.03,
+                damping: Math.random() * 0.008 + 0.987,
+                restitution: Math.random() * (physicsPreset.restitutionMax - physicsPreset.restitutionMin) + physicsPreset.restitutionMin,
                 hp: hp,
                 maxHp: hp,
-                phase: Math.random() * Math.PI * 2
+                phase: Math.random() * Math.PI * 2,
+                squareSpinDir: 1
             });
         };
 
@@ -264,6 +336,72 @@ export default function MiniGame() {
                     color: color,
                     size: Math.random() * 3 + 1
                 });
+            }
+        };
+
+        const resolveTargetCollisions = () => {
+            const ts = targets.current;
+            for (let i = 0; i < ts.length; i++) {
+                for (let j = i + 1; j < ts.length; j++) {
+                    const a = ts[i];
+                    const b = ts[j];
+
+                    let dx = b.x - a.x;
+                    let dy = b.y - a.y;
+                    let dist = Math.hypot(dx, dy);
+                    const minDist = (a.radius + b.radius) * physicsPreset.collisionRatio;
+
+                    if (dist >= minDist) continue;
+
+                    // Prevent divide-by-zero when centers are nearly identical.
+                    if (dist < 0.0001) {
+                        const angle = Math.random() * Math.PI * 2;
+                        dx = Math.cos(angle);
+                        dy = Math.sin(angle);
+                        dist = 1;
+                    }
+
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const overlap = minDist - dist;
+                    const totalMass = a.mass + b.mass;
+
+                    // Positional correction: allow slight overlap, but avoid hard center stacking.
+                    a.x -= nx * overlap * (b.mass / totalMass);
+                    a.y -= ny * overlap * (b.mass / totalMass);
+                    b.x += nx * overlap * (a.mass / totalMass);
+                    b.y += ny * overlap * (a.mass / totalMass);
+
+                    const rvx = b.vx - a.vx;
+                    const rvy = b.vy - a.vy;
+                    const velAlongNormal = rvx * nx + rvy * ny;
+
+                    // Only apply impulse if moving toward each other.
+                    if (velAlongNormal < 0) {
+                        const restitution = (a.restitution + b.restitution) * 0.5;
+                        const impulseMag = (-(1 + restitution) * velAlongNormal) / ((1 / a.mass) + (1 / b.mass));
+                        const impulseX = impulseMag * nx;
+                        const impulseY = impulseMag * ny;
+
+                        a.vx -= impulseX / a.mass;
+                        a.vy -= impulseY / a.mass;
+                        b.vx += impulseX / b.mass;
+                        b.vy += impulseY / b.mass;
+
+                        // Small tangential damping for stable, less jittery post-collision motion.
+                        const tx = -ny;
+                        const ty = nx;
+                        const velAlongTangent = rvx * tx + rvy * ty;
+                        const frictionMag = (-velAlongTangent * 0.06) / ((1 / a.mass) + (1 / b.mass));
+                        const frictionX = frictionMag * tx;
+                        const frictionY = frictionMag * ty;
+
+                        a.vx -= frictionX / a.mass;
+                        a.vy -= frictionY / a.mass;
+                        b.vx += frictionX / b.mass;
+                        b.vy += frictionY / b.mass;
+                    }
+                }
             }
         };
 
@@ -344,9 +482,15 @@ export default function MiniGame() {
 
                         // Damage
                         t.hp--;
-                        t.vx *= 0.8;
-                        t.x += b.vx * 0.3;
-                        t.y += b.vy * 0.3;
+                        t.squareSpinDir *= -1; // Flip inner square spin direction on every hit
+                        const bulletSpeed = Math.hypot(b.vx, b.vy) || 1;
+                        const hitNx = b.vx / bulletSpeed;
+                        const hitNy = b.vy / bulletSpeed;
+                        const knockback = physicsPreset.knockbackBase / t.mass;
+                        t.vx += hitNx * knockback;
+                        t.vy += hitNy * knockback;
+                        t.x += hitNx * 6;
+                        t.y += hitNy * 6;
 
                         createExplosion(b.x, b.y, 4, "#06b6d4");
 
@@ -390,14 +534,38 @@ export default function MiniGame() {
             const targetBorder = isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)";
             const targetCenter = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
 
+            // 4-A. Update target movement with subtle per-target dynamics.
+            for (let i = 0; i < targets.current.length; i++) {
+                const t = targets.current[i];
+                t.phase += t.driftFreq;
+
+                const desiredVx = t.dir * t.baseSpeed + Math.cos(t.phase * 0.7 + t.id * 10) * 0.35;
+                const desiredVy = Math.sin(t.phase) * t.driftAmp + Math.cos(t.phase * 0.6 + t.id * 6) * 0.25;
+
+                t.vx += (desiredVx - t.vx) * t.steer;
+                t.vy += (desiredVy - t.vy) * t.steer;
+
+                t.vx *= t.damping;
+                t.vy *= t.damping;
+
+                const speed = Math.hypot(t.vx, t.vy);
+                if (speed > t.maxSpeed) {
+                    const scale = t.maxSpeed / speed;
+                    t.vx *= scale;
+                    t.vy *= scale;
+                }
+
+                t.x += t.vx;
+                t.y += t.vy;
+            }
+
+            // 4-B. Resolve inter-target collisions after movement integration.
+            resolveTargetCollisions();
+
             for (let i = targets.current.length - 1; i >= 0; i--) {
                 const t = targets.current[i];
 
-                t.phase += 0.08;
-                t.x += t.vx;
-                t.y += t.vy + Math.sin(t.phase) * 1.5;
-
-                if ((t.vx > 0 && t.x > canvas.width + 150) || (t.vx < 0 && t.x < -150)) {
+                if ((t.dir > 0 && t.x > canvas.width + 180) || (t.dir < 0 && t.x < -180)) {
                     targets.current.splice(i, 1);
                     continue;
                 }
@@ -413,7 +581,7 @@ export default function MiniGame() {
 
                 ctx.save();
                 ctx.translate(t.x, t.y);
-                ctx.rotate(-t.phase * 1.5);
+                ctx.rotate(-t.phase * 1.5 * t.squareSpinDir);
                 ctx.strokeStyle = targetBorder;
                 ctx.strokeRect(-t.radius * 0.5, -t.radius * 0.5, t.radius, t.radius);
 
