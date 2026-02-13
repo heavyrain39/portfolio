@@ -42,7 +42,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                     ))}
                 </div>
 
-                <p className="text-sm opacity-80 line-clamp-3 text-pretty">
+                <p className="text-sm opacity-80 text-justify break-keep w-full">
                     {project.description}
                 </p>
 
