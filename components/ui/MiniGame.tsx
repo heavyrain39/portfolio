@@ -414,17 +414,17 @@ export default function MiniGame() {
             {/* Mute Button */}
             <button
                 onClick={() => setIsMuted(!isMuted)}
-                className="absolute top-8 right-8 p-2 opacity-50 hover:opacity-100 transition-opacity z-10 pointer-events-auto text-foreground"
+                className="absolute bottom-8 right-8 p-4 opacity-50 hover:opacity-100 transition-opacity z-10 pointer-events-auto text-foreground"
                 title={isMuted ? "Unmute Sound" : "Mute Sound"}
             >
                 {isMuted ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 5L6 9H2v6h4l5 4V5z" />
                         <line x1="23" y1="9" x2="17" y2="15" />
                         <line x1="17" y1="9" x2="23" y2="15" />
                     </svg>
                 ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
                     </svg>
@@ -458,24 +458,24 @@ export default function MiniGame() {
                 {/* Pipes - Using exact values from previous iteration */}
                 <motion.div
                     className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? 10 : -16 }}
+                    animate={{ y: isShooting ? 6 : -16 }}
                 />
                 <motion.div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? -10 : 16 }}
+                    animate={{ y: isShooting ? -6 : 16 }}
                 />
                 <motion.div
                     className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? 10 : -16 }}
+                    animate={{ x: isShooting ? 6 : -16 }}
                 />
                 <motion.div
                     className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? -10 : 16 }}
+                    animate={{ x: isShooting ? -6 : 16 }}
                 />
             </motion.div>
 
             {/* Hint Text */}
-            <div className="absolute bottom-8 right-8 text-[10px] font-mono opacity-30 pointer-events-none text-right">
+            <div className="absolute bottom-24 right-8 text-[10px] font-mono opacity-30 pointer-events-none text-right">
                 <div>VECTOR_SYS_V2.0</div>
                 <div>CLICK_TO_ENGAGE</div>
             </div>
