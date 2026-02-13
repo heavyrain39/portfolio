@@ -27,6 +27,7 @@ const COMMENTS = [
     "I spent all night calibrating your aim. Don't waste it.",
     "You're the only pilot who can handle this much kickback.",
     "Stay safe out there. I don't want to lose my favorite asset.",
+    "Ever visited the Tannhäuser Gate? My hometown is just a sector away.",
     "Target terminated. Clean. I love how you handle that trigger.",
     "Energy levels at 40%. Don't get reckless on me now.",
     "I'm recording this session... for \"tactical review.\" And my private collection.",
@@ -161,17 +162,17 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
     }, []);
 
     return (
-        <div className="absolute top-8 left-8 z-20 pointer-events-none select-none max-w-[60ch]">
+        <div className="absolute top-32 left-8 z-20 pointer-events-none select-none max-w-[42ch]">
             <AnimatePresence>
                 {isVisible && (
                     <motion.div
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        animate={{ opacity: 0.5 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="font-mono text-xs text-foreground/70 leading-relaxed"
+                        className="font-mono text-xs text-foreground opacity-50 tracking-widest leading-relaxed"
                     >
-                        <span className="mr-2 text-cyan-500 font-bold">{">"}</span>
+                        <span className="mr-2">{">"}</span>
                         {displayText}
                         <motion.span
                             animate={{ opacity: isComplete ? [1, 0, 1] : 1 }}

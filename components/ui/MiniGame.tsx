@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { motion, useSpring, useMotionValue } from "framer-motion";
+import OperatorComments from "./OperatorComments";
 
 // Types
 interface Point {
@@ -682,6 +683,8 @@ export default function MiniGame() {
             ref={containerRef}
             className="absolute right-0 top-0 w-1/2 h-full hidden md:block cursor-none z-0"
         >
+            <OperatorComments isParentHovered={isHovered} />
+
             {/* Canvas Layer */}
             <canvas
                 ref={canvasRef}

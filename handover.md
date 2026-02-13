@@ -6,15 +6,14 @@
 
 ---
 
+## 1. Project Overview (프로젝트 개요)
 
-## 1. Project Overview (?꾨줈?앺듃 媛쒖슂)
-
-蹂??꾨줈?앺듃??湲곗〈???뺤쟻(HTML/CSS/JS) ?ы듃?대━?ㅻ? **Next.js 14**, **Tailwind CSS**, **Framer Motion** 湲곕컲???꾨??곸씤 ???좏뵆由ъ??댁뀡?쇰줈 ?꾨㈃ 由щ뵒?먯씤?섎뒗 寃껋쓣 紐⑺몴濡??⑸땲?? ?⑥닚???뺣낫 ?꾨떖???섏뼱 **"?댁빞湲곗? 湲곗닠??援먯감??**?대씪??李쎌옉?먯쓽 ?뺤껜?깆쓣 ?쒓컖??寃쏀뿕(Visual Experience)?쇰줈 援ы쁽?섎뒗 ??珥덉젏??留욎텛怨??덉뒿?덈떎.
+본 프로젝트는 기존의 정적(HTML/CSS/JS) 포트폴리오를 **Next.js 14**, **Tailwind CSS**, **Framer Motion** 기반의 현대적인 웹 애플리케이션으로 전면 리디자인하는 것을 목표로 합니다. 단순한 정보 전달을 넘어 **"이야기와 기술의 교차점"**이라는 창작자의 정체성을 시각적 경험(Visual Experience)으로 구현하는 데 초점을 맞추고 있습니다.
 
 ### Core Goals
-1.  **Modernization**: 湲곗〈 jQuery/Vanilla JS 湲곕컲 肄붾뱶瑜?React ?앺깭怨꾨줈 留덉씠洹몃젅?댁뀡?섏뿬 ?좎?蹂댁닔??諛??깅뒫 媛쒖꽑.
-2.  **Editorial Design**: ?ㅼ쐞????댄룷洹몃옒??Swiss Style Typography)? 誘몃땲硫由ъ쬁??李⑥슜??'留ㅺ굅吏? ?뱀? '湲곗닠 蹂닿퀬?? 媛숈? ?몄쭛 ?붿옄??援ы쁽.
-3.  **Vibe Coding Identity**: ?⑥닚 媛쒕컻?먭? ?꾨땶, ?쒖궗? 媛먯꽦??肄붾뱶濡?援ы쁽?섎뒗 '諛붿씠釉?肄붾뜑(Vibe Coder)'濡쒖꽌???꾩씠?댄떚??媛뺤“.
+1.  **Modernization**: 기존 jQuery/Vanilla JS 기반 코드를 React 생태계로 마이그레이션하여 유지보수성 및 성능 개선.
+2.  **Editorial Design**: 스위스 타이포그래피(Swiss Style Typography)와 미니멀리즘을 차용한 '매거진' 혹은 '기술 보고서' 같은 편집 디자인 구현.
+3.  **Vibe Coding Identity**: 단순 개발자가 아닌, 서사와 감성을 코드로 구현하는 '바이브 코더(Vibe Coder)'로서의 아이덴티티 강조.
 
 ---
 
@@ -22,28 +21,28 @@
 
 ### 2.1. Aesthetic Philosophy
 **"Editorial Minimalist x Technical Precision"**
--   **?먯씠?꾪떛(Agentic)**: ?쒖뒪?? ?곗씠?? 濡쒓렇瑜??곗긽?쒗궎??紐⑤끂?ㅽ럹?댁뒪 ?고듃? 硫뷀??곗씠???쒓린.
--   **?먮뵒?좊━??Editorial)**: 怨쇨컧???щ갚, 嫄곕????몃━??Serif) ??댄룷洹몃옒?? ?뺢탳??洹몃━???쒖뒪??
--   **臾쇱쭏媛?Materiality)**: ?붿????붾㈃ ?띿뿉??醫낆씠, ?뚯씪, ?쒕쪟泥좉낵 媛숈? 臾쇰━?곸씤 吏덇컧??異붿긽?곸쑝濡?援ы쁽.
+-   **에이전틱(Agentic)**: 시스템, 데이터, 로그를 연상시키는 모노스페이스 폰트와 메타데이터 표기.
+-   **에디토리얼(Editorial)**: 과감한 여백, 거대한 세리프(Serif) 타이포그래피, 정교한 그리드 시스템.
+-   **물질감(Materiality)**: 디지털 화면 속에서 종이, 파일, 서류철과 같은 물리적인 질감을 추상적으로 구현.
 
 ### 2.2. Design System
 #### Typography
--   **Headline (Serif)**: ?곗븘?섍퀬 沅뚯쐞 ?덈뒗 ?몄긽??二쇰뒗 ?몃━?꾩껜. (e.g., `Playfair Display`)
--   **Body (Sans)**: 媛?낆꽦??理쒖슦?좎쑝濡??щ챸?섍쾶 ?뺣낫瑜??꾨떖. (e.g., `Inter`, `Pretendard`)
--   **Data/Meta (Mono)**: 湲곗닠???뷀뀒?쇨낵 ?쒖뒪??濡쒓렇 ?먮굦???꾨떖. (e.g., `JetBrains Mono`)
+-   **Headline (Serif)**: 우아하고 권위 있는 인상을 주는 세리프체. (e.g., `Playfair Display`)
+-   **Body (Sans)**: 가독성을 최우선으로 투명하게 정보를 전달. (e.g., `Inter`, `Pretendard`)
+-   **Data/Meta (Mono)**: 기술적 디테일과 시스템 로그 느낌을 전달. (e.g., `JetBrains Mono`)
 
 #### Color Palette & Theme
--   **Automatic Theming**: ?쒓컙?(08:00 ~ 17:00)???곕씪 ?쇱씠???ㅽ겕 紐⑤뱶 ?먮룞 ?꾪솚.
--   **Reduced Contrast**: ?꾩쟾??釉붾옓(#000)?대굹 ?붿씠??#FFF)瑜?吏?묓븯怨? ?덉씠 ?몄븞??`Off-White`(#f5f5f0)? `Deep Charcoal`(#1a1a1a) ?ъ슜.
--   **Color Inversion (諛섏쟾)**: ?뱀젙 ?뱀뀡(About, Footer)?먯꽌??諛곌꼍?됯낵 ?꾧꼍?됱쓣 諛섏쟾?쒖폒 媛뺥븳 ?鍮꾩? ?쒓컖??吏묒쨷???좊룄.
+-   **Automatic Theming**: 시간대(08:00 ~ 17:00)에 따라 라이트/다크 모드 자동 전환.
+-   **Reduced Contrast**: 완전한 블랙(#000)이나 화이트(#FFF)를 지양하고, 눈이 편안한 `Off-White`(#f5f5f0)와 `Deep Charcoal`(#1a1a1a) 사용.
+-   **Color Inversion (반전)**: 특정 섹션(About, Footer)에서는 배경색과 전경색을 반전시켜 강한 대비와 시각적 집중을 유도.
 
 #### Layout & Grid
--   **Grid Background**: 諛곌꼍???낆? 紐⑤늿醫낆씠(Grid)? 嫄곕????숈떖??Radar/Sonar)??諛곗튂?섏뿬 怨듯븰??遺꾩꽍??遺꾩쐞湲?議곗꽦.
--   **File Metaphor**: ?섏씠吏 ?섎떒???쒕쪟泥좎씠???뚯씪 ?대뜑瑜??곗긽?쒗궎???κ렐 紐⑥꽌由ъ쓽 ?곸뿭??諛곗튂?섏뿬 ?뺣낫??留덈Т由щ? 吏볥뒗 ?먮굦 ?꾨떖.
+-   **Grid Background**: 배경에 옅은 모눈종이(Grid)와 거대한 동심원(Radar/Sonar)을 배치하여 공학적/분석적 분위기 조성.
+-   **File Metaphor**: 페이지 하단에 서류철이나 파일 폴더를 연상시키는 둥근 모서리의 영역을 배치하여 정보의 마무리를 짓는 느낌 전달.
 
 ---
 
-## 3. Implementation Details (援ы쁽 ?꾪솴)
+## 3. Implementation Details (구현 현황)
 
 ### 3.1. Tech Stack
 -   **Framework**: Next.js 14 (App Router)
@@ -54,264 +53,190 @@
 ### 3.2. Key Features
 
 #### A. Hero Section
--   **Responsive Typography**: ??댄?("?쇱감??| 鸚쒎룊??)怨??뚭컻湲???덈퉬瑜??쒓컖?곸쑝濡??쇱튂?쒖폒 ?뺣룉???몄긽 ?쒓났.
--   **Text Justification**: ?뚭컻湲??`text-justify`? `break-keep`???곸슜?섏뿬 ?⑥뼱 ?⑥쐞 以꾨컮轅덇낵 ?묒そ ?뺣젹 援ы쁽.
--   **Entrance Animation**: ?섏씠吏 濡쒕뱶 ???띿뒪?멸? ?꾨옒?먯꽌 ?꾨줈 遺?쒕읇寃??좎삤瑜대뒗 `Fade-in-up` ?④낵.
+-   **Responsive Typography**: 타이틀("야차완 | 夜叉腕")과 소개글의 너비를 시각적으로 일치시켜 정돈된 인상 제공.
+-   **Text Justification**: 소개글에 `text-justify`와 `break-keep`을 적용하여 단어 단위 줄바꿈과 양쪽 정렬 구현.
+-   **Entrance Animation**: 페이지 로드 시 텍스트가 아래에서 위로 부드럽게 떠오르는 `Fade-in-up` 효과.
 
 #### B. Project Gallery (The Scanning Effect)
--   **Thumbnail Logic**: 2:1 鍮꾩쑉(800x400)??媛濡쒕줈 湲??대?吏瑜?1:1 鍮꾩쑉(Square)??而⑦뀒?대꼫???쒖떆.
+-   **Thumbnail Logic**: 2:1 비율(800x400)의 가로로 긴 이미지를 1:1 비율(Square)의 컨테이너에 표시.
 -   **Hover Interaction**:
-    -   **Idle**: `Grayscale` + `Saturate(0.2)` + `Contrast(1.1)` + ?뺤? ?곹깭.
-    -   **Hover**: 而щ윭 蹂듭썝 + 諛앷린 利앷? + **Scanning Animation**.
-    -   **Animation**: ?대?吏媛 而⑦뀒?대꼫 ?대??먯꽌 醫뚯슦濡?遺?쒕읇寃??뺣났 ?대룞(Panning)?섎ŉ ?④꺼吏??곸뿭??蹂댁뿬二쇰뒗 "李쎌쓣 ?듯븳 ?먯깋" 寃쏀뿕 ?쒓났.
+    -   **Idle**: `Grayscale` + `Saturate(0.2)` + `Contrast(1.1)` + 정지 상태.
+    -   **Hover**: 컬러 복원 + 밝기 증가 + **Scanning Animation**.
+    -   **Animation**: 이미지가 컨테이너 내부에서 좌우로 부드럽게 왕복 이동(Panning)하며 숨겨진 영역을 보여주는 "창을 통한 탐색" 경험 제공.
 
 #### C. Auditory Log (Music Section)
--   **Horizontal Scroll**: 留덉슦???좎씠 ?꾨땶, 媛濡??ㅽ겕濡??곗튂 ?ㅼ??댄봽瑜??듯븳 ?먯깋 寃쏀뿕.
--   **YouTube Integration**: `iframe`??吏곸젒 ?ъ슜?섏뿬 ?ㅼ젣 議고쉶??吏묎퀎 諛??뚮옯???꾩씠?댄떚???좎?.
+-   **Horizontal Scroll**: 마우스 휠이 아닌, 가로 스크롤/터치 스와이프를 통한 탐색 경험.
+-   **YouTube Integration**: `iframe`을 직접 사용하여 실제 조회수 집계 및 플랫폼 아이덴티티 유지.
 
 #### D. Entity Profile (About Section) & Footer
 -   **File Background Design (Updated)**:
-    -   **Concept**: About ?뱀뀡怨?Footer瑜??섎굹??而⑦뀒?대꼫濡?臾띠뼱, ?섏씠吏 諛붾떏?먯꽌 ?잛븘?ㅻⅨ "?뚯씪(File)" ?뺥깭濡??붿옄?명뻽?듬땲??
+    -   **Concept**: About 섹션과 Footer를 하나의 컨테이너로 묶어, 페이지 바닥에서 솟아오른 "파일(File)" 형태로 디자인했습니다.
     -   **Curvature Continuity (Squircle)**:
-        -   ?⑥닚 `border-radius` ???**SVG 湲곕컲??Squircle Top Cap**(`SquircleTopBorder`)???곸슜?섏뿬, Apple ?ㅽ??쇱쓽 遺?쒕윭??紐⑥꽌由?怨〓쪧(G2 Continuity)??援ы쁽?덉뒿?덈떎.
-        -   `flex` ?덉씠?꾩썐怨?SVG Path瑜?議고빀?섏뿬 諛섏쓳???덈퉬???꾨꼍?섍쾶 ??묓빀?덈떎.
-    -   **Inverted Color Scheme**: **諛곌꼍??諛섏쟾** 濡쒖쭅???곸슜?섏뿬 ?ㅽ겕 紐⑤뱶?먯꽌??諛앹? ?뚯씪 諛곌꼍, ?쇱씠??紐⑤뱶?먯꽌???대몢???뚯씪 諛곌꼍???섑??⑸땲?? (`bg-foreground`, `text-background`)
+        -   단순 `border-radius` 대신 **SVG 기반의 Squircle Top Cap**(`SquircleTopBorder`)을 적용하여, Apple 스타일의 부드러운 모서리 곡률(G2 Continuity)을 구현했습니다.
+        -   `flex` 레이아웃과 SVG Path를 조합하여 반응형 너비에 완벽하게 대응합니다.
+    -   **Inverted Color Scheme**: **배경색 반전** 로직을 적용하여 다크 모드에서는 밝은 파일 배경, 라이트 모드에서는 어두운 파일 배경이 나타납니다. (`bg-foreground`, `text-background`)
 -   **Typewriter Animation**:
-    -   湲곗〈??Scramble ?④낵瑜??泥댄븯?? ?띿뒪?멸? ??湲?먯뵫 ??댄븨?섎벏 ?섑??섎뒗 ?④낵瑜??곸슜?덉뒿?덈떎.
-    -   `IntersectionObserver`瑜??쒖슜?섏뿬 酉고룷??吏꾩엯 ???좊땲硫붿씠?섏씠 ?쒖옉?섎ŉ, ?꾨즺 ??而ㅼ꽌媛 源쒕묀?대떎 ?щ씪吏묐땲??
+    -   기존의 Scramble 효과를 대체하여, 텍스트가 한 글자씩 타이핑되듯 나타나는 효과를 적용했습니다.
+    -   `IntersectionObserver`를 활용하여 뷰포트 진입 시 애니메이션이 시작되며, 완료 후 커서가 깜빡이다 사라집니다.
 
 #### E. File System & Backup
--   **Legacy**: 湲곗〈 `index.html` 諛??먯궛? `_legacy` ?대뜑??諛깆뾽.
--   **Public Assets**: ?대?吏? ?고듃??`public/` ?붾젆?좊━濡??대룞?섏뿬 Next.js ?뺤쟻 ?쒕튃 理쒖쟻??
+-   **Legacy**: 기존 `index.html` 및 자산은 `_legacy` 폴더에 백업.
+-   **Public Assets**: 이미지와 폰트는 `public/` 디렉토리로 이동하여 Next.js 정적 서빙 최적화.
 
 #### F. MiniGame (Vector Defense) [Updated 2026-02-13]
--   **Concept**: ?ы듃?대━?ㅼ쓽 ?뺤쟻 ?붿냼瑜?蹂댁셿?섍퀬 泥대쪟 ?쒓컙???섎━湲??꾪븳 ?댁뒪???먭렇(Easter Egg) ?깃꺽??誘몃땲寃뚯엫. Hero ?뱀뀡 ?곗륫 怨듦컙???쒖슜.
+-   **Concept**: 포트폴리오의 정적 요소를 보완하고 체류 시간을 늘리기 위한 이스터 에그(Easter Egg) 성격의 미니게임. Hero 섹션 우측 공간을 활용.
 -   **Tech Specs**:
-    -   **Engine**: HTML5 Canvas API + `requestAnimationFrame` (怨좎꽦???뚮뜑留?.
-    -   **State Management**: `useRef`瑜??ъ슜?섏뿬 由щ젋?붾쭅 ?놁씠 60fps 寃뚯엫 猷⑦봽 ?좎?.
-    -   **Interaction**: `MouseEvent`瑜?吏곸젒 諛붿씤?⑺븯??留덉슦??異붿쟻 諛?諛쒖궗 泥섎━. `mouseup`? `window` ?덈꺼?먯꽌 媛먯??섏뿬 ?대┃ ?곹깭 ?좎떎 諛⑹?.
-    -   **Theme Caching**: `MutationObserver`濡?`data-theme` 蹂寃?媛먯? ??罹먯떛 (留??꾨젅??DOM 荑쇰━ ?쒓굅).
+    -   **Engine**: HTML5 Canvas API + `requestAnimationFrame` (고성능 렌더링).
+    -   **State Management**: `useRef`를 사용하여 리렌더링 없이 60fps 게임 루프 유지.
+    -   **Interaction**: `MouseEvent`를 직접 바인딩하여 마우스 추적 및 발사 처리. `mouseup`은 `window` 레벨에서 감지하여 클릭 상태 유실 방지.
+    -   **Theme Caching**: `MutationObserver`로 `data-theme` 변경 감지 후 캐싱 (매 프레임 DOM 쿼리 제거).
 -   **Features**:
-    -   **Gameplay**: ?붾㈃ ?묒륫?먯꽌 ?쒕뜡?섍쾶 ?앹꽦?섏뼱 ?吏곸씠???寃잛쓣 ?대┃?섏뿬 ?붽꺽. ?덊듃諛뺤뒪 愿???+7) 諛?泥??대┃ 利됱떆 諛쒖궗 蹂댁옣.
-    -   **Visuals**: ?먯꽑 留? ?뚯쟾?섎뒗 ?ш컖?? ?뚰떚????컻 ??'Vector Monitor' ?ㅽ??쇱쓽 ?덊듃濡??⑥쿂由ъ뒪???붿옄??
+    -   **Gameplay**: 화면 양측에서 랜덤하게 생성되어 움직이는 타겟을 클릭하여 요격. 히트박스 관대화(+7) 및 첫 클릭 즉시 발사 보장.
+    -   **Visuals**: 점선 링, 회전하는 사각형, 파티클 폭발 등 'Vector Monitor' 스타일의 레트로-퓨처리스틱 디자인.
     -   **Feedback**: 
-        -   ?寃??쇨꺽 ??諛?ㅻ굹??**Knockback** 臾쇰━ ?④낵 ?곸슜.
-        -   **Interactive Crosshair**: ?됱긽?쒖뿏 ?대젮?덇퀬, ?ш꺽 ???섏텞?섎뒗 ?좊땲硫붿씠??(Framer Motion).
-        -   **Dynamic UI**: 寃뚯엫 ?곸뿭 ?몃쾭 ?????섍쾶 ?섑??섎뒗 肄붾꼫 釉뚮옒??諛??뚮몢由?
-        -   **Screen Shake**: ?寃??뚭눼 ??罹붾쾭??誘몄꽭 ?붾뱾由?(3px 媛뺣룄, 鍮좊Ⅸ 媛먯뇿).
-        -   **Hit Flash**: ?쇨꺽 ???묒? ?먰삎 ?뚮옒?? ?뚭눼 ?????뚮옒??(?곗깋, 5?꾨젅??媛먯뇿).
-        -   **Kill Popup**: ?뚭눼 ??"+1" ?띿뒪?멸? ?쒖떆 ??醫뚯슦濡??⑹뼱吏硫??섏씠?쒖븘??
-        -   **Pitch Variation**: ?ш꺽?뚯쓽 湲곕낯 二쇳뙆??800Hz)??짹60Hz ?쒕뜡 蹂???곸슜.
-    -   **Score**: 'TARGET TERMINATED' 移댁슫?곌? 醫뚯륫 ?섎떒???ㅼ떆媛??낅뜲?댄듃.
-    -   **Audio**: ?ш꺽??Triangle wave) 諛??뚭눼??Sawtooth wave) 援ы쁽. 裕ㅽ듃 ?좉? 吏??
-    -   **Stats**: 寃뚯엫?뚮젅?? ?붿옄???대━?? ?ъ슫?? ?寃⑷컧 媛쒖꽑 ?꾨즺.
-    -   **Pending**: 紐⑤컮???섍꼍?먯꽌???곗튂 理쒖쟻??(?꾩옱??PC/留덉슦??以묒떖).
+        -   타겟 피격 시 밀려나는 **Knockback** 물리 효과 적용.
+        -   **Interactive Crosshair**: 평상시엔 열려있고, 사격 시 수축하는 애니메이션 (Framer Motion).
+        -   **Dynamic UI**: 게임 영역 호버 시 은은하게 나타나는 코너 브래킷 및 테두리.
+        -   **Screen Shake**: 타겟 파괴 시 캔버스 미세 흔들림 (3px 강도, 빠른 감쇠).
+        -   **Hit Flash**: 피격 시 작은 원형 플래시, 파괴 시 큰 플래시 (흰색, 5프레임 감쇠).
+        -   **Kill Popup**: 파괴 시 "+1" 텍스트가 표시 후 좌우로 흩어지며 페이드아웃.
+        -   **Pitch Variation**: 사격음의 기본 주파수(800Hz)에 ±60Hz 랜덤 변동 적용.
+    -   **Score**: 'TARGET TERMINATED' 카운터가 좌측 하단에 실시간 업데이트.
+    -   **Audio**: 사격음(Triangle wave) 및 파괴음(Sawtooth wave) 구현. 뮤트 토글 지원.
+    -   **Stats**: 게임플레이, 디자인 폴리싱, 사운드, 타격감 개선 완료.
+    -   **Pending**: 모바일 환경에서의 터치 최적화 (현재는 PC/마우스 중심).
 
 ---
 
-#### F-1. MiniGame Target Behavior Upgrade Log (Added 2026-02-13, late update)
--   **Scope**: This update is limited to enemy/target behavior logic. UI tone, rendering style, and game concept remain unchanged.
--   **Objective**:
-    -   Keep the current organic movement language.
-    -   Improve believability through subtle physical variation.
-    -   Prevent unnatural center-overlap artifacts while allowing slight overlap.
-    -   Strengthen hit readability without visual noise inflation.
-
-##### 1) Global Speed and Rare Fast Variant
--   Baseline target movement speed was increased by approximately **10%** across the board.
--   Added a rare fast enemy archetype (**Speedster**):
-    -   Spawn probability: **8%**
-    -   Speed multiplier: roughly **1.5x** compared to normal baseline targets
-    -   Design intent: occasional pressure spikes and pace variation, not permanent difficulty inflation.
-
-##### 2) Per-Entity Locomotion Dynamics
--   Extended each target with independent motion parameters:
-    -   `baseSpeed`, `maxSpeed`
-    -   `driftAmp`, `driftFreq`
-    -   `steer`, `damping`
-    -   direction intent (`dir`)
--   Movement now converges toward target-specific desired velocities rather than relying on a near-uniform drift path.
--   Net effect:
-    -   fewer synchronized, clone-like motions,
-    -   still coherent with the existing organic vector-entity aesthetic.
-
-##### 3) Inter-Target Contact / Collision Response
--   Implemented target-target physical contact resolution (pairwise loop; acceptable because max target count is low).
--   Collision policy is intentionally **soft**:
-    -   slight visual overlap allowed,
-    -   center-stacking prevented.
--   Response model includes:
-    -   mass-weighted positional correction,
-    -   normal impulse with controlled restitution,
-    -   mild tangential damping to suppress jittery sliding.
--   Spawn-time overlap mitigation was also added to reduce immediate hard-overlap at creation.
-
-##### 4) Hit Reaction Upgrade
--   Reworked knockback:
-    -   now bullet-direction-aware,
-    -   mass-scaled (larger/heavier entities resist displacement more).
--   Added deterministic per-hit rotational disturbance:
-    -   the inner wireframe square flips rotation direction on **every successful hit**,
-    -   repeated hits create a clear alternating spin signature.
--   Result: higher hit readability and stronger tactile response without additional HUD elements.
-
-##### 5) Physics Tuning Presets
--   Added three balancing presets for efficient iteration:
-    -   `subtle`
-    -   `balanced` (**active default**)
-    -   `punchy`
--   Preset controls these parameters:
-    -   `collisionRatio` (overlap tolerance)
-    -   `restitutionMin / restitutionMax` (bounce character)
-    -   `knockbackBase` (hit displacement strength)
--   Rationale:
-    -   Enables rapid feel-testing by changing one selector,
-    -   avoids manual re-tuning of scattered constants.
-
-
-## 4. Directory Structure (?대뜑 援ъ“)
+## 4. Directory Structure (폴더 구조)
 ```
 /
-?쒋?? app/
-??  ?쒋?? layout.tsx       # ?꾩뿭 ?덉씠?꾩썐 (GridBackground, Provider ?ы븿)
-??  ?쒋?? page.tsx         # 硫붿씤 ?섏씠吏 (媛??뱀뀡 議곕┰)
-??  ?붴?? globals.css      # ?꾩뿭 ?ㅽ???諛?Tailwind @theme ?ㅼ젙
-?쒋?? components/
-??  ?쒋?? layout/          # ?덉씠?꾩썐 而댄룷?뚰듃 (GridBackground)
-??  ?쒋?? sections/        # ?섏씠吏 ?뱀뀡 (Hero, Projects, Music, About)
-??  ?쒋?? ui/              # ?ъ궗??媛?ν븳 UI (ProjectCard, TypewriterText)
-??  ?붴?? providers/       # Context API (Theme, Throwable)
-?쒋?? data/
-??  ?붴?? content.ts       # 紐⑤뱺 ?띿뒪??諛??꾨줈?앺듃 ?곗씠??(JSON ?泥?
-?쒋?? public/
-??  ?쒋?? images/          # ?꾨줈?앺듃 ?щ꽕??諛??먯뀑
-??  ?붴?? fonts/           # 濡쒖뺄 ?고듃 ?뚯씪
-?붴?? _legacy/             # (Backup) 湲곗〈 ?ы듃?대━???뚯씪
+├── app/
+│   ├── layout.tsx       # 전역 레이아웃 (GridBackground, Provider 포함)
+│   ├── page.tsx         # 메인 페이지 (각 섹션 조립)
+│   └── globals.css      # 전역 스타일 및 Tailwind @theme 설정
+├── components/
+│   ├── layout/          # 레이아웃 컴포넌트 (GridBackground)
+│   ├── sections/        # 페이지 섹션 (Hero, Projects, Music, About)
+│   ├── ui/              # 재사용 가능한 UI (ProjectCard, TypewriterText)
+│   └── providers/       # Context API (Theme, Throwable)
+├── data/
+│   └── content.ts       # 모든 텍스트 및 프로젝트 데이터 (JSON 대체)
+├── public/
+│   ├── images/          # 프로젝트 섬네일 및 에셋
+│   └── fonts/           # 로컬 폰트 파일
+└── _legacy/             # (Backup) 기존 포트폴리오 파일
 ```
 
 ---
 
-## 5. Future Improvements (?ν썑 怨쇱젣)
+## 5. Future Improvements (향후 과제)
 
-### 5.1. Short-term Improvements (?④린)
--   [ ] **SEO Meta Tags**: `generateMetadata`瑜??쒖슜?섏뿬 Open Graph 諛?Twitter Card ?ㅼ젙 怨좊룄??
--   [ ] **Performance Optimization**: `next/image` 而댄룷?뚰듃 ?꾩엯???듯븳 ?대?吏 理쒖쟻??(?꾩옱???좊땲硫붿씠???댁뒋濡?`<img>` ?쒓렇 ?ъ슜 以?.
--   [ ] **Google Analytics**: 諛⑸Ц???몃옒?뱀쓣 ?꾪븳 GA4 ?곕룞.
+### 5.1. Short-term Improvements (단기)
+-   [ ] **SEO Meta Tags**: `generateMetadata`를 활용하여 Open Graph 및 Twitter Card 설정 고도화.
+-   [ ] **Performance Optimization**: `next/image` 컴포넌트 도입을 통한 이미지 최적화 (현재는 애니메이션 이슈로 `<img>` 태그 사용 중).
+-   [ ] **Google Analytics**: 방문자 트래킹을 위한 GA4 연동.
 
-### 5.2. Long-term Roadmap (?κ린)
--   [ ] **Guestbook**: 諛깆뿏??Firebase/Supabase)瑜??곕룞??諛⑸챸濡?湲곕뒫.
--   [ ] **Blog Integration**: `archive03` 媛숈? ?몃? 釉붾줈洹?湲??RSS濡?媛?몄? 蹂댁뿬二쇰뒗 ?뱀뀡 異붽?.
--   [ ] **3D Elements**: Three.js / React Three Fiber瑜??쒖슜??誘몃쵖??3D ?ㅻ툕?앺듃 ?명꽣?숈뀡 異붽?.
--   [ ] **Sound Design**: 踰꾪듉 ?대┃?대굹 ?몃쾭 ???꾩＜ ?묒? 湲곌퀎??SFX(Sound Effects) 異붽? 怨좊젮.
+### 5.2. Long-term Roadmap (장기)
+-   [ ] **Guestbook**: 백엔드(Firebase/Supabase)를 연동한 방명록 기능.
+-   [ ] **Blog Integration**: `archive03` 같은 외부 블로그 글을 RSS로 가져와 보여주는 섹션 추가.
+-   [ ] **3D Elements**: Three.js / React Three Fiber를 활용한 미묘한 3D 오브젝트 인터랙션 추가.
+-   [ ] **Sound Design**: 버튼 클릭이나 호버 시 아주 작은 기계적 SFX(Sound Effects) 추가 고려.
 
 ---
 
 ## 6. Deployment & Troubleshooting Log (Updated 2026-02-13)
 
 ### 6.1. Deployment Strategy (GitHub Pages)
--   **Static Export**: `output: 'export'` ?ㅼ젙???듯빐 ?뺤쟻 HTML ?앹꽦.
--   **Manual Build Workflow**: `nextjs.yml` ?뚰겕?뚮줈?곕? ?ъ슜?섏뿬 `npm run build`瑜?吏곸젒 ?ㅽ뻾, `basePath` 異⑸룎 諛⑹?.
--   **Asset Paths**: `basePath`('/portfolio')瑜?怨좊젮?섏뿬 紐⑤뱺 ?대?吏 寃쎈줈 ?욎뿉 `/portfolio` ?묐몢?щ? ?섎뱶肄붾뵫.
+-   **Static Export**: `output: 'export'` 설정을 통해 정적 HTML 생성.
+-   **Manual Build Workflow**: `nextjs.yml` 워크플로우를 사용하여 `npm run build`를 직접 실행, `basePath` 충돌 방지.
+-   **Asset Paths**: `basePath`('/portfolio')를 고려하여 모든 이미지 경로 앞에 `/portfolio` 접두사를 하드코딩.
 
 ### 6.2. Recent Troubleshooting (File Background & Visibility)
 **Issue 1: Visibility on Inverted Backgrounds**
--   **Situation**: About ?뱀뀡??諛곌꼍??諛섏쟾(`bg-foreground`, `text-background`)???곸슜?섏옄, ?대???由ъ뒪??留덉빱(Bullet points)? ??댄븨 而ㅼ꽌(Cursor)媛 蹂댁씠吏 ?딄쾶 ?섏뿀?듬땲??
--   **Reason**: ?대떦 ?붿냼?ㅼ씠 怨좎젙???됱긽(`text-foreground` ?????ъ슜?섍퀬 ?덉뼱, 諛섏쟾??諛곌꼍?됯낵 ?숈씪???됱긽???섏뼱踰꾨졇湲??뚮Ц?낅땲??
+-   **Situation**: About 섹션에 배경색 반전(`bg-foreground`, `text-background`)을 적용하자, 내부의 리스트 마커(Bullet points)와 타이핑 커서(Cursor)가 보이지 않게 되었습니다.
+-   **Reason**: 해당 요소들이 고정된 색상(`text-foreground` 등)을 사용하고 있어, 반전된 배경색과 동일한 색상이 되어버렸기 때문입니다.
 -   **Solution**:
-    -   **List Markers**: `marker:text-foreground` -> `marker:text-current`濡?蹂寃쏀븯??遺紐?Wrapper)???띿뒪???됱긽???곸냽諛쏅룄濡??섏젙.
-    -   **Typewriter Cursor**: `bg-foreground` -> `bg-current`濡?蹂寃쏀븯??諛곌꼍?됯낵 ?鍮꾨릺???띿뒪???됱긽???곕Ⅴ?꾨줉 ?섏젙.
+    -   **List Markers**: `marker:text-foreground` -> `marker:text-current`로 변경하여 부모(Wrapper)의 텍스트 색상을 상속받도록 수정.
+    -   **Typewriter Cursor**: `bg-foreground` -> `bg-current`로 변경하여 배경색과 대비되는 텍스트 색상을 따르도록 수정.
 
 **Issue 2: Path Issues**
--   **Situation**: 諛고룷 ??404 ?먮윭 諛??대?吏 源⑥쭚 ?꾩긽 諛쒖깮.
--   **Solution**: `trailingSlash: true` ?ㅼ젙 諛?`layout.tsx` ???뚮퉬肄?寃쎈줈 ?덈? 吏??`/portfolio/...`)?쇰줈 ?닿껐.
+-   **Situation**: 배포 시 404 에러 및 이미지 깨짐 현상 발생.
+-   **Solution**: `trailingSlash: true` 설정 및 `layout.tsx` 내 파비콘 경로 절대 지정(`/portfolio/...`)으로 해결.
 
-### 6.3. MiniGame Interaction Fixes (2026-02-13)
-**Issue 5: Target overlap and contact realism (2026-02-13, late update)**
--   **Situation**: In dense moments, targets could visually center-overlap and appear clipped rather than physically interacting.
+### 6.3. MiniGame & Operator Interaction Fixes (2026-02-13)
+**Issue 3: Hero 텍스트가 게임 영역과 겹쳐 클릭 이벤트 가로채기**
+-   **Situation**: 게임 영역 클릭 시 좌측 타이틀/소개글이 선택되거나 드래그되는 현상.
+-   **Reason**: Hero의 텍스트 컨테이너(`motion.div`, `z-10`)가 투명 배경으로 게임 영역(`z-0`) 위를 덮고 있었음.
+-   **Solution**: `Hero.tsx`에서 텍스트 래퍼에 `pointer-events-none`, 하위 요소에 `pointer-events-auto` + `select-none` 적용.
+
+**Issue 4: 클릭(발사) 상태가 의도치 않게 해제되는 버그**
+-   **Situation**: 마우스를 누른 채 게임 중 클릭이 풀려 발사가 멈추는 현상.
+-   **Reason**: `mouseup`이 컨테이너(`container`)에만 바인딩되어 있었고, `mouseleave` 시 `isMouseDown`을 `false`로 강제 리셋했기 때문.
+-   **Solution**:
+    -   `mouseup` → `window` 레벨로 이동하여 어디서든 정확히 감지.
+    -   `mouseleave`에서 `isMouseDown` 리셋 제거 (hover 상태만 갱신).
+    -   `contextmenu` 이벤트 억제로 우클릭에 의한 상태 꼬임 방지.
+    -   익명 `mouseenter` 핸들러를 명명 함수로 교체하여 cleanup 시 정상 제거 (메모리 누수 수정).
+
+**Issue 5: 타겟 간 겹침/접촉 표현 부자연스러움 (2026-02-13 late update)**
+-   **Situation**: 타겟 밀집 구간에서 중심부가 겹쳐 보이며 물리 접촉 없이 클리핑된 것처럼 보이는 현상.
 -   **Reason**:
-    -   No target-target collision resolution step existed in the previous loop.
-    -   Spawn points could occasionally place entities too close together.
+    -   타겟-타겟 충돌 해석 단계가 루프에 없었음.
+    -   스폰 시 초기 위치가 가까워 즉시 겹치는 케이스가 있었음.
 -   **Solution**:
-    -   Added inter-target collision resolution with controlled-overlap policy.
-    -   Applied mass-weighted separation and normal impulse response.
-    -   Added light tangential damping to reduce jitter after collision.
-    -   Added spawn-time overlap retry checks to reduce immediate stack artifacts.
+    -   타겟 간 충돌 해석(질량 기반 위치 보정 + 노멀 임펄스 + 약한 접선 감쇠) 추가.
+    -   스폰 시 overlap 재시도 로직 추가.
+    -   강한 튕김 대신 약한 겹침 허용 정책으로 유기적 움직임 유지.
 -   **Result**:
-    -   Targets still look soft/organic, but no longer hard-stack at center.
-    -   Collisions now read as subtle physical contact rather than sprite clipping.
+    -   중심부 하드 스택 현상 감소.
+    -   접촉이 "겹침"이 아닌 "충돌"처럼 읽히도록 개선.
 
-**Issue 6: Target pace and hit readability (2026-02-13, late update)**
--   **Situation**: Overall pace felt slightly slow, and sustained hits lacked a persistent directional cue on the target body.
+**Issue 6: 페이스/피격 가독성 부족 (2026-02-13 late update)**
+-   **Situation**: 전반 속도가 약간 느리고, 연타 피격 시 타겟 상태 변화 가시성이 약한 문제.
 -   **Reason**:
-    -   Baseline speed distribution was conservative.
-    -   Hit feedback was mostly transient (flash/particles/knockback) without per-hit state toggle.
+    -   기본 속도 분포가 보수적으로 설정됨.
+    -   피격 피드백이 순간성(파티클/플래시) 위주여서 지속 신호가 약함.
 -   **Solution**:
-    -   Increased baseline target speed by ~10%.
-    -   Added rare speedster archetype (8% spawn chance, ~1.5x baseline speed).
-    -   Reworked knockback to bullet-direction-based, mass-scaled impulse.
-    -   Added inner-square rotation-direction flip on every successful hit.
+    -   전체 타겟 기본 속도 약 10% 상향.
+    -   희귀 스피드스터(8%, 약 1.5x) 추가.
+    -   탄 방향 기반/질량 스케일 knockback으로 피격 반응 재구성.
+    -   피격 시 내부 스퀘어 회전 방향을 매 타격마다 반전.
 -   **Result**:
-    -   Tempo feels more active without becoming chaotic.
-    -   Repeated hits are easier to read during continuous fire.
+    -   템포가 더 살아나고, 연속 사격 중 피격 인지가 개선됨.
 
-**Issue 3: Hero ?띿뒪?멸? 寃뚯엫 ?곸뿭怨?寃뱀퀜 ?대┃ ?대깽??媛濡쒖콈湲?*
--   **Situation**: 寃뚯엫 ?곸뿭 ?대┃ ??醫뚯륫 ??댄?/?뚭컻湲???좏깮?섍굅???쒕옒洹몃릺???꾩긽.
--   **Reason**: Hero???띿뒪??而⑦뀒?대꼫(`motion.div`, `z-10`)媛 ?щ챸 諛곌꼍?쇰줈 寃뚯엫 ?곸뿭(`z-0`) ?꾨? ??퀬 ?덉뿀??
--   **Solution**: `Hero.tsx`?먯꽌 ?띿뒪???섑띁??`pointer-events-none`, ?섏쐞 ?붿냼??`pointer-events-auto` + `select-none` ?곸슜.
-
-**Issue 4: ?대┃(諛쒖궗) ?곹깭媛 ?섎룄移??딄쾶 ?댁젣?섎뒗 踰꾧렇**
--   **Situation**: 留덉슦?ㅻ? ?꾨Ⅸ 梨?寃뚯엫 以??대┃?????諛쒖궗媛 硫덉텛???꾩긽.
--   **Reason**: `mouseup`??而⑦뀒?대꼫(`container`)?먮쭔 諛붿씤?⑸릺???덉뿀怨? `mouseleave` ??`isMouseDown`??`false`濡?媛뺤젣 由ъ뀑?덇린 ?뚮Ц.
+**Issue 7: Operator 코멘트가 첫 글자 출력 후 멈춤 (2026-02-13)**
+-   **Situation**: 코멘트가 첫 글자 출력 후 정지하고, hover out/in 이후에만 재개되는 현상.
+-   **Reason**:
+    -   렌더 재실행 시 effect cleanup이 타이핑 timeout을 지워 타이핑 체인이 끊김.
+    -   `isTypingRef`가 `true`로 남아 재시작 가드에 걸림.
 -   **Solution**:
-    -   `mouseup` ??`window` ?덈꺼濡??대룞?섏뿬 ?대뵒?쒕뱺 ?뺥솗??媛먯?.
-    -   `mouseleave`?먯꽌 `isMouseDown` 由ъ뀑 ?쒓굅 (hover ?곹깭留?媛깆떊).
-    -   `contextmenu` ?대깽???듭젣濡??고겢由?뿉 ?섑븳 ?곹깭 瑗ъ엫 諛⑹?.
-    -   ?듬챸 `mouseenter` ?몃뱾?щ? 紐낅챸 ?⑥닔濡?援먯껜?섏뿬 cleanup ???뺤긽 ?쒓굅 (硫붾え由??꾩닔 ?섏젙).
+    -   `components/ui/OperatorComments.tsx` 타이머 상태머신 분리/재작성.
+    -   타이핑 루프와 완료 전환(깜빡임 -> 페이드 -> 다음 문장)을 분리.
+    -   timeout ref를 채널별로 분리하고 통합 cleanup 적용.
+
+**Issue 8: 완료 후 커서 깜빡임만 유지되고 페이드아웃 실패 (2026-02-13)**
+-   **Situation**: 문장 완료 후 커서만 깜빡이며 다음 문장으로 넘어가지 않는 케이스 발생.
+-   **Reason**:
+    -   완료 전환 타이밍이 타이핑 클로저와 결합되어 타이머 체인이 불안정.
+    -   hover 조건/가시성 제어와 전환 타이머가 간헐적으로 desync.
+-   **Solution**:
+    -   완료 전환을 `isComplete` 기반 별도 effect로 분리.
+    -   hover를 단일 visibility gate로 고정:
+        -   hover on: 코멘트 표시 + 상태머신 진행
+        -   hover off: 즉시 숨김 + 모든 타이머 정리
+-   **Result**:
+    -   정상 시퀀스 보장: 타이핑 -> 커서 깜빡임 -> 페이드아웃 -> 다음 문장.
+    -   hover out 시 코멘트 즉시 비표시.
 
 ---
 
-## 7. Maintenance Guide (?좎?蹂댁닔)
+## 7. Maintenance Guide (유지보수)
 
 ### How to Update Content
-紐⑤뱺 ?띿뒪?몄? ?꾨줈?앺듃 ?곗씠?곕뒗 [data/content.ts](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/data/content.ts) ?뚯씪???뺤쓽?섏뼱 ?덉뒿?덈떎.
--   **???꾨줈?앺듃 異붽?**: `projects` 諛곗뿴??媛앹껜瑜?異붽??⑸땲?? **二쇱쓽**: ?몃꽕??寃쎈줈??諛섎뱶??`/portfolio` ?묐몢?щ? ?ы븿?댁빞 ?⑸땲??
--   **?뚭컻湲 ?섏젙**: `about` 媛앹껜???댁슜???섏젙?섎㈃ `TypewriterText`???먮룞 諛섏쁺?⑸땲??
+모든 텍스트와 프로젝트 데이터는 [data/content.ts](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/data/content.ts) 파일에 정의되어 있습니다.
+-   **새 프로젝트 추가**: `projects` 배열에 객체를 추가합니다. **주의**: 썸네일 경로에 반드시 `/portfolio` 접두사를 포함해야 합니다.
+-   **소개글 수정**: `about` 객체의 내용을 수정하면 `TypewriterText`에 자동 반영됩니다.
 
 ### How to Modify Theme
-[tailwind.config.ts](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/tailwind.config.ts) 諛?[app/globals.css](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/app/globals.css)?먯꽌 ?됱긽 蹂??`--background`, `--foreground`)瑜??섏젙?섏뿬 ?꾩껜 ?뚮쭏瑜?蹂寃쏀븷 ???덉뒿?덈떎.
-
----
-
-## 8. Operator Comment System Fix Log (Updated 2026-02-13)
-
-### Issue 7: Typewriter stuck after first character / resume only after re-hover
-- Situation:
-  - Operator comment sometimes printed only the first character and then stalled.
-  - Text resumed only after mouse leave + re-enter.
-- Root Cause:
-  - Typing timeout was cleared by effect cleanup during state-driven re-renders.
-  - `isTypingRef` stayed `true`, so restart guard blocked re-entry into typing.
-- Fix:
-  - Reworked `components/ui/OperatorComments.tsx` timer state machine.
-  - Separated responsibilities:
-    - typing loop (`typeNextChar`)
-    - complete-state transition (blink -> fade out -> next message)
-  - Added explicit timer refs and centralized cleanup for all timeout channels.
-  - Used refs for async timeout guards to avoid stale closure state.
-
-### Issue 8: Completed line stayed visible (no fade-out) and hover-out visibility rule
-- Situation:
-  - After cursor blinking on complete text (e.g. "Very... dominant."), fade-out could fail.
-  - Requirement: operator comment should not be visible when not hovered.
-- Root Cause:
-  - Completion transition timing and render lifecycle were coupled in one path.
-  - Visibility control and transition timers could desynchronize.
-- Fix:
-  - Moved completion transition into dedicated effect keyed by `isComplete`.
-  - Enforced `hover` as single visibility gate:
-    - hover on: show and continue state machine
-    - hover off: hide immediately and clear all timers
-- Result:
-  - Stable sequence on hover:
-    - typewriter -> cursor blink -> fade out -> next line
-  - Immediate hide when hover is released.
+[tailwind.config.ts](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/tailwind.config.ts) 및 [app/globals.css](file:///c:/Users/%EC%95%BC%EC%B0%A8%EC%99%84/Desktop/Portfolio%202/app/globals.css)에서 색상 변수(`--background`, `--foreground`)를 수정하여 전체 테마를 변경할 수 있습니다.
