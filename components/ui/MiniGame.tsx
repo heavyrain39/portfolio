@@ -529,46 +529,47 @@ export default function MiniGame() {
                 <div className="absolute inset-0 border border-foreground/5 bg-foreground/[0.02]" />
             </div>
 
-            {/* Controls & Hints Container */}
-            <div className="absolute bottom-8 right-8 flex items-center gap-4 z-10 pointer-events-none">
-                {/* Hint Text */}
-                <div className="text-[10px] font-mono opacity-30 text-right text-foreground">
-                    <div>VECTOR_SYS_V2.0</div>
-                    <div>CLICK_TO_ENGAGE</div>
+            {/* Bottom HUD (Aligned Left/Right) */}
+            <div className="absolute bottom-8 left-8 right-8 flex items-center justify-between z-10 pointer-events-none">
+                <div className="font-mono text-xs font-bold tracking-widest opacity-50 select-none flex items-center gap-2">
+                    TARGETS TERMINATED:
+                    <motion.span
+                        key={uiScore}
+                        animate={{ scale: [1.5, 1] }}
+                        transition={{ duration: 0.15 }}
+                        className="text-cyan-500 inline-block"
+                    >
+                        {uiScore.toString().padStart(3, '0')}
+                    </motion.span>
                 </div>
 
-                {/* Mute Button */}
-                <button
-                    onClick={() => setIsMuted(!isMuted)}
-                    className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-foreground"
-                    title={isMuted ? "Unmute Sound" : "Mute Sound"}
-                >
-                    {isMuted ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                            <line x1="23" y1="9" x2="17" y2="15" />
-                            <line x1="17" y1="9" x2="23" y2="15" />
-                        </svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                        </svg>
-                    )}
-                </button>
-            </div>
+                <div className="flex items-center gap-4">
+                    {/* Hint Text */}
+                    <div className="text-[10px] font-mono opacity-30 text-right text-foreground">
+                        <div>VECTOR_SYS_V2.0</div>
+                        <div>CLICK_TO_ENGAGE</div>
+                    </div>
 
-            {/* UI Score */}
-            <div className="absolute bottom-8 left-8 font-mono text-xs font-bold tracking-widest opacity-50 select-none pointer-events-none flex items-center gap-2">
-                TARGET TERMINATED:
-                <motion.span
-                    key={uiScore}
-                    animate={{ scale: [1.5, 1] }}
-                    transition={{ duration: 0.15 }}
-                    className="text-cyan-500 inline-block"
-                >
-                    {uiScore.toString().padStart(3, '0')}
-                </motion.span>
+                    {/* Mute Button */}
+                    <button
+                        onClick={() => setIsMuted(!isMuted)}
+                        className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-foreground"
+                        title={isMuted ? "Unmute Sound" : "Mute Sound"}
+                    >
+                        {isMuted ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                <line x1="23" y1="9" x2="17" y2="15" />
+                                <line x1="17" y1="9" x2="23" y2="15" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                            </svg>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Crosshair */}
