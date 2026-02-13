@@ -60,13 +60,12 @@ export default function TypewriterText({ text, className }: TypewriterTextProps)
     }, [text, isInView]);
 
     // Parse text for <br> and <a> tags and convert to JSX
-    const renderText = () => {
+    const renderContent = (content: string) => {
         const parts: React.JSX.Element[] = [];
-        let currentText = displayText;
         let key = 0;
 
         // Split by <br> first
-        const lines = currentText.split("<br>");
+        const lines = content.split("<br>");
 
         lines.forEach((line, lineIndex) => {
             // Parse links in each line
@@ -113,12 +112,22 @@ export default function TypewriterText({ text, className }: TypewriterTextProps)
     };
 
     return (
-        <span ref={ref} className={className}>
-            {renderText()}
-            <span
-                className={`inline-block w-[2px] h-[1em] bg-current ml-1 align-middle transition-opacity duration-500 ${showCursor ? 'opacity-100 animate-pulse' : 'opacity-0'
-                    }`}
-            />
+        <span ref={ref} className={`${className} relative inline-grid`}>
+            {/* Ghost text for space reservation */}
+            <span className="invisible [grid-area:1/1] pointer-events-none select-none" aria-hidden="true">
+                {renderContent(text)}
+                {/* Space for the cursor */}
+                <span className="inline-block w-[2px] h-[1em] ml-1" />
+            </span>
+
+            {/* Actual animated text */}
+            <span className="[grid-area:1/1]">
+                {renderContent(displayText)}
+                <span
+                    className={`inline-block w-[2px] h-[1em] bg-current ml-1 align-middle transition-opacity duration-500 ${showCursor ? 'opacity-100 animate-pulse' : 'opacity-0'
+                        }`}
+                />
+            </span>
         </span>
     );
 }
