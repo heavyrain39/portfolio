@@ -1,8 +1,11 @@
+"use client";
+
 import Hero from "@/components/sections/Hero";
 import Projects from "@/components/sections/Projects";
 import Music from "@/components/sections/Music";
 import About from "@/components/sections/About";
 import SquircleTopBorder from "@/components/ui/SquircleTopBorder";
+import { motion } from "framer-motion";
 
 export default function Home() {
     return (
@@ -11,7 +14,18 @@ export default function Home() {
             <Projects />
             <Music />
 
-            <div className="relative mx-2 md:mx-4 mt-24">
+            <motion.div
+                className="relative mx-2 md:mx-4 mt-24"
+                initial={{ y: 80, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{
+                    type: "spring",
+                    stiffness: 1100,
+                    damping: 50, // Slightly higher damping to prevent excessive oscillation at high stiffness
+                    mass: 1
+                }}
+            >
                 {/* Decorative Dots */}
                 <div className="absolute top-8 left-8 w-3 h-3 rounded-full bg-background z-10" />
                 <div className="absolute top-8 right-8 w-3 h-3 rounded-full bg-background z-10" />
@@ -27,7 +41,7 @@ export default function Home() {
                         © 2026 YAKSHAWAN. ALL RIGHTS RESERVED.
                     </footer>
                 </div>
-            </div>
+            </motion.div>
         </main>
     );
 }

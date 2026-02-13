@@ -17,14 +17,14 @@ export default function About() {
             </div>
 
             <div className="md:col-span-8 flex flex-col gap-8 text-lg opacity-80 leading-relaxed text-justify break-keep">
-                <div className="text-2xl md:text-3xl font-serif font-bold opacity-100 mb-4 min-h-12 flex items-center">
+                <div className="text-2xl md:text-3xl font-serif font-bold opacity-100 mb-4 min-h-12 md:min-h-12 flex items-center">
                     <TypewriterText text="이야기와 기술의 교차점." className="block" />
                 </div>
-                <p>
+                <div className="min-h-[5.5rem] md:min-h-[4rem]">
                     <TypewriterText text={'야차완은 콘텐츠 창작자이자 바이브 코더입니다. LLM을 활용해 다양한 콘텐츠 경험을 설계·개발하고 있습니다.<br>문의는 <a href="https://www.threads.com/@yakshawan">스레드</a> 혹은 <a href="mailto:ggolem@naver.com">이메일</a>로 부탁드립니다. 감사합니다.'} />
-                </p>
+                </div>
 
-                <div className="pt-8 mt-8">
+                <div className="pt-4 mt-4">
                     <h4 className="font-mono text-sm uppercase mb-4 opacity-50">Career Highlights</h4>
                     <ul className="space-y-4 list-disc pl-5 marker:text-current/50">
                         <li>現 웹소설 작가</li>
