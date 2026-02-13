@@ -101,7 +101,10 @@ export default function MiniGame() {
             rawMouseY.set(y);
         };
 
-        const handleMouseDown = () => { isMouseDown.current = true; };
+        const handleMouseDown = (e: MouseEvent) => {
+            e.preventDefault(); // Prevent text selection/dragging
+            isMouseDown.current = true;
+        };
         const handleMouseUp = () => { isMouseDown.current = false; };
         const handleMouseLeave = () => { isMouseDown.current = false; };
 
@@ -114,21 +117,21 @@ export default function MiniGame() {
         // --- GAME LOGIC ---
 
         const spawnTarget = () => {
-            if (targets.current.length >= 5) return;
+            if (targets.current.length >= 8) return; // Increased max targets
 
             const side = Math.random() > 0.5 ? "left" : "right";
             const startX = side === "left" ? -50 : canvas.width + 50;
-            const startY = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.1);
+            const startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1); // Keep high
 
             targets.current.push({
                 id: Math.random(),
                 x: startX,
                 y: startY,
-                vx: side === "left" ? Math.random() * 2 + 1 : -(Math.random() * 2 + 1),
-                vy: (Math.random() - 0.5) * 2,
-                radius: 20 + Math.random() * 15,
-                hp: 4,
-                maxHp: 4,
+                vx: side === "left" ? Math.random() * 3 + 2 : -(Math.random() * 3 + 2), // Faster targets
+                vy: (Math.random() - 0.5) * 3,
+                radius: 25 + Math.random() * 10,
+                hp: 5, // Slightly tougher
+                maxHp: 5,
                 phase: Math.random() * Math.PI * 2
             });
         };
@@ -136,7 +139,7 @@ export default function MiniGame() {
         const createExplosion = (x: number, y: number, count: number, color: string) => {
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 5 + 2;
+                const speed = Math.random() * 8 + 4; // Faster particles
                 particles.current.push({
                     id: Math.random(),
                     x,
@@ -155,17 +158,17 @@ export default function MiniGame() {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Spawning
+            // 1. Spawning (Faster rate)
             frameCount.current++;
-            if (frameCount.current % TARGET_SPAWN_RATE === 0) {
+            if (frameCount.current % 40 === 0) { // Much faster spawn (was 120)
                 spawnTarget();
             }
 
             // 2. Shooting
-            if (isMouseDown.current && time - lastShotTime.current > FIRE_RATE) {
-                // Determine origin (alternating bottom corners)
+            if (isMouseDown.current && time - lastShotTime.current > 40) { // Slight fire rate increase (was 50)
+                // Determine origin (20% and 80%)
                 const originSide = Math.random() > 0.5 ? "left" : "right";
-                const startX = originSide === "left" ? 0 : canvas.width;
+                const startX = originSide === "left" ? canvas.width * 0.2 : canvas.width * 0.8;
                 const startY = canvas.height;
 
                 // Calculate angle to mouse
@@ -174,14 +177,14 @@ export default function MiniGame() {
                 const angle = Math.atan2(dy, dx);
 
                 // Spread
-                const spread = (Math.random() - 0.5) * 0.1;
+                const spread = (Math.random() - 0.5) * 0.15; // More spread
 
                 bullets.current.push({
                     id: Math.random(),
                     x: startX,
                     y: startY,
-                    vx: Math.cos(angle + spread) * BULLET_SPEED,
-                    vy: Math.sin(angle + spread) * BULLET_SPEED,
+                    vx: Math.cos(angle + spread) * 45, // Much faster bullets (was 25)
+                    vy: Math.sin(angle + spread) * 45,
                     life: 1.0
                 });
 
@@ -189,7 +192,7 @@ export default function MiniGame() {
             }
 
             // 3. Update & Draw Bullets
-            ctx.fillStyle = "#ef4444"; // Red-500
+            ctx.fillStyle = "#ef4444";
             for (let i = bullets.current.length - 1; i >= 0; i--) {
                 const b = bullets.current[i];
                 b.x += b.vx;
@@ -201,80 +204,88 @@ export default function MiniGame() {
                     continue;
                 }
 
-                // Draw Bullet (Trace)
+                // Draw Bullet (Longer Trace for speed)
                 ctx.beginPath();
-                ctx.arc(b.x, b.y, 2, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
+                ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = "#ef4444";
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
                 // Collision Check loop
                 for (let j = targets.current.length - 1; j >= 0; j--) {
                     const t = targets.current[j];
                     const dist = Math.hypot(b.x - t.x, b.y - t.y);
 
-                    if (dist < t.radius) {
+                    if (dist < t.radius + 5) { // Slightly generous hit box
                         // Hit!
-                        bullets.current.splice(i, 1); // Remove bullet
+                        bullets.current.splice(i, 1);
 
                         // Damage Target
                         t.hp--;
-                        t.vx *= 0.5; // Slow down impact
-                        t.x += b.vx * 0.1; // Knockback
-                        t.y += b.vy * 0.1;
+                        t.vx *= 0.8;
+                        // Stronger Knockback specifically in Y axis to push them up/away
+                        t.x += b.vx * 0.3; // Increased knockback (was 0.1)
+                        t.y += b.vy * 0.3;
 
                         // Hit specific logic
-                        createExplosion(b.x, b.y, 3, "#ef4444"); // Small spark
+                        createExplosion(b.x, b.y, 4, "#ef4444");
 
                         if (t.hp <= 0) {
                             // Destroy Target
-                            createExplosion(t.x, t.y, 15, "#ef4444"); // Big explosion
+                            createExplosion(t.x, t.y, 20, "#ef4444");
                             targets.current.splice(j, 1);
 
                             scoreRef.current++;
-                            setUiScore(scoreRef.current); // Sync to UI
+                            setUiScore(scoreRef.current);
                         }
 
-                        break; // Bullet hit something, stop checking other targets
+                        break;
                     }
                 }
             }
 
             // 4. Update & Draw Targets
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.8)"; // Adjust for dark mode later?
-            // Actually let's use theme variables or just generic dark grey for now, user said "color theme compatible"
-            // We can read CSS variables or just use a safe dark color. The user uses --foreground usually.
-            // Let's use a generic dark color, but we might want to check the theme.
-            // For now, let's use a variable-like color.
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const targetColor = isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)";
-            const targetBorder = isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)";
+            // Lighter/thinner colors for sophisticated look
+            const targetBorder = isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)";
+            const targetCenter = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
 
             for (let i = targets.current.length - 1; i >= 0; i--) {
                 const t = targets.current[i];
 
-                // Organic Movement
-                t.phase += 0.05;
+                // Organic Movement with more noise
+                t.phase += 0.08;
                 t.x += t.vx;
-                t.y += t.vy + Math.sin(t.phase) * 0.5;
+                t.y += t.vy + Math.sin(t.phase) * 1.5; // More vertical bobbing
 
                 // Boundary bounce/removal
-                if ((t.vx > 0 && t.x > canvas.width + 100) || (t.vx < 0 && t.x < -100)) {
+                if ((t.vx > 0 && t.x > canvas.width + 150) || (t.vx < 0 && t.x < -150)) {
                     targets.current.splice(i, 1);
                     continue;
                 }
 
-                // Draw Target
+                // Draw Target (Refined Design)
+                // 1. Outer dashed ring
                 ctx.beginPath();
-                ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
-                ctx.fillStyle = targetColor;
-                ctx.fill();
-                ctx.lineWidth = 1.5;
+                ctx.setLineDash([5, 5]);
+                ctx.arc(t.x, t.y, t.radius, 0 + t.phase, Math.PI * 2 + t.phase);
+                ctx.lineWidth = 1;
                 ctx.strokeStyle = targetBorder;
                 ctx.stroke();
+                ctx.setLineDash([]); // Reset
 
-                // Inner circle (pulse)
-                ctx.beginPath();
-                ctx.arc(t.x, t.y, t.radius * 0.4 + Math.sin(t.phase) * 5, 0, Math.PI * 2);
-                ctx.stroke();
+                // 2. Inner Rotating Square/Diamond
+                ctx.save();
+                ctx.translate(t.x, t.y);
+                ctx.rotate(-t.phase * 1.5);
+                ctx.strokeStyle = targetBorder;
+                ctx.strokeRect(-t.radius * 0.5, -t.radius * 0.5, t.radius, t.radius);
+
+                // 3. Center Core
+                ctx.fillStyle = targetCenter;
+                ctx.fillRect(-t.radius * 0.2, -t.radius * 0.2, t.radius * 0.4, t.radius * 0.4);
+                ctx.restore();
             }
 
             // 5. Update & Draw Particles
@@ -283,7 +294,7 @@ export default function MiniGame() {
                 p.x += p.vx;
                 p.y += p.vy;
                 p.vy += GRAVITY;
-                p.life -= 0.02;
+                p.life -= 0.03;
 
                 if (p.life <= 0) {
                     particles.current.splice(i, 1);
@@ -293,8 +304,11 @@ export default function MiniGame() {
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2); // Streak particles
+                ctx.lineWidth = p.size;
+                ctx.strokeStyle = p.color;
+                ctx.stroke();
                 ctx.globalAlpha = 1.0;
             }
 
