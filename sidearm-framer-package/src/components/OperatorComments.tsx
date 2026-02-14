@@ -1,41 +1,26 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import type { OperatorId } from "../types";
 
 interface OperatorCommentsProps {
     isParentHovered: boolean;
+    comments?: string[];
+    assetBasePath?: string;
+    operatorId?: OperatorId;
 }
 
-const COMMENTS = [
-    "Initialization sequence complete. Welcome back, Raven.",
-    "Neural link stabilized. Feeling any feedback in your nerves?",
-    "Your vitals are steady. As always. It's almost intimidating.",
-    "The vector field is messy today. Keep your eyes peeled.",
-    "That heavy laser looks good on you. Very... dominant.",
-    "Try not to overheat the core. I hate filing those repair reports.",
-    "Target sighted. Show me that 98% accuracy again, okay?",
-    "Beautiful shot. You're making this look way too easy.",
-    "Enemy signal neutralized. You didn't even break a sweat.",
-    "Is it hot in the cockpit, or is it just me watching the feed?",
-    "Focus, Raven. Don't let my chatter distract you too much.",
-    "Movement is fluid. Your sync rate is literally off the charts.",
-    "I've cleared the secondary channel. It's just us now.",
-    "Did you get my message about the post-mission drink?",
-    "You're glowing on the radar. Literally and figuratively.",
-    "Multiple signatures detected. Give 'em hell, Cowboy.",
-    "I spent all night calibrating your aim. Don't waste it.",
-    "You're the only pilot who can handle this much kickback.",
-    "Stay safe out there. I don't want to lose my favorite asset.",
-    "Ever visited the Tannhäuser Gate? My hometown is just a sector away.",
-    "Target terminated. Clean. I love how you handle that trigger.",
-    "Energy levels at 40%. Don't get reckless on me now.",
-    "I'm recording this session... for \"tactical review.\" And my private collection.",
-    "You done? I've got the debriefing room ready. Just for two.",
-    "System idling. Come back soon, Raven. I'll be waiting right here."
-];
+const FALLBACK_COMMENTS = ["Initialization sequence complete."];
 
-export default function OperatorComments({ isParentHovered }: OperatorCommentsProps) {
+export default function OperatorComments({
+    isParentHovered,
+    comments,
+    assetBasePath,
+    operatorId
+}: OperatorCommentsProps) {
+    const safeComments = comments && comments.length > 0 ? comments : FALLBACK_COMMENTS;
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [displayText, setDisplayText] = useState("");
     const [isVisible, setIsVisible] = useState(false);
@@ -43,22 +28,20 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
     const [isBlinking, setIsBlinking] = useState(false);
 
     const charIndexRef = useRef(0);
-    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const blinkCycleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const nextMessageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blinkCycleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const nextMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTypingRef = useRef(false);
     const hoverRef = useRef(isParentHovered);
     const currentIndexRef = useRef(currentIndex);
     const isCompleteRef = useRef(isComplete);
 
-    // Randomly select operator (operator01 - operator04) on mount
-    const [selectedOperatorId] = useState(() => {
-        const id = Math.floor(Math.random() * 4) + 1;
-        return `operator0${id}`;
+    const [selectedOperatorId] = useState<OperatorId>(() => {
+        if (operatorId) return operatorId;
+        const options: OperatorId[] = ["operator01", "operator02", "operator03", "operator04"];
+        return options[Math.floor(Math.random() * options.length)];
     });
-
-    const basePath = "/portfolio";
 
     useEffect(() => {
         hoverRef.current = isParentHovered;
@@ -110,7 +93,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
         }
 
         isTypingRef.current = true;
-        const fullText = COMMENTS[currentIndexRef.current];
+        const fullText = safeComments[currentIndexRef.current];
 
         if (charIndexRef.current >= fullText.length) {
             isTypingRef.current = false;
@@ -136,9 +119,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
         }, delay);
     };
 
-    // Blinking logic
     useEffect(() => {
-        // Skip blinking for operator04 (Silhouette)
         if (!isParentHovered || selectedOperatorId === "operator04") {
             clearBlinkCycleTimer();
             setIsBlinking(false);
@@ -146,20 +127,20 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
         }
 
         const scheduleBlink = () => {
-            const nextBlinkIn = Math.random() * 2000 + 3000; // 3-5 seconds
+            const nextBlinkIn = Math.random() * 2000 + 3000;
             blinkCycleTimeoutRef.current = setTimeout(() => {
                 setIsBlinking(true);
                 setTimeout(() => {
                     setIsBlinking(false);
                     scheduleBlink();
-                }, 150); // Blink duration
+                }, 150);
             }, nextBlinkIn);
         };
 
         scheduleBlink();
 
         return () => clearBlinkCycleTimer();
-    }, [isParentHovered]);
+    }, [isParentHovered, selectedOperatorId]);
 
     useEffect(() => {
         if (!isParentHovered) {
@@ -178,9 +159,9 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
     useEffect(() => {
         if (!isParentHovered || !isComplete) return;
 
-        const isLastMessage = currentIndexRef.current === COMMENTS.length - 1;
-        const fadeOutDelay = 2000; // Stay visible for 2s after typing is complete
-        const nextMessageDelay = isLastMessage ? 6000 : 4000; // Invisible for 4s (normal) or 6s (end of cycle)
+        const isLastMessage = currentIndexRef.current === safeComments.length - 1;
+        const fadeOutDelay = 2000;
+        const nextMessageDelay = isLastMessage ? 6000 : 4000;
 
         clearTransitionTimers();
 
@@ -194,22 +175,21 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                 setDisplayText("");
                 charIndexRef.current = 0;
                 setIsComplete(false);
-                setCurrentIndex((prev) => (prev + 1) % COMMENTS.length);
+                setCurrentIndex((prev) => (prev + 1) % safeComments.length);
                 setIsVisible(true);
             }, nextMessageDelay);
         }, fadeOutDelay);
-    }, [isParentHovered, isComplete]);
+    }, [isParentHovered, isComplete, safeComments.length]);
 
     useEffect(() => {
         return () => clearAllTimers();
     }, []);
 
     const renderImage = (type: "open" | "close") => {
-        // Special case: operator04 only has 'open' state (silhouette)
         if (selectedOperatorId === "operator04" && type === "close") return null;
 
         const fileName = `${selectedOperatorId}_${type}.webp`;
-        const imageUrl = `${basePath}/images/operator/${fileName}`;
+        const imageUrl = `${assetBasePath ?? "/images/operator"}/${fileName}`;
 
         return (
             <motion.img
@@ -226,23 +206,16 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                     WebkitMaskImage: `url(${imageUrl})`,
                     WebkitMaskSize: "cover",
                     backgroundColor: "currentColor",
-                    opacity: (type === "open" && !isBlinking) || (type === "close" && isBlinking) ? 1 : 0,
+                    opacity: (type === "open" && !isBlinking) || (type === "close" && isBlinking) ? 1 : 0
                 }}
-                animate={{
-                    y: [-1, 1, -1],
-                }}
-                transition={{
-                    repeat: Infinity,
-                    duration: 5,
-                    ease: "easeInOut"
-                }}
+                animate={{ y: [-1, 1, -1] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
             />
         );
     };
 
     return (
-        <div className="absolute top-32 left-8 z-20 pointer-events-none select-none flex items-start gap-4 text-foreground/50">
-            {/* Operator Profile Image Area */}
+        <div className="absolute top-8 left-8 z-20 pointer-events-none select-none flex items-start gap-4 text-white/50">
             <AnimatePresence>
                 {isVisible && (
                     <motion.div
@@ -251,47 +224,33 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.5 }}
                         className="relative w-8 overflow-hidden border border-current/20 bg-current/5"
-                        style={{
-                            aspectRatio: "2/3",
-                            height: "2.5rem", // Roughly 2 lines of text (1.25rem * 2)
-                        }}
+                        style={{ aspectRatio: "2/3", height: "2.5rem" }}
                     >
-                        {/* Static images with opacity toggle for Jitter-free Blinking */}
                         {renderImage("open")}
                         {renderImage("close")}
 
-                        {/* Scanline Pattern (Widened) */}
-                        <div className="absolute inset-0 z-20 pointer-events-none opacity-10"
-                            style={{ backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)` }}
+                        <div
+                            className="absolute inset-0 z-20 pointer-events-none opacity-10"
+                            style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)" }}
                         />
 
-                        {/* Bright Sweep Line (Every 2.5s) */}
                         <motion.div
                             className="absolute inset-0 pointer-events-none z-30"
                             style={{
                                 background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.15) 50%, transparent)",
                                 height: "4px",
                                 width: "100%",
-                                filter: "blur(1px)",
+                                filter: "blur(1px)"
                             }}
-                            animate={{
-                                top: ["-10%", "110%"]
-                            }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 2.5,
-                                ease: "linear",
-                                repeatDelay: 0.5
-                            }}
+                            animate={{ top: ["-10%", "110%"] }}
+                            transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 0.5 }}
                         />
 
-                        {/* Overall Monitor Glow */}
                         <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" />
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Comment Text Area */}
             <div className="max-w-[30ch]">
                 <AnimatePresence>
                     {isVisible && (
@@ -306,11 +265,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                             {displayText}
                             <motion.span
                                 animate={{ opacity: isComplete ? [1, 0, 1] : 1 }}
-                                transition={{
-                                    repeat: Infinity,
-                                    duration: 0.8,
-                                    ease: "easeInOut"
-                                }}
+                                transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
                                 className="inline-block w-2 h-4 bg-current ml-1 align-middle"
                             />
                         </motion.div>
