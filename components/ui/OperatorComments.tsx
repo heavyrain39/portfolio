@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface OperatorCommentsProps {
     isParentHovered: boolean;
+    themeColor?: string;
+    contrastColor?: string;
 }
 
 const COMMENTS = [
@@ -35,7 +37,97 @@ const COMMENTS = [
     "System idling. Come back soon, Raven. I'll be waiting right here."
 ];
 
-export default function OperatorComments({ isParentHovered }: OperatorCommentsProps) {
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const parseColorToRgb = (color: string): { r: number; g: number; b: number } | null => {
+    const normalized = color.trim();
+    const hexMatch = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hexMatch) {
+        const hex = hexMatch[1];
+        const fullHex = hex.length === 3 ? hex.split("").map((char) => char + char).join("") : hex;
+        const r = parseInt(fullHex.slice(0, 2), 16);
+        const g = parseInt(fullHex.slice(2, 4), 16);
+        const b = parseInt(fullHex.slice(4, 6), 16);
+        if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return null;
+        return { r, g, b };
+    }
+
+    const rgbMatch = normalized.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgbMatch) {
+        const r = clamp(Number(rgbMatch[1]), 0, 255);
+        const g = clamp(Number(rgbMatch[2]), 0, 255);
+        const b = clamp(Number(rgbMatch[3]), 0, 255);
+        if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return null;
+        return { r, g, b };
+    }
+
+    return null;
+};
+
+const colorToHsl = (color: string): { h: number; s: number; l: number } | null => {
+    const rgb = parseColorToRgb(color);
+    if (!rgb) return null;
+
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const lightness = (max + min) / 2;
+    let hue = 0;
+    let saturation = 0;
+
+    if (max !== min) {
+        const d = max - min;
+        saturation = lightness > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r:
+                hue = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                hue = (b - r) / d + 2;
+                break;
+            case b:
+                hue = (r - g) / d + 4;
+                break;
+        }
+        hue /= 6;
+    }
+
+    return { h: hue * 360, s: saturation * 100, l: lightness * 100 };
+};
+
+const hslToHex = (h: number, s: number, l: number): string => {
+    l /= 100;
+    const a = (s * Math.min(l, 1 - l)) / 100;
+    const f = (n: number) => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, "0");
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+};
+
+const getOperatorTintColor = (themeColor: string): string => {
+    const hsl = colorToHsl(themeColor);
+    if (!hsl) return themeColor;
+
+    const tonedSaturation = clamp(hsl.s * 0.35 + 8, 8, 48);
+    const tonedLightness = clamp(hsl.l * 0.65 + 18, 26, 68);
+    return hslToHex(hsl.h, tonedSaturation, tonedLightness);
+};
+
+const withAlpha = (color: string, alpha: number): string => {
+    const rgb = parseColorToRgb(color);
+    if (!rgb) return color;
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+};
+
+export default function OperatorComments({
+    isParentHovered,
+    themeColor = "#f5f5f0",
+    contrastColor = "#1a1a1a"
+}: OperatorCommentsProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [displayText, setDisplayText] = useState("");
     const [isVisible, setIsVisible] = useState(false);
@@ -60,6 +152,8 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
     });
 
     const basePath = "/portfolio";
+    const themeTintColor = themeColor;
+    const operatorTintColor = useMemo(() => getOperatorTintColor(themeTintColor), [themeTintColor]);
 
     useEffect(() => {
         hoverRef.current = isParentHovered;
@@ -218,36 +312,48 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
         const imageUrl = `${basePath}/images/operator/${fileName}`;
 
         return (
-            <motion.img
-                src={imageUrl}
-                alt="Operator"
-                className="w-full h-auto object-cover absolute top-0 left-0"
+            <motion.div
+                className="absolute top-0 h-full pointer-events-none"
                 style={{
                     width: "110%",
                     maxWidth: "none",
                     left: "-5%",
-                    maskImage: `url(${imageUrl})`,
-                    maskSize: "cover",
-                    maskRepeat: "no-repeat",
-                    WebkitMaskImage: `url(${imageUrl})`,
-                    WebkitMaskSize: "cover",
-                    backgroundColor: "currentColor",
-                    opacity: (type === "open" && !isBlinking) || (type === "close" && isBlinking) ? 1 : 0,
+                    opacity: (type === "open" && !isBlinking) || (type === "close" && isBlinking) ? 1 : 0
                 }}
-                animate={{
-                    y: [-1, 1, -1],
-                }}
-                transition={{
-                    repeat: Infinity,
-                    duration: 5,
-                    ease: "easeInOut"
-                }}
-            />
+                animate={{ y: [-1, 1, -1] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+            >
+                <motion.img
+                    src={imageUrl}
+                    alt="Operator"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ filter: "grayscale(1) contrast(1.08) brightness(0.9)" }}
+                />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundColor: operatorTintColor,
+                        mixBlendMode: "color",
+                        opacity: 0.64
+                    }}
+                />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundColor: operatorTintColor,
+                        mixBlendMode: "multiply",
+                        opacity: 0.26
+                    }}
+                />
+            </motion.div>
         );
     };
 
     return (
-        <div className="absolute top-32 left-8 z-20 pointer-events-none select-none flex items-start gap-4 text-foreground/50">
+        <div
+            className="absolute top-32 left-8 z-20 pointer-events-none select-none flex items-start gap-4 text-current opacity-50"
+            style={{ color: contrastColor }}
+        >
             {/* Operator Profile Image Area */}
             <AnimatePresence>
                 {isVisible && (
@@ -256,7 +362,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.5 }}
-                        className="relative w-8 overflow-hidden border border-current/20 bg-current/5"
+                        className="relative w-8 overflow-hidden border border-current/20 bg-current/5 isolate"
                         style={{
                             aspectRatio: "2/3",
                             height: "2.5rem", // Roughly 2 lines of text (1.25rem * 2)
@@ -270,8 +376,8 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                         <div
                             className="absolute inset-0 z-20 pointer-events-none"
                             style={{
-                                opacity: 0.06,
-                                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)`
+                                opacity: 0.1,
+                                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, ${themeTintColor} 4px)`
                             }}
                         />
 
@@ -279,7 +385,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                         <motion.div
                             className="absolute inset-0 pointer-events-none z-30"
                             style={{
-                                background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 50%, transparent)",
+                                background: `linear-gradient(to bottom, transparent, ${withAlpha(themeTintColor, 0.4)} 50%, transparent)`,
                                 height: "4px",
                                 width: "100%",
                                 filter: "blur(0.8px)",

@@ -96,6 +96,8 @@ export default function MiniGame() {
     const [isShooting, setIsShooting] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [operatorThemeColor, setOperatorThemeColor] = useState("#f5f5f0");
+    const [operatorContrastColor, setOperatorContrastColor] = useState("#1a1a1a");
     const isMutedRef = useRef(false);
 
     // Sync Ref with State for Game Loop
@@ -200,10 +202,23 @@ export default function MiniGame() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        // Cache theme state via MutationObserver (instead of per-frame DOM query)
-        cachedIsDark.current = document.documentElement.getAttribute('data-theme') === 'dark';
+        // Cache theme state and expose current CSS theme colors to operator overlay.
+        const syncThemeState = () => {
+            const isDarkTheme = document.documentElement.getAttribute("data-theme") === "dark";
+            cachedIsDark.current = isDarkTheme;
+
+            const styles = getComputedStyle(document.documentElement);
+            const background = styles.getPropertyValue("--background").trim();
+            const foreground = styles.getPropertyValue("--foreground").trim();
+
+            setOperatorThemeColor(background || (isDarkTheme ? "#1a1a1a" : "#f5f5f0"));
+            setOperatorContrastColor(foreground || (isDarkTheme ? "#f5f5f0" : "#1a1a1a"));
+        };
+
+        syncThemeState();
+
         const themeObserver = new MutationObserver(() => {
-            cachedIsDark.current = document.documentElement.getAttribute('data-theme') === 'dark';
+            syncThemeState();
         });
         themeObserver.observe(document.documentElement, {
             attributes: true,
@@ -711,7 +726,11 @@ export default function MiniGame() {
             ref={containerRef}
             className="absolute right-0 top-0 w-1/2 h-full hidden md:block cursor-none z-0"
         >
-            <OperatorComments isParentHovered={isHovered} />
+            <OperatorComments
+                isParentHovered={isHovered}
+                themeColor={operatorThemeColor}
+                contrastColor={operatorContrastColor}
+            />
 
             {/* Canvas Layer */}
             <canvas
