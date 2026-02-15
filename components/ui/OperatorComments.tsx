@@ -266,19 +266,23 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                         {renderImage("open")}
                         {renderImage("close")}
 
-                        {/* Scanline Pattern (Widened) */}
-                        <div className="absolute inset-0 z-20 pointer-events-none opacity-10"
-                            style={{ backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)` }}
+                        {/* Scanline Pattern (softened to blend with comment text tone) */}
+                        <div
+                            className="absolute inset-0 z-20 pointer-events-none"
+                            style={{
+                                opacity: 0.06,
+                                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)`
+                            }}
                         />
 
                         {/* Bright Sweep Line (Every 2.5s) */}
                         <motion.div
                             className="absolute inset-0 pointer-events-none z-30"
                             style={{
-                                background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.15) 50%, transparent)",
+                                background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 50%, transparent)",
                                 height: "4px",
                                 width: "100%",
-                                filter: "blur(1px)",
+                                filter: "blur(0.8px)",
                             }}
                             animate={{
                                 top: ["-10%", "110%"]
@@ -292,7 +296,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                         />
 
                         {/* Overall Monitor Glow */}
-                        <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" />
+                        <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" style={{ opacity: 0.6 }} />
                     </motion.div>
                 )}
             </AnimatePresence>

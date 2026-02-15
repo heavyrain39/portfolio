@@ -48,6 +48,7 @@ interface Particle {
     vx: number;
     vy: number;
     life: number;
+    lifeDecayScale: number;
     color: string;
     size: number;
 }
@@ -326,10 +327,24 @@ export default function MiniGame() {
             });
         };
 
-        const createExplosion = (x: number, y: number, count: number, color: string) => {
+        const createExplosion = (
+            x: number,
+            y: number,
+            count: number,
+            color: string,
+            options?: {
+                speedScale?: number;
+                sizeScale?: number;
+                lifeDecayScale?: number;
+            }
+        ) => {
+            const speedScale = options?.speedScale ?? 1;
+            const sizeScale = options?.sizeScale ?? 1;
+            const lifeDecayScale = options?.lifeDecayScale ?? 1;
+
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = (Math.random() * 8 + 4) * 1.2; // 20% faster
+                const speed = (Math.random() * 8 + 4) * 1.2 * speedScale;
                 particles.current.push({
                     id: Math.random(),
                     x,
@@ -337,8 +352,9 @@ export default function MiniGame() {
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
                     life: 1.0,
+                    lifeDecayScale,
                     color: color,
-                    size: Math.random() * 3 + 1
+                    size: (Math.random() * 3 + 1) * sizeScale
                 });
             }
         };
@@ -497,14 +513,22 @@ export default function MiniGame() {
                         t.x += hitNx * 6;
                         t.y += hitNy * 6;
 
-                        createExplosion(b.x, b.y, 4, "#06b6d4");
+                        createExplosion(b.x, b.y, 4, "#06b6d4", {
+                            speedScale: 0.7,
+                            sizeScale: 0.55,
+                            // Extra-short spark behavior for non-destroy hits.
+                            lifeDecayScale: 2.2
+                        });
 
                         // Small hit flash on damage
-                        hitFlashes.current.push({ x: b.x, y: b.y, life: 1.0, radius: 8 });
+                        hitFlashes.current.push({ x: b.x, y: b.y, life: 1.0, radius: 5 });
 
                         if (t.hp <= 0) {
                             // Destroy
-                            createExplosion(t.x, t.y, 20, "#06b6d4");
+                            createExplosion(t.x, t.y, 20, "#06b6d4", {
+                                speedScale: 0.8,
+                                lifeDecayScale: 1.1
+                            });
                             playSound("hit"); // Audio Feedback
                             targets.current.splice(j, 1);
 
@@ -601,7 +625,7 @@ export default function MiniGame() {
                 p.x += p.vx;
                 p.y += p.vy;
                 p.vy += GRAVITY;
-                p.life -= 0.03;
+                p.life -= 0.03 * p.lifeDecayScale;
 
                 if (p.life <= 0) {
                     particles.current.splice(i, 1);
