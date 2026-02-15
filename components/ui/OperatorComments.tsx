@@ -158,7 +158,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
                     blinkEndTimeoutRef.current = null;
                     setIsBlinking(false);
                     scheduleBlink();
-                }, 150); // Blink duration
+                }, 100); // Blink duration
             }, nextBlinkIn);
         };
 
