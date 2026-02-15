@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { OperatorId } from "../types";
 
@@ -9,6 +9,8 @@ interface OperatorCommentsProps {
     comments?: string[];
     assetBasePath?: string;
     operatorId?: OperatorId;
+    showImage?: boolean;
+    showText?: boolean;
 }
 
 const FALLBACK_COMMENTS = ["Initialization sequence complete."];
@@ -17,9 +19,13 @@ export default function OperatorComments({
     isParentHovered,
     comments,
     assetBasePath,
-    operatorId
+    operatorId,
+    showImage = true,
+    showText = true
 }: OperatorCommentsProps) {
-    const safeComments = comments && comments.length > 0 ? comments : FALLBACK_COMMENTS;
+    const safeComments = useMemo(() => {
+        return comments && comments.length > 0 ? comments : FALLBACK_COMMENTS;
+    }, [comments]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [displayText, setDisplayText] = useState("");
@@ -31,17 +37,18 @@ export default function OperatorComments({
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blinkCycleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blinkEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const nextMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTypingRef = useRef(false);
     const hoverRef = useRef(isParentHovered);
     const currentIndexRef = useRef(currentIndex);
     const isCompleteRef = useRef(isComplete);
 
-    const [selectedOperatorId] = useState<OperatorId>(() => {
-        if (operatorId) return operatorId;
+    const [randomOperatorId] = useState<OperatorId>(() => {
         const options: OperatorId[] = ["operator01", "operator02", "operator03", "operator04"];
         return options[Math.floor(Math.random() * options.length)];
     });
+    const selectedOperatorId = operatorId ?? randomOperatorId;
 
     useEffect(() => {
         hoverRef.current = isParentHovered;
@@ -54,6 +61,12 @@ export default function OperatorComments({
     useEffect(() => {
         isCompleteRef.current = isComplete;
     }, [isComplete]);
+
+    useEffect(() => {
+        if (currentIndexRef.current < safeComments.length) return;
+        currentIndexRef.current = 0;
+        setCurrentIndex(0);
+    }, [safeComments.length]);
 
     const clearTypingTimer = () => {
         if (typingTimeoutRef.current) {
@@ -78,6 +91,10 @@ export default function OperatorComments({
             clearTimeout(blinkCycleTimeoutRef.current);
             blinkCycleTimeoutRef.current = null;
         }
+        if (blinkEndTimeoutRef.current) {
+            clearTimeout(blinkEndTimeoutRef.current);
+            blinkEndTimeoutRef.current = null;
+        }
     };
 
     const clearAllTimers = () => {
@@ -93,7 +110,7 @@ export default function OperatorComments({
         }
 
         isTypingRef.current = true;
-        const fullText = safeComments[currentIndexRef.current];
+        const fullText = safeComments[currentIndexRef.current] ?? safeComments[0] ?? "";
 
         if (charIndexRef.current >= fullText.length) {
             isTypingRef.current = false;
@@ -130,7 +147,8 @@ export default function OperatorComments({
             const nextBlinkIn = Math.random() * 2000 + 3000;
             blinkCycleTimeoutRef.current = setTimeout(() => {
                 setIsBlinking(true);
-                setTimeout(() => {
+                blinkEndTimeoutRef.current = setTimeout(() => {
+                    blinkEndTimeoutRef.current = null;
                     setIsBlinking(false);
                     scheduleBlink();
                 }, 150);
@@ -143,6 +161,13 @@ export default function OperatorComments({
     }, [isParentHovered, selectedOperatorId]);
 
     useEffect(() => {
+        if (!showText) {
+            clearAllTimers();
+            isTypingRef.current = false;
+            setIsVisible(isParentHovered);
+            return;
+        }
+
         if (!isParentHovered) {
             clearAllTimers();
             isTypingRef.current = false;
@@ -154,9 +179,10 @@ export default function OperatorComments({
         if (!isTypingRef.current && !isComplete) {
             typeNextChar();
         }
-    }, [isParentHovered, isComplete, currentIndex]);
+    }, [isParentHovered, isComplete, currentIndex, showText]);
 
     useEffect(() => {
+        if (!showText) return;
         if (!isParentHovered || !isComplete) return;
 
         const isLastMessage = currentIndexRef.current === safeComments.length - 1;
@@ -179,7 +205,7 @@ export default function OperatorComments({
                 setIsVisible(true);
             }, nextMessageDelay);
         }, fadeOutDelay);
-    }, [isParentHovered, isComplete, safeComments.length]);
+    }, [isParentHovered, isComplete, safeComments.length, showText]);
 
     useEffect(() => {
         return () => clearAllTimers();
@@ -189,7 +215,7 @@ export default function OperatorComments({
         if (selectedOperatorId === "operator04" && type === "close") return null;
 
         const fileName = `${selectedOperatorId}_${type}.webp`;
-        const imageUrl = `${assetBasePath ?? "/images/operator"}/${fileName}`;
+        const imageUrl = `${assetBasePath ?? "./assets/operator"}/${fileName}`;
 
         return (
             <motion.img
@@ -214,64 +240,70 @@ export default function OperatorComments({
         );
     };
 
+    if (!showImage && !showText) return null;
+
     return (
-        <div className="absolute top-8 left-8 z-20 pointer-events-none select-none flex items-start gap-4 text-white/50">
-            <AnimatePresence>
-                {isVisible && (
-                    <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.5 }}
-                        className="relative w-8 overflow-hidden border border-current/20 bg-current/5"
-                        style={{ aspectRatio: "2/3", height: "2.5rem" }}
-                    >
-                        {renderImage("open")}
-                        {renderImage("close")}
-
-                        <div
-                            className="absolute inset-0 z-20 pointer-events-none opacity-10"
-                            style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)" }}
-                        />
-
-                        <motion.div
-                            className="absolute inset-0 pointer-events-none z-30"
-                            style={{
-                                background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.15) 50%, transparent)",
-                                height: "4px",
-                                width: "100%",
-                                filter: "blur(1px)"
-                            }}
-                            animate={{ top: ["-10%", "110%"] }}
-                            transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 0.5 }}
-                        />
-
-                        <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            <div className="max-w-[30ch]">
+        <div className={`absolute top-8 left-8 z-20 pointer-events-none select-none flex items-start text-white/50 ${showImage && showText ? "gap-4" : "gap-0"}`}>
+            {showImage ? (
                 <AnimatePresence>
                     {isVisible && (
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="font-mono text-xs tracking-widest leading-relaxed"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.5 }}
+                            className="relative w-8 overflow-hidden border border-current/20 bg-current/5"
+                            style={{ aspectRatio: "2/3", height: "2.5rem" }}
                         >
-                            <span className="mr-2">{">"}</span>
-                            {displayText}
-                            <motion.span
-                                animate={{ opacity: isComplete ? [1, 0, 1] : 1 }}
-                                transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
-                                className="inline-block w-2 h-4 bg-current ml-1 align-middle"
+                            {renderImage("open")}
+                            {renderImage("close")}
+
+                            <div
+                                className="absolute inset-0 z-20 pointer-events-none opacity-10"
+                                style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, currentColor 4px)" }}
                             />
+
+                            <motion.div
+                                className="absolute inset-0 pointer-events-none z-30"
+                                style={{
+                                    background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.15) 50%, transparent)",
+                                    height: "4px",
+                                    width: "100%",
+                                    filter: "blur(1px)"
+                                }}
+                                animate={{ top: ["-10%", "110%"] }}
+                                transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 0.5 }}
+                            />
+
+                            <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" />
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
+            ) : null}
+
+            {showText ? (
+                <div className="max-w-[30ch]">
+                    <AnimatePresence>
+                        {isVisible && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                                className="font-mono text-xs tracking-widest leading-relaxed"
+                            >
+                                <span className="mr-2">{">"}</span>
+                                {displayText}
+                                <motion.span
+                                    animate={{ opacity: isComplete ? [1, 0, 1] : 1 }}
+                                    transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+                                    className="inline-block w-2 h-4 bg-current ml-1 align-middle"
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            ) : null}
         </div>
     );
 }

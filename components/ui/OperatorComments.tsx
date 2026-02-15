@@ -43,10 +43,11 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
     const [isBlinking, setIsBlinking] = useState(false);
 
     const charIndexRef = useRef(0);
-    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const blinkCycleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const nextMessageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blinkCycleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blinkEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const nextMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTypingRef = useRef(false);
     const hoverRef = useRef(isParentHovered);
     const currentIndexRef = useRef(currentIndex);
@@ -94,6 +95,10 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
         if (blinkCycleTimeoutRef.current) {
             clearTimeout(blinkCycleTimeoutRef.current);
             blinkCycleTimeoutRef.current = null;
+        }
+        if (blinkEndTimeoutRef.current) {
+            clearTimeout(blinkEndTimeoutRef.current);
+            blinkEndTimeoutRef.current = null;
         }
     };
 
@@ -149,7 +154,8 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
             const nextBlinkIn = Math.random() * 2000 + 3000; // 3-5 seconds
             blinkCycleTimeoutRef.current = setTimeout(() => {
                 setIsBlinking(true);
-                setTimeout(() => {
+                blinkEndTimeoutRef.current = setTimeout(() => {
+                    blinkEndTimeoutRef.current = null;
                     setIsBlinking(false);
                     scheduleBlink();
                 }, 150); // Blink duration
@@ -159,7 +165,7 @@ export default function OperatorComments({ isParentHovered }: OperatorCommentsPr
         scheduleBlink();
 
         return () => clearBlinkCycleTimer();
-    }, [isParentHovered]);
+    }, [isParentHovered, selectedOperatorId]);
 
     useEffect(() => {
         if (!isParentHovered) {

@@ -85,8 +85,10 @@ export default function MiniGame({
     themeColor = "#06b6d4",
     accentColor = "#ffffff",
     showOperator = true,
+    showOperatorImage = true,
+    showOperatorComments = true,
     dialogueList = DEFAULT_DIALOGUES,
-    operatorAssetBasePath = "/images/operator",
+    operatorAssetBasePath = "./assets/operator",
     operatorId,
     enableSound = true,
     initialMuted = false,
@@ -128,6 +130,7 @@ export default function MiniGame({
     const [isShooting, setIsShooting] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(initialMuted || !enableSound);
+    const enableSoundRef = useRef(enableSound);
     const isMutedRef = useRef(false);
     const volumeRef = useRef(Math.max(0, Math.min(100, volume)) / 100);
     const themeColorRef = useRef(themeColor);
@@ -138,6 +141,10 @@ export default function MiniGame({
     const killParticleMultiplierRef = useRef(clamp(killParticleMultiplier, PARTICLE_MULTIPLIER_MIN, PARTICLE_MULTIPLIER_MAX));
 
     // Sync Ref with State for Game Loop
+    useEffect(() => {
+        enableSoundRef.current = enableSound;
+    }, [enableSound]);
+
     useEffect(() => {
         isMutedRef.current = isMuted || !enableSound;
     }, [isMuted, enableSound]);
@@ -221,7 +228,7 @@ export default function MiniGame({
 
     // Sound Generation (Synth)
     const playSound = (type: "shoot" | "hit") => {
-        if (!enableSound) return;
+        if (!enableSoundRef.current) return;
         if (isMutedRef.current) return;
 
         const ctx = getAudioContext();
@@ -313,7 +320,14 @@ export default function MiniGame({
             setIsHovered(true);
         };
 
+        const isUiControlTarget = (target: EventTarget | null): boolean => {
+            if (!(target instanceof Element)) return false;
+            return target.closest("[data-sidearm-ui-control='true']") !== null;
+        };
+
         const handlePointerDown = (event: PointerEvent) => {
+            if (isUiControlTarget(event.target)) return;
+            if (event.pointerType === "mouse" && event.button !== 0) return;
             event.preventDefault();
             updateAimPosition(event.clientX, event.clientY);
             isPointerDown.current = true;
@@ -867,15 +881,17 @@ export default function MiniGame({
     return (
         <div
             ref={containerRef}
-            className={className ?? "absolute right-0 top-0 w-1/2 h-full hidden md:block cursor-none z-0"}
+            className={className ?? "absolute inset-0 w-full h-full cursor-none z-0"}
             style={{ ...(style ?? {}), touchAction: "none" }}
         >
-            {showOperator ? (
+            {showOperator && (showOperatorImage || showOperatorComments) ? (
                 <OperatorComments
                     isParentHovered={isHovered}
                     comments={dialogueList}
                     assetBasePath={operatorAssetBasePath}
                     operatorId={operatorId}
+                    showImage={showOperatorImage}
+                    showText={showOperatorComments}
                 />
             ) : null}
 
@@ -935,7 +951,8 @@ export default function MiniGame({
 
                     {/* Mute Button */}
                     <button
-                        onClick={() => setIsMuted(!isMuted)}
+                        data-sidearm-ui-control="true"
+                        onClick={() => setIsMuted((prev) => !prev)}
                         className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-foreground"
                         title={isMuted ? "Unmute Sound" : "Mute Sound"}
                         disabled={!enableSound}

@@ -11,8 +11,10 @@ export default function Sidearm(props: SidearmProps) {
             themeColor={props.themeColor ?? "#06b6d4"}
             accentColor={props.accentColor ?? "#ffffff"}
             showOperator={props.showOperator ?? true}
+            showOperatorImage={props.showOperatorImage ?? true}
+            showOperatorComments={props.showOperatorComments ?? true}
             dialogueList={props.dialogueList ?? DEFAULT_DIALOGUES}
-            operatorAssetBasePath={props.operatorAssetBasePath ?? "/images/operator"}
+            operatorAssetBasePath={props.operatorAssetBasePath ?? "./assets/operator"}
             operatorId={props.operatorId}
             enableSound={props.enableSound ?? true}
             initialMuted={props.initialMuted ?? false}
@@ -45,12 +47,24 @@ addPropertyControls(Sidearm, {
         title: "Operator",
         defaultValue: true
     },
+    showOperatorImage: {
+        type: ControlType.Boolean,
+        title: "Op Image",
+        defaultValue: true,
+        hidden: (props: SidearmProps) => !props.showOperator
+    },
+    showOperatorComments: {
+        type: ControlType.Boolean,
+        title: "Op Text",
+        defaultValue: true,
+        hidden: (props: SidearmProps) => !props.showOperator
+    },
     operatorId: {
         type: ControlType.Enum,
         title: "Operator ID",
         options: ["operator01", "operator02", "operator03", "operator04"],
         optionTitles: ["Op 01", "Op 02", "Op 03", "Op 04"],
-        hidden: (props: SidearmProps) => !props.showOperator
+        hidden: (props: SidearmProps) => !props.showOperator || !props.showOperatorImage
     },
     dialogueList: {
         type: ControlType.Array,
@@ -59,13 +73,13 @@ addPropertyControls(Sidearm, {
             type: ControlType.String
         },
         defaultValue: DEFAULT_DIALOGUES,
-        hidden: (props: SidearmProps) => !props.showOperator
+        hidden: (props: SidearmProps) => !props.showOperator || !props.showOperatorComments
     },
     operatorAssetBasePath: {
         type: ControlType.String,
         title: "Asset Path",
-        defaultValue: "/images/operator",
-        hidden: (props: SidearmProps) => !props.showOperator
+        defaultValue: "./assets/operator",
+        hidden: (props: SidearmProps) => !props.showOperator || !props.showOperatorImage
     },
     enableSound: {
         type: ControlType.Boolean,
