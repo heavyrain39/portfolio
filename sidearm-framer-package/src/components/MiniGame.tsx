@@ -78,8 +78,31 @@ const SPRAY_MIN = 0;
 const SPRAY_MAX = 0.7;
 const PARTICLE_MULTIPLIER_MIN = 0.2;
 const PARTICLE_MULTIPLIER_MAX = 4;
+const COMPACT_HUD_BREAKPOINT = 640;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const toRgba = (color: string, alpha: number): string => {
+    const normalized = color.trim();
+    const hexMatch = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hexMatch) {
+        const hex = hexMatch[1];
+        const fullHex = hex.length === 3 ? hex.split("").map((char) => char + char).join("") : hex;
+        const r = parseInt(fullHex.slice(0, 2), 16);
+        const g = parseInt(fullHex.slice(2, 4), 16);
+        const b = parseInt(fullHex.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    const rgbMatch = normalized.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgbMatch) {
+        const r = Number(rgbMatch[1]);
+        const g = Number(rgbMatch[2]);
+        const b = Number(rgbMatch[3]);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    return normalized;
+};
 
 export default function MiniGame({
     themeColor = "#06b6d4",
@@ -91,6 +114,7 @@ export default function MiniGame({
     operatorAssetBasePath = "./assets/operator",
     operatorId,
     enableSound = true,
+    sfxProfile = "classic",
     initialMuted = false,
     volume = 70,
     projectileSpeed = DEFAULT_PROJECTILE_SPEED,
@@ -129,8 +153,10 @@ export default function MiniGame({
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const [isCompactHud, setIsCompactHud] = useState(false);
     const [isMuted, setIsMuted] = useState(initialMuted || !enableSound);
     const enableSoundRef = useRef(enableSound);
+    const sfxProfileRef = useRef(sfxProfile);
     const isMutedRef = useRef(false);
     const volumeRef = useRef(Math.max(0, Math.min(100, volume)) / 100);
     const themeColorRef = useRef(themeColor);
@@ -152,6 +178,10 @@ export default function MiniGame({
     useEffect(() => {
         volumeRef.current = Math.max(0, Math.min(100, volume)) / 100;
     }, [volume]);
+
+    useEffect(() => {
+        sfxProfileRef.current = sfxProfile;
+    }, [sfxProfile]);
 
     useEffect(() => {
         themeColorRef.current = themeColor;
@@ -240,30 +270,49 @@ export default function MiniGame({
         gainNode.connect(ctx.destination);
 
         const now = ctx.currentTime;
+        const activeSfxProfile = sfxProfileRef.current === "deep" ? "deep" : "classic";
 
         if (type === "shoot") {
-            // High-pitch pew — subtle pitch variation per shot
+            // Keep the same pitch-variation span while offering a lower alt base tone.
             osc.type = "triangle";
-            const baseFreq = 800 + (Math.random() - 0.5) * 120; // 740~860 range
-            osc.frequency.setValueAtTime(baseFreq, now);
-            osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+            const baseFreq = activeSfxProfile === "deep"
+                ? 620 + (Math.random() - 0.5) * 120
+                : 800 + (Math.random() - 0.5) * 120;
+            const endFreq = activeSfxProfile === "deep" ? 240 : 300;
 
-            gainNode.gain.setValueAtTime(0.05 * volumeRef.current, now); // Very low volume
+            osc.frequency.setValueAtTime(baseFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.1);
+
+            const startGain = activeSfxProfile === "deep" ? 0.055 : 0.05;
+            gainNode.gain.setValueAtTime(startGain * volumeRef.current, now);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
             osc.start(now);
             osc.stop(now + 0.1);
         } else if (type === "hit") {
-            // Crunch/Explosion
-            osc.type = "sawtooth";
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+            if (activeSfxProfile === "deep") {
+                // Alt hit profile: lower and chunkier impact texture.
+                osc.type = "square";
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.17);
 
-            gainNode.gain.setValueAtTime(0.08 * volumeRef.current, now); // Low volume
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                gainNode.gain.setValueAtTime(0.09 * volumeRef.current, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
 
-            osc.start(now);
-            osc.stop(now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.17);
+            } else {
+                // Classic crunch/explosion
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+
+                gainNode.gain.setValueAtTime(0.08 * volumeRef.current, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
         }
     };
 
@@ -288,8 +337,12 @@ export default function MiniGame({
         // Resize Handlers
         const editorFrameInterval = isEditorMode ? 1000 / 30 : 0;
         const syncCanvasSize = () => {
-            canvas.width = Math.max(container.clientWidth, 1);
+            const width = Math.max(container.clientWidth, 1);
+            canvas.width = width;
             canvas.height = Math.max(container.clientHeight, 1);
+
+            const nextIsCompactHud = width < COMPACT_HUD_BREAKPOINT;
+            setIsCompactHud((prev) => (prev === nextIsCompactHud ? prev : nextIsCompactHud));
         };
         syncCanvasSize();
 
@@ -610,7 +663,7 @@ export default function MiniGame({
                 ctx.beginPath();
                 ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
                 ctx.lineTo(b.x, b.y);
-                ctx.strokeStyle = themeColorRef.current;
+                ctx.strokeStyle = accentColorRef.current;
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
@@ -634,14 +687,14 @@ export default function MiniGame({
                         t.x += hitNx * 6;
                         t.y += hitNy * 6;
 
-                        createExplosion(b.x, b.y, 4, themeColorRef.current, hitParticleMultiplierRef.current);
+                        createExplosion(b.x, b.y, 4, accentColorRef.current, hitParticleMultiplierRef.current);
 
                         // Small hit flash on damage
                         hitFlashes.current.push({ x: b.x, y: b.y, life: 1.0, radius: 8 });
 
                         if (t.hp <= 0) {
                             // Destroy
-                            createExplosion(t.x, t.y, 20, themeColorRef.current, killParticleMultiplierRef.current);
+                            createExplosion(t.x, t.y, 20, accentColorRef.current, killParticleMultiplierRef.current);
                             playSound("hit"); // Audio Feedback
                             targets.current.splice(j, 1);
 
@@ -767,7 +820,7 @@ export default function MiniGame({
                 }
 
                 ctx.globalAlpha = f.life * 0.5;
-                ctx.fillStyle = accentColorRef.current;
+                ctx.fillStyle = "#ffffff";
                 ctx.beginPath();
                 ctx.arc(f.x, f.y, f.radius * f.life, 0, Math.PI * 2);
                 ctx.fill();
@@ -882,7 +935,12 @@ export default function MiniGame({
         <div
             ref={containerRef}
             className={className ?? "absolute inset-0 w-full h-full cursor-none z-0"}
-            style={{ ...(style ?? {}), touchAction: "none" }}
+            style={{
+                backgroundColor: toRgba(themeColor, 0.18),
+                color: themeColor,
+                ...(style ?? {}),
+                touchAction: "none"
+            }}
         >
             {showOperator && (showOperatorImage || showOperatorComments) ? (
                 <OperatorComments
@@ -892,6 +950,7 @@ export default function MiniGame({
                     operatorId={operatorId}
                     showImage={showOperatorImage}
                     showText={showOperatorComments}
+                    themeColor={themeColor}
                 />
             ) : null}
 
@@ -903,12 +962,12 @@ export default function MiniGame({
 
             {/* Boundary Hint Layer */}
             <div className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-0"}`}>
-                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-foreground/20" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-foreground/20" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-foreground/20" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-foreground/20" />
+                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-current/20" />
+                <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-current/20" />
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-current/20" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-current/20" />
                 <svg
-                    className="absolute inset-0 w-full h-full text-foreground"
+                    className="absolute inset-0 w-full h-full text-current"
                     viewBox="0 0 100 100"
                     preserveAspectRatio="none"
                     shapeRendering="geometricPrecision"
@@ -930,13 +989,13 @@ export default function MiniGame({
             {showHud ? (
             <div className="absolute bottom-8 left-8 right-8 flex items-center justify-between z-10 pointer-events-none">
                 <div className="font-mono text-xs font-bold tracking-widest opacity-50 select-none flex items-center gap-2">
-                    TARGETS TERMINATED:
+                    {isCompactHud ? "TERMINATED:" : "TARGETS TERMINATED:"}
                     <motion.span
                         key={uiScore}
                         animate={{ scale: [1.5, 1] }}
                         transition={{ duration: 0.15 }}
                         className="inline-block"
-                        style={{ color: themeColor }}
+                        style={{ color: accentColor }}
                     >
                         {uiScore.toString().padStart(3, '0')}
                     </motion.span>
@@ -944,16 +1003,18 @@ export default function MiniGame({
 
                 <div className="flex items-center gap-4">
                     {/* Hint Text */}
-                    <div className="text-[10px] font-mono opacity-30 text-right text-foreground">
-                        <div>VECTOR_SYS_V2.0</div>
-                        <div>TAP_OR_CLICK</div>
-                    </div>
+                    {!isCompactHud ? (
+                        <div className="text-[10px] font-mono opacity-30 text-right text-current">
+                            <div>VECTOR_SYS_V2.0</div>
+                            <div>TAP_OR_CLICK</div>
+                        </div>
+                    ) : null}
 
                     {/* Mute Button */}
                     <button
                         data-sidearm-ui-control="true"
                         onClick={() => setIsMuted((prev) => !prev)}
-                        className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-foreground"
+                        className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-current"
                         title={isMuted ? "Unmute Sound" : "Mute Sound"}
                         disabled={!enableSound}
                     >
@@ -991,7 +1052,7 @@ export default function MiniGame({
                 />
                 <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full"
-                    style={{ backgroundColor: themeColor }}
+                    style={{ backgroundColor: accentColor }}
                 />
 
                 {/* Pipes - Adjusted to minimal contraction */}

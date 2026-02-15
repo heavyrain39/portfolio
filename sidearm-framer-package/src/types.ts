@@ -1,6 +1,9 @@
 ﻿export type OperatorId = "operator01" | "operator02" | "operator03" | "operator04";
+export type ThemePreset = "custom" | "monoNeonCyan" | "modernGrayPink" | "beigeRed" | "cosmicPurpleYellow";
+export type SfxProfile = "classic" | "deep";
 
 export interface SidearmProps {
+    themePreset?: ThemePreset;
     themeColor?: string;
     accentColor?: string;
     showOperator?: boolean;
@@ -10,6 +13,7 @@ export interface SidearmProps {
     operatorAssetBasePath?: string;
     operatorId?: OperatorId;
     enableSound?: boolean;
+    sfxProfile?: SfxProfile;
     initialMuted?: boolean;
     volume?: number;
     projectileSpeed?: number;

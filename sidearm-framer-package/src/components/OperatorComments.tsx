@@ -11,9 +11,32 @@ interface OperatorCommentsProps {
     operatorId?: OperatorId;
     showImage?: boolean;
     showText?: boolean;
+    themeColor?: string;
 }
 
 const FALLBACK_COMMENTS = ["Initialization sequence complete."];
+const withAlpha = (color: string, alpha: number): string => {
+    const normalized = color.trim();
+    const hexMatch = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hexMatch) {
+        const hex = hexMatch[1];
+        const fullHex = hex.length === 3 ? hex.split("").map((char) => char + char).join("") : hex;
+        const r = parseInt(fullHex.slice(0, 2), 16);
+        const g = parseInt(fullHex.slice(2, 4), 16);
+        const b = parseInt(fullHex.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    const rgbMatch = normalized.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgbMatch) {
+        const r = Number(rgbMatch[1]);
+        const g = Number(rgbMatch[2]);
+        const b = Number(rgbMatch[3]);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    return normalized;
+};
 
 export default function OperatorComments({
     isParentHovered,
@@ -21,7 +44,8 @@ export default function OperatorComments({
     assetBasePath,
     operatorId,
     showImage = true,
-    showText = true
+    showText = true,
+    themeColor = "#ffffff"
 }: OperatorCommentsProps) {
     const safeComments = useMemo(() => {
         return comments && comments.length > 0 ? comments : FALLBACK_COMMENTS;
@@ -243,7 +267,10 @@ export default function OperatorComments({
     if (!showImage && !showText) return null;
 
     return (
-        <div className={`absolute top-8 left-8 z-20 pointer-events-none select-none flex items-start text-white/50 ${showImage && showText ? "gap-4" : "gap-0"}`}>
+        <div
+            className={`absolute top-8 left-8 z-20 pointer-events-none select-none flex items-start text-current ${showImage && showText ? "gap-4" : "gap-0"}`}
+            style={{ color: withAlpha(themeColor, 0.5) }}
+        >
             {showImage ? (
                 <AnimatePresence>
                     {isVisible && (

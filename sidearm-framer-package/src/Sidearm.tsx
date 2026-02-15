@@ -3,13 +3,23 @@
 import React from "react";
 import { addPropertyControls, ControlType } from "framer";
 import MiniGame from "./components/MiniGame";
-import { DEFAULT_DIALOGUES, type SidearmProps } from "./types";
+import { DEFAULT_DIALOGUES, type SidearmProps, type ThemePreset } from "./types";
+
+const THEME_PRESET_COLORS: Record<Exclude<ThemePreset, "custom">, { themeColor: string; accentColor: string }> = {
+    monoNeonCyan: { themeColor: "#d1d5db", accentColor: "#22d3ee" },
+    modernGrayPink: { themeColor: "#374151", accentColor: "#f472b6" },
+    beigeRed: { themeColor: "#d6b48b", accentColor: "#dc2626" },
+    cosmicPurpleYellow: { themeColor: "#6d28d9", accentColor: "#fde047" }
+};
 
 export default function Sidearm(props: SidearmProps) {
+    const themePreset = props.themePreset ?? "custom";
+    const presetColors = themePreset === "custom" ? null : THEME_PRESET_COLORS[themePreset];
+
     return (
         <MiniGame
-            themeColor={props.themeColor ?? "#06b6d4"}
-            accentColor={props.accentColor ?? "#ffffff"}
+            themeColor={presetColors?.themeColor ?? props.themeColor ?? "#06b6d4"}
+            accentColor={presetColors?.accentColor ?? props.accentColor ?? "#ffffff"}
             showOperator={props.showOperator ?? true}
             showOperatorImage={props.showOperatorImage ?? true}
             showOperatorComments={props.showOperatorComments ?? true}
@@ -17,6 +27,7 @@ export default function Sidearm(props: SidearmProps) {
             operatorAssetBasePath={props.operatorAssetBasePath ?? "./assets/operator"}
             operatorId={props.operatorId}
             enableSound={props.enableSound ?? true}
+            sfxProfile={props.sfxProfile ?? "classic"}
             initialMuted={props.initialMuted ?? false}
             volume={props.volume ?? 70}
             projectileSpeed={props.projectileSpeed ?? 45}
@@ -32,15 +43,24 @@ export default function Sidearm(props: SidearmProps) {
 }
 
 addPropertyControls(Sidearm, {
+    themePreset: {
+        type: ControlType.Enum,
+        title: "Theme Set",
+        options: ["custom", "monoNeonCyan", "modernGrayPink", "beigeRed", "cosmicPurpleYellow"],
+        optionTitles: ["Custom", "Mono + Cyan", "Gray + Pink", "Beige + Red", "Purple + Yellow"],
+        defaultValue: "custom"
+    },
     themeColor: {
         type: ControlType.Color,
         title: "Theme",
-        defaultValue: "#06b6d4"
+        defaultValue: "#06b6d4",
+        hidden: (props: SidearmProps) => (props.themePreset ?? "custom") !== "custom"
     },
     accentColor: {
         type: ControlType.Color,
         title: "Accent",
-        defaultValue: "#ffffff"
+        defaultValue: "#ffffff",
+        hidden: (props: SidearmProps) => (props.themePreset ?? "custom") !== "custom"
     },
     showOperator: {
         type: ControlType.Boolean,
@@ -85,6 +105,14 @@ addPropertyControls(Sidearm, {
         type: ControlType.Boolean,
         title: "Sound",
         defaultValue: true
+    },
+    sfxProfile: {
+        type: ControlType.Enum,
+        title: "SFX",
+        options: ["classic", "deep"],
+        optionTitles: ["Classic", "Deep Alt"],
+        defaultValue: "classic",
+        hidden: (props: SidearmProps) => !props.enableSound
     },
     volume: {
         type: ControlType.Number,
