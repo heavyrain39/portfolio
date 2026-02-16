@@ -1691,7 +1691,7 @@ export default function MiniGame() {
                 const alpha = Math.min(ft.life * 2, 1);
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = `rgba(${textColor}, ${alpha})`;
-                ctx.font = "bold 12px 'JetBrains Mono', monospace";
+                ctx.font = "12px 'JetBrains Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.fillText(ft.text, ft.x, ft.y);
                 ctx.globalAlpha = 1.0;
