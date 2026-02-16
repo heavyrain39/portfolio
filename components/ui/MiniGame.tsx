@@ -51,6 +51,8 @@ interface EnemyGroup {
     phase: number;
     rotation: number;
     rotationSpeed: number;
+    angularVelocity: number;
+    angularDamping: number;
     heading: number;
     turnTargetHeading: number | null;
     turnAngularSpeed: number;
@@ -58,6 +60,9 @@ interface EnemyGroup {
     spawnProgress: number;
     units: EnemyUnit[];
     isSpeedster: boolean;
+    spawnSide: "left" | "right";
+    hasEnteredArena: boolean;
+    hasFullyEnteredArena: boolean;
 }
 
 interface WorldUnitPosition {
@@ -488,6 +493,18 @@ export default function MiniGame() {
 
             const formation = getFormation(group);
 
+            if (formation === "peanut" && group.units.length >= 2) {
+                const firstAnchor = worldByUnitId.get(group.units[0].id);
+                const secondAnchor = worldByUnitId.get(group.units[1].id);
+                if (firstAnchor && secondAnchor) {
+                    const dx = secondAnchor.x - firstAnchor.x;
+                    const dy = secondAnchor.y - firstAnchor.y;
+                    if (Math.hypot(dx, dy) > 0.001) {
+                        group.rotation = Math.atan2(dy, dx);
+                    }
+                }
+            }
+
             if (group.family === "caterpillar" && group.units.length >= 2) {
                 const firstAnchor = worldByUnitId.get(group.units[0].id);
                 const lastAnchor = worldByUnitId.get(group.units[group.units.length - 1].id);
@@ -626,15 +643,20 @@ export default function MiniGame() {
                 rotation: Math.random() * Math.PI * 2,
                 rotationSpeed:
                     unitCount > 1
-                        ? (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.002 + 0.0018)
+                        ? (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0026)
                         : 0,
+                angularVelocity: 0,
+                angularDamping: 0.945,
                 heading: Math.atan2((Math.random() - 0.5) * 0.6, dir),
                 turnTargetHeading: null,
                 turnAngularSpeed: Math.random() * 0.02 + 0.03,
                 turnCooldown: 0,
-                spawnProgress: family === "caterpillar" ? 0 : 1,
+                spawnProgress: 1,
                 units,
-                isSpeedster
+                isSpeedster,
+                spawnSide: side,
+                hasEnteredArena: false,
+                hasFullyEnteredArena: false
             };
 
             const spawnPreviewProgress = group.spawnProgress;
@@ -643,11 +665,11 @@ export default function MiniGame() {
             group.spawnProgress = spawnPreviewProgress;
             const minOffsetX = Math.min(...offsets.map((o) => o.x));
             const maxOffsetX = Math.max(...offsets.map((o) => o.x));
-            const halfOutside = radius * HALF_OUTSIDE_RATIO;
+            const spawnInset = Math.max(radius * 1.3, 44);
             const startX =
                 side === "left"
-                    ? -halfOutside - minOffsetX
-                    : canvas.width + halfOutside - maxOffsetX;
+                    ? -spawnInset - maxOffsetX
+                    : canvas.width + spawnInset - minOffsetX;
 
             let startY = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
             let spawnOk = false;
@@ -684,6 +706,34 @@ export default function MiniGame() {
             enemyGroups.current.push(group);
         };
 
+        const updateArenaEntryState = (group: EnemyGroup) => {
+            const halfOutside = group.radius * HALF_OUTSIDE_RATIO;
+            const worldUnits = getWorldUnitPositions(group);
+            const minWorldX = Math.min(...worldUnits.map((world) => world.x));
+            const maxWorldX = Math.max(...worldUnits.map((world) => world.x));
+            const spawnSide = group.spawnSide ?? (group.dir >= 0 ? "left" : "right");
+
+            if (!group.hasEnteredArena) {
+                const hasEnteredLeadingEdge =
+                    spawnSide === "left"
+                        ? maxWorldX >= -halfOutside
+                        : minWorldX <= canvas.width + halfOutside;
+                if (hasEnteredLeadingEdge) {
+                    group.hasEnteredArena = true;
+                }
+            }
+
+            if (!group.hasFullyEnteredArena) {
+                const hasEnteredTrailingEdge =
+                    spawnSide === "left"
+                        ? minWorldX >= -halfOutside
+                        : maxWorldX <= canvas.width + halfOutside;
+                if (hasEnteredTrailingEdge) {
+                    group.hasFullyEnteredArena = true;
+                }
+            }
+        };
+
         const applyBoundaryConstraints = (group: EnemyGroup) => {
             const isCaterpillar = group.family === "caterpillar";
             const halfOutside = group.radius * HALF_OUTSIDE_RATIO;
@@ -691,12 +741,15 @@ export default function MiniGame() {
             const maxX = canvas.width + halfOutside;
             const minY = -halfOutside;
             const maxY = canvas.height + halfOutside;
+            const spawnSide = group.spawnSide ?? (group.dir >= 0 ? "left" : "right");
+            const skipMinXClamp = !group.hasFullyEnteredArena && spawnSide === "left";
+            const skipMaxXClamp = !group.hasFullyEnteredArena && spawnSide === "right";
             let hitX = false;
             let hitY = false;
 
             const worldUnits = getWorldUnitPositions(group);
             for (const world of worldUnits) {
-                if (world.x < minX) {
+                if (world.x < minX && !skipMinXClamp) {
                     group.x += minX - world.x;
                     hitX = true;
                     if (isCaterpillar) {
@@ -705,7 +758,7 @@ export default function MiniGame() {
                         group.vx = Math.abs(group.vx) * Math.max(group.restitution, 0.2);
                         group.dir = 1;
                     }
-                } else if (world.x > maxX) {
+                } else if (world.x > maxX && !skipMaxXClamp) {
                     group.x -= world.x - maxX;
                     hitX = true;
                     if (isCaterpillar) {
@@ -742,9 +795,11 @@ export default function MiniGame() {
             const groups = enemyGroups.current;
 
             for (let i = 0; i < groups.length; i++) {
+                const a = groups[i];
+                if (!a.hasEnteredArena) continue;
                 for (let j = i + 1; j < groups.length; j++) {
-                    const a = groups[i];
                     const b = groups[j];
+                    if (!b.hasEnteredArena) continue;
                     const aOffsets = getLocalOffsets(a);
                     const bOffsets = getLocalOffsets(b);
 
@@ -859,10 +914,6 @@ export default function MiniGame() {
                 group.vy = baseVy + (Math.random() - 0.5) * 0.2;
                 group.phase = basePhase;
                 group.spawnProgress = 1;
-                if (group.units.length <= 3) {
-                    group.rotationSpeed =
-                        (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0016);
-                }
                 reanchorGroupFromWorldMap(group, worldByUnitId, leftCentroid);
                 recalcGroupMass(group);
                 cancelFusionBonusIfSingle(group);
@@ -876,10 +927,6 @@ export default function MiniGame() {
                     spawnProgress: 1,
                     units: rightUnits.slice()
                 };
-                if (rightGroup.units.length <= 3) {
-                    rightGroup.rotationSpeed =
-                        (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0016);
-                }
                 reanchorGroupFromWorldMap(rightGroup, worldByUnitId, rightCentroid);
                 recalcGroupMass(rightGroup);
                 cancelFusionBonusIfSingle(rightGroup);
@@ -896,10 +943,6 @@ export default function MiniGame() {
             const centroid = getCentroidFromWorldMap(survivors, worldByUnitId, { x: group.x, y: group.y });
             group.units = survivors;
             group.spawnProgress = 1;
-            if (group.units.length <= 3) {
-                group.rotationSpeed =
-                    (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0016);
-            }
             reanchorGroupFromWorldMap(group, worldByUnitId, centroid);
             recalcGroupMass(group);
             cancelFusionBonusIfSingle(group);
@@ -1029,6 +1072,71 @@ export default function MiniGame() {
             return cutouts;
         };
 
+        const applyPerUnitImpactKnockback = (
+            group: EnemyGroup,
+            worldUnits: WorldUnitPosition[],
+            hitUnitIndex: number,
+            hitNx: number,
+            hitNy: number
+        ) => {
+            const hitUnit = worldUnits[hitUnitIndex];
+            if (!hitUnit) return;
+
+            let centerX = 0;
+            let centerY = 0;
+            for (const world of worldUnits) {
+                centerX += world.x;
+                centerY += world.y;
+            }
+            centerX /= worldUnits.length;
+            centerY /= worldUnits.length;
+
+            const impulseMagnitude = physicsPreset.knockbackBase * 1.06;
+            const impulseX = hitNx * impulseMagnitude;
+            const impulseY = hitNy * impulseMagnitude;
+            const invMass = 1 / Math.max(group.mass, group.unitMass, 0.0001);
+            const deltaVx = impulseX * invMass;
+            const deltaVy = impulseY * invMass;
+
+            group.vx += deltaVx;
+            group.vy += deltaVy;
+
+            const unitMass = Math.max(group.unitMass, 0.0001);
+            const unitDiskInertia = unitMass * group.radius * group.radius * 0.5;
+            let inertia = 0;
+            for (const world of worldUnits) {
+                const dx = world.x - centerX;
+                const dy = world.y - centerY;
+                inertia += unitDiskInertia + unitMass * (dx * dx + dy * dy);
+            }
+            inertia = Math.max(inertia, unitDiskInertia);
+
+            const rx = hitUnit.x - centerX;
+            const ry = hitUnit.y - centerY;
+            const torque = rx * impulseY - ry * impulseX;
+            const angularImpulse = (torque / inertia) * 1.2;
+            const maxAngular = group.family === "caterpillar" ? 0.095 : 0.11;
+            group.angularVelocity = clamp(
+                group.angularVelocity + angularImpulse,
+                -maxAngular,
+                maxAngular
+            );
+
+            const formation = getFormation(group);
+            if (group.family === "caterpillar" && formation === "line") {
+                group.heading += group.angularVelocity * 0.8;
+            } else if (group.units.length > 1) {
+                group.rotation += group.angularVelocity * 0.8;
+                if (group.family === "caterpillar" && formation === "peanut") {
+                    const alignDelta = getAngleDelta(group.heading, group.rotation);
+                    group.heading += clamp(alignDelta, -0.08, 0.08);
+                }
+            }
+
+            group.x += deltaVx * 2.4;
+            group.y += deltaVy * 2.4;
+        };
+
         const animate = (time: number) => {
             const shakeX =
                 shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
@@ -1111,11 +1219,16 @@ export default function MiniGame() {
                         const bulletSpeed = Math.hypot(bullet.vx, bullet.vy) || 1;
                         const hitNx = bullet.vx / bulletSpeed;
                         const hitNy = bullet.vy / bulletSpeed;
-                        const knockback = physicsPreset.knockbackBase / Math.max(group.mass, 1);
-                        group.vx += hitNx * knockback;
-                        group.vy += hitNy * knockback;
-                        group.x += hitNx * 6;
-                        group.y += hitNy * 6;
+                        const isNonLethalFusionHit = group.units.length > 1 && unit.hp > 0;
+                        if (isNonLethalFusionHit) {
+                            applyPerUnitImpactKnockback(group, worldUnits, worldUnit.index, hitNx, hitNy);
+                        } else {
+                            const knockback = physicsPreset.knockbackBase / Math.max(group.mass, 1);
+                            group.vx += hitNx * knockback;
+                            group.vy += hitNy * knockback;
+                            group.x += hitNx * 6;
+                            group.y += hitNy * 6;
+                        }
 
                         createExplosion(bullet.x, bullet.y, 4, "#06b6d4", {
                             speedScale: 0.7,
@@ -1167,11 +1280,26 @@ export default function MiniGame() {
 
             for (let i = 0; i < enemyGroups.current.length; i++) {
                 const group = enemyGroups.current[i];
+                const formation = getFormation(group);
                 group.phase += group.driftFreq;
                 group.turnCooldown = Math.max(0, group.turnCooldown - 1);
+                group.angularVelocity *= group.angularDamping;
+                if (Math.abs(group.angularVelocity) < 0.00002) {
+                    group.angularVelocity = 0;
+                }
+                if (group.units.length > 1 && formation !== "line") {
+                    // Keep idle spin active, but let hit impulse torque dominate short-term motion.
+                    group.angularVelocity += (group.rotationSpeed - group.angularVelocity) * 0.045;
+                    group.rotation += group.angularVelocity;
+                    if (group.family === "caterpillar" && formation === "peanut") {
+                        const alignDelta = getAngleDelta(group.heading, group.rotation);
+                        group.heading += clamp(alignDelta, -0.02, 0.02);
+                    }
+                } else if (group.family === "caterpillar" && formation === "line" && group.angularVelocity !== 0) {
+                    group.heading += group.angularVelocity;
+                }
 
                 if (group.family === "caterpillar") {
-                    group.spawnProgress = Math.min(1, group.spawnProgress + 0.035);
                     const weaveNudge = Math.sin(group.phase * 0.58 + group.id * 5.2) * 0.02;
                     if (group.turnTargetHeading !== null) {
                         const delta = getAngleDelta(group.heading, group.turnTargetHeading);
@@ -1218,10 +1346,8 @@ export default function MiniGame() {
                 if (group.family !== "caterpillar") {
                     group.dir = group.vx >= 0 ? 1 : -1;
                 }
-                if (group.units.length > 1 && getFormation(group) !== "line") {
-                    group.rotation += group.rotationSpeed;
-                }
 
+                updateArenaEntryState(group);
                 const wallHit = applyBoundaryConstraints(group);
                 if (
                     group.family === "caterpillar" &&
@@ -1247,6 +1373,7 @@ export default function MiniGame() {
 
             resolveGroupCollisions();
             for (const group of enemyGroups.current) {
+                updateArenaEntryState(group);
                 applyBoundaryConstraints(group);
             }
 

@@ -39,7 +39,7 @@ const COMMENTS = [
 ];
 
 const BASE_PATH = "/portfolio";
-const HOVER_START_DELAY = 200;
+const HOVER_START_DELAY = 750;
 const DEFAULT_TYPING_DELAY = 35;
 const SPACE_DELAY = 60;
 const PUNCTUATION_DELAY = 300;
