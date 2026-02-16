@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 
 import React, { useRef, useEffect, useState } from "react";
 import { motion, useSpring, useMotionValue } from "framer-motion";
 import OperatorComments from "./OperatorComments";
 
-// Types
 interface Point {
     x: number;
     y: number;
@@ -19,14 +18,28 @@ interface Bullet {
     life: number;
 }
 
-interface Target {
+interface EnemyUnit {
     id: number;
+    baseHp: number;
+    hp: number;
+    fusionBonusRemaining: number;
+    squareSpinDir: 1 | -1;
+    spinPhaseOffset: number;
+}
+
+type EnemyFamily = "normal" | "cluster" | "caterpillar";
+type EnemyFormation = "single" | "peanut" | "triangle" | "line";
+
+interface EnemyGroup {
+    id: number;
+    family: EnemyFamily;
     x: number;
     y: number;
     vx: number;
     vy: number;
     dir: 1 | -1;
     radius: number;
+    unitMass: number;
     mass: number;
     baseSpeed: number;
     maxSpeed: number;
@@ -35,10 +48,23 @@ interface Target {
     steer: number;
     damping: number;
     restitution: number;
-    hp: number;
-    maxHp: number;
-    phase: number; // For organic movement
-    squareSpinDir: 1 | -1;
+    phase: number;
+    rotation: number;
+    rotationSpeed: number;
+    heading: number;
+    turnTargetHeading: number | null;
+    turnAngularSpeed: number;
+    turnCooldown: number;
+    spawnProgress: number;
+    units: EnemyUnit[];
+    isSpeedster: boolean;
+}
+
+interface WorldUnitPosition {
+    x: number;
+    y: number;
+    unit: EnemyUnit;
+    index: number;
 }
 
 interface Particle {
@@ -69,17 +95,22 @@ interface HitFlash {
     radius: number;
 }
 
+type PhysicsPreset = {
+    collisionRatio: number;
+    restitutionMin: number;
+    restitutionMax: number;
+    knockbackBase: number;
+};
+
 export default function MiniGame() {
-    // Refs for Game Loop
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
     const scoreRef = useRef(0);
     const audioCtxRef = useRef<AudioContext | null>(null);
 
-    // Game State Refs (Mutable for performance in loop)
     const bullets = useRef<Bullet[]>([]);
-    const targets = useRef<Target[]>([]);
+    const enemyGroups = useRef<EnemyGroup[]>([]);
     const particles = useRef<Particle[]>([]);
     const floatingTexts = useRef<FloatingText[]>([]);
     const hitFlashes = useRef<HitFlash[]>([]);
@@ -91,7 +122,6 @@ export default function MiniGame() {
     const shakeIntensity = useRef(0);
     const cachedIsDark = useRef(false);
 
-    // React State for UI
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -100,26 +130,28 @@ export default function MiniGame() {
     const [operatorContrastColor, setOperatorContrastColor] = useState("#1a1a1a");
     const isMutedRef = useRef(false);
 
-    // Sync Ref with State for Game Loop
     useEffect(() => {
         isMutedRef.current = isMuted;
     }, [isMuted]);
 
-    // Motion Values for Crosshair (Smooth)
     const rawMouseX = useMotionValue(0);
     const rawMouseY = useMotionValue(0);
     const smoothMouseX = useSpring(rawMouseX, { stiffness: 500, damping: 30 });
     const smoothMouseY = useSpring(rawMouseY, { stiffness: 500, damping: 30 });
 
-    type PhysicsPreset = {
-        collisionRatio: number;
-        restitutionMin: number;
-        restitutionMax: number;
-        knockbackBase: number;
-    };
+    const GRAVITY = 0.2;
+    const MAX_MAP_UNITS = 12;
+    const SPAWN_INTERVAL_BASE = 35;
+    const SPAWN_INTERVAL_MID = 33;
+    const SPAWN_INTERVAL_HIGH = 31;
+    const SPAWN_SCORE_MID = 50;
+    const SPAWN_SCORE_HIGH = 150;
+    const FUSION_BONUS_HP = 2;
+    const CONNECTED_SPAWN_CHANCE = 0.03;
+    const CATERPILLAR_SPAWN_CHANCE = 0.03;
+    const SPEEDSTER_CHANCE = 0.08;
+    const HALF_OUTSIDE_RATIO = 0.5;
 
-    // Constants
-    const GRAVITY = 0.2; // For particles
     const PHYSICS_PRESETS: Record<"subtle" | "balanced" | "punchy", PhysicsPreset> = {
         subtle: {
             collisionRatio: 0.78,
@@ -146,7 +178,6 @@ export default function MiniGame() {
     const SFX_REFERENCE_LEVEL = 0.7;
     const sfxLevelScale = SFX_MIX_LEVEL / SFX_REFERENCE_LEVEL;
 
-    // Consolidated AudioContext initializer
     const getAudioContext = (): AudioContext => {
         if (!audioCtxRef.current) {
             audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -157,12 +188,10 @@ export default function MiniGame() {
         return audioCtxRef.current;
     };
 
-    // Sound Generation (Synth)
     const playSound = (type: "shoot" | "hit") => {
         if (isMutedRef.current) return;
 
         const ctx = getAudioContext();
-
         const osc = ctx.createOscillator();
         const gainNode = ctx.createGain();
 
@@ -172,24 +201,22 @@ export default function MiniGame() {
         const now = ctx.currentTime;
 
         if (type === "shoot") {
-            // High-pitch pew — subtle pitch variation per shot
             osc.type = "triangle";
-            const baseFreq = 800 + (Math.random() - 0.5) * 120; // 740~860 range
+            const baseFreq = 800 + (Math.random() - 0.5) * 120;
             osc.frequency.setValueAtTime(baseFreq, now);
             osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
 
-            gainNode.gain.setValueAtTime(0.05 * sfxLevelScale, now); // Very low volume
+            gainNode.gain.setValueAtTime(0.05 * sfxLevelScale, now);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
             osc.start(now);
             osc.stop(now + 0.1);
-        } else if (type === "hit") {
-            // Crunch/Explosion
+        } else {
             osc.type = "sawtooth";
             osc.frequency.setValueAtTime(150, now);
             osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
 
-            gainNode.gain.setValueAtTime(0.08 * sfxLevelScale, now); // Low volume
+            gainNode.gain.setValueAtTime(0.08 * sfxLevelScale, now);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
             osc.start(now);
@@ -205,7 +232,6 @@ export default function MiniGame() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        // Cache theme state and expose current CSS theme colors to operator overlay.
         const syncThemeState = () => {
             const isDarkTheme = document.documentElement.getAttribute("data-theme") === "dark";
             cachedIsDark.current = isDarkTheme;
@@ -225,20 +251,16 @@ export default function MiniGame() {
         });
         themeObserver.observe(document.documentElement, {
             attributes: true,
-            attributeFilter: ['data-theme']
+            attributeFilter: ["data-theme"]
         });
 
-        // Resize Handlers
         const handleResize = () => {
-            if (canvas && container) {
-                canvas.width = container.offsetWidth;
-                canvas.height = container.offsetHeight;
-            }
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
         };
         handleResize();
         window.addEventListener("resize", handleResize);
 
-        // Input Handlers
         const handleMouseMove = (e: MouseEvent) => {
             const rect = container.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -251,98 +273,264 @@ export default function MiniGame() {
         };
 
         const handleMouseDown = (e: MouseEvent) => {
-            e.preventDefault(); // Prevent text selection/dragging
+            e.preventDefault();
             isMouseDown.current = true;
             setIsShooting(true);
-            lastShotTime.current = 0; // Guarantee instant first shot
+            lastShotTime.current = 0;
             burstShotCount.current = 0;
-
-            // Initialize/Resume Audio Context
             getAudioContext();
         };
+
         const handleMouseUp = () => {
             isMouseDown.current = false;
             setIsShooting(false);
             burstShotCount.current = 0;
         };
+
         const handleMouseLeave = () => {
-            // Don't reset isMouseDown here — window-level mouseup handles that.
-            // This prevents the "click release" bug when cursor briefly exits container.
             setIsHovered(false);
         };
+
         const handleMouseEnter = () => {
             setIsHovered(true);
         };
+
         const handleContextMenu = (e: Event) => {
-            e.preventDefault(); // Suppress right-click menu in game area
+            e.preventDefault();
         };
 
-        // Attach listeners
         container.addEventListener("mousemove", handleMouseMove);
         container.addEventListener("mousedown", handleMouseDown);
-        window.addEventListener("mouseup", handleMouseUp); // Window-level: prevents stuck clicks
+        window.addEventListener("mouseup", handleMouseUp);
         container.addEventListener("mouseleave", handleMouseLeave);
         container.addEventListener("mouseenter", handleMouseEnter);
         container.addEventListener("contextmenu", handleContextMenu);
 
-        // --- GAME LOGIC ---
+        const countAliveUnits = () => {
+            return enemyGroups.current.reduce((total, group) => total + group.units.length, 0);
+        };
 
-        const spawnTarget = () => {
-            if (targets.current.length >= 8) return; // Max targets
+        const rollBaseHp = () => {
+            const r = Math.random();
+            if (r < 0.1) return 3;
+            if (r > 0.9) return 5;
+            return 4;
+        };
 
-            const side = Math.random() > 0.5 ? "left" : "right";
-            const radius = 25 + Math.random() * 10;
-            const startXBase = side === "left" ? -50 : canvas.width + 50;
-            const spawnOffset = Math.random() * 30;
-            const startX = side === "left" ? startXBase + spawnOffset : startXBase - spawnOffset;
-            const dir: 1 | -1 = side === "left" ? 1 : -1;
+        const createUnit = (isFusedSpawn: boolean): EnemyUnit => {
+            const baseHp = rollBaseHp();
+            const fusionBonus = isFusedSpawn ? FUSION_BONUS_HP : 0;
+            return {
+                id: Math.random(),
+                baseHp,
+                hp: baseHp + fusionBonus,
+                fusionBonusRemaining: fusionBonus,
+                squareSpinDir: 1,
+                spinPhaseOffset: Math.random() * Math.PI * 2
+            };
+        };
 
-            let startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1); // Keep high
-            let spawnOk = false;
-            for (let attempt = 0; attempt < 10; attempt++) {
-                startY = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1);
-                const hasOverlap = targets.current.some((t) => {
-                    const minDist = (radius + t.radius) * physicsPreset.collisionRatio;
-                    return Math.hypot(startX - t.x, startY - t.y) < minDist;
-                });
-                if (!hasOverlap) {
-                    spawnOk = true;
-                    break;
+        const getSpawnIntervalFrames = () => {
+            if (scoreRef.current > SPAWN_SCORE_HIGH) return SPAWN_INTERVAL_HIGH;
+            if (scoreRef.current > SPAWN_SCORE_MID) return SPAWN_INTERVAL_MID;
+            return SPAWN_INTERVAL_BASE;
+        };
+
+        const rotatePoint = (p: Point, angle: number): Point => {
+            const c = Math.cos(angle);
+            const s = Math.sin(angle);
+            return {
+                x: p.x * c - p.y * s,
+                y: p.x * s + p.y * c
+            };
+        };
+
+        const getFormation = (group: EnemyGroup): EnemyFormation => {
+            const count = group.units.length;
+            if (count <= 1) return "single";
+
+            if (group.family === "cluster") {
+                if (count === 2) return "peanut";
+                return "triangle";
+            }
+
+            if (group.family === "caterpillar") {
+                if (count === 2) return "peanut";
+                return "line";
+            }
+
+            if (count === 2) return "peanut";
+            return "line";
+        };
+
+        const getConnections = (group: EnemyGroup, formation: EnemyFormation): Array<[number, number]> => {
+            const count = group.units.length;
+            if (count <= 1) return [];
+
+            if (formation === "peanut" && count >= 2) return [[0, 1]];
+            if (formation === "triangle" && count >= 3) return [[0, 1], [1, 2], [2, 0]];
+
+            if (formation === "line") {
+                const edges: Array<[number, number]> = [];
+                for (let i = 0; i < count - 1; i++) {
+                    edges.push([i, i + 1]);
+                }
+                return edges;
+            }
+
+            return [];
+        };
+
+        const getLocalOffsets = (
+            group: EnemyGroup,
+            formation: EnemyFormation = getFormation(group)
+        ): Point[] => {
+            const count = group.units.length;
+            if (count <= 1 || formation === "single") {
+                return [{ x: 0, y: 0 }];
+            }
+
+            if (formation === "peanut") {
+                const spacing = group.radius * 1.7;
+                const base = [
+                    { x: -spacing * 0.5, y: 0 },
+                    { x: spacing * 0.5, y: 0 }
+                ];
+                return base.map((p) => rotatePoint(p, group.rotation));
+            }
+
+            if (formation === "triangle") {
+                const side = group.radius * 1.74;
+                const height = side * 0.8660254;
+                const base = [
+                    { x: -side * 0.5, y: height / 3 },
+                    { x: side * 0.5, y: height / 3 },
+                    { x: 0, y: -2 * height / 3 }
+                ];
+                return base.map((p) => rotatePoint(p, group.rotation));
+            }
+
+            const spacing = group.radius * 1.66;
+            const start = -(count - 1) * 0.5;
+            const progress = group.family === "caterpillar" ? group.spawnProgress : 1;
+            const headIndex = group.family === "caterpillar" ? count - 1 : group.dir > 0 ? count - 1 : 0;
+            const headX = (start + headIndex) * spacing;
+            const offsets: Point[] = [];
+            for (let i = 0; i < count; i++) {
+                const rawX = (start + i) * spacing;
+                const x = headX + (rawX - headX) * progress;
+                const waveA = Math.sin(group.phase * 1.9 + i * 0.78) * group.radius * 0.34;
+                const waveB = Math.sin(group.phase * 1.35 + i * 0.45 + 1.4) * group.radius * 0.2;
+                const waveScale = group.family === "caterpillar" ? 0.82 + 0.58 * progress : 0.4 + 0.6 * progress;
+                const wave = (waveA + waveB) * waveScale;
+                offsets.push(rotatePoint({ x, y: wave }, group.heading));
+            }
+            return offsets;
+        };
+
+        const getWorldUnitPositions = (group: EnemyGroup): WorldUnitPosition[] => {
+            const formation = getFormation(group);
+            const offsets = getLocalOffsets(group, formation);
+            return group.units.map((unit, index) => ({
+                x: group.x + offsets[index].x,
+                y: group.y + offsets[index].y,
+                unit,
+                index
+            }));
+        };
+
+        const recalcGroupMass = (group: EnemyGroup) => {
+            group.mass = Math.max(group.unitMass, group.unitMass * group.units.length);
+        };
+
+        const cancelFusionBonusIfSingle = (group: EnemyGroup) => {
+            if (group.units.length !== 1) return;
+            const only = group.units[0];
+            if (only.fusionBonusRemaining <= 0) return;
+
+            only.hp = Math.max(1, only.hp - only.fusionBonusRemaining);
+            only.fusionBonusRemaining = 0;
+        };
+
+        const getCentroidFromWorldMap = (
+            units: EnemyUnit[],
+            worldByUnitId: Map<number, Point>,
+            fallback: Point
+        ): Point => {
+            if (!units.length) return fallback;
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
+
+            for (const unit of units) {
+                const world = worldByUnitId.get(unit.id);
+                if (!world) continue;
+                sumX += world.x;
+                sumY += world.y;
+                count++;
+            }
+
+            if (!count) return fallback;
+            return { x: sumX / count, y: sumY / count };
+        };
+
+        const reanchorGroupFromWorldMap = (
+            group: EnemyGroup,
+            worldByUnitId: Map<number, Point>,
+            fallback: Point
+        ) => {
+            group.turnTargetHeading = null;
+            if (!group.units.length) {
+                group.x = fallback.x;
+                group.y = fallback.y;
+                return;
+            }
+
+            const formation = getFormation(group);
+
+            if (group.family === "caterpillar" && group.units.length >= 2) {
+                const firstAnchor = worldByUnitId.get(group.units[0].id);
+                const lastAnchor = worldByUnitId.get(group.units[group.units.length - 1].id);
+                if (firstAnchor && lastAnchor) {
+                    const dx = lastAnchor.x - firstAnchor.x;
+                    const dy = lastAnchor.y - firstAnchor.y;
+                    if (Math.hypot(dx, dy) > 0.001) {
+                        const angle = Math.atan2(dy, dx);
+                        if (formation === "peanut") {
+                            group.rotation = angle;
+                        }
+                        group.heading = angle;
+                        group.dir = Math.cos(angle) >= 0 ? 1 : -1;
+                    }
                 }
             }
-            if (!spawnOk && targets.current.length > 4) return;
 
-            const r = Math.random();
-            let hp = 4; // Default 80%
-            if (r < 0.1) hp = 3; // 10% Weak
-            else if (r > 0.9) hp = 5; // 10% Strong
+            const progressSnapshot = group.spawnProgress;
+            group.spawnProgress = 1;
+            const offsets = getLocalOffsets(group, formation);
+            group.spawnProgress = progressSnapshot;
 
-            const isSpeedster = Math.random() < 0.08;
-            const speedMultiplier = isSpeedster ? 1.5 : 1;
-            const baseSpeed = (Math.random() * 1.8 + 2.1) * 1.1 * speedMultiplier; // +10% global speed
-            const mass = Math.max(1, (radius * radius) / 700);
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
 
-            targets.current.push({
-                id: Math.random(),
-                x: startX,
-                y: startY,
-                vx: dir * baseSpeed,
-                vy: (Math.random() - 0.5) * 1.2,
-                dir,
-                radius,
-                mass,
-                baseSpeed,
-                maxSpeed: baseSpeed + Math.random() * 1.2 + 1.2,
-                driftAmp: Math.random() * 0.9 + 0.7,
-                driftFreq: Math.random() * 0.055 + 0.05,
-                steer: Math.random() * 0.028 + 0.03,
-                damping: Math.random() * 0.008 + 0.987,
-                restitution: Math.random() * (physicsPreset.restitutionMax - physicsPreset.restitutionMin) + physicsPreset.restitutionMin,
-                hp: hp,
-                maxHp: hp,
-                phase: Math.random() * Math.PI * 2,
-                squareSpinDir: 1
-            });
+            for (let i = 0; i < group.units.length; i++) {
+                const anchor = worldByUnitId.get(group.units[i].id);
+                const offset = offsets[i];
+                if (!anchor || !offset) continue;
+                sumX += anchor.x - offset.x;
+                sumY += anchor.y - offset.y;
+                count++;
+            }
+
+            if (!count) {
+                group.x = fallback.x;
+                group.y = fallback.y;
+                return;
+            }
+
+            group.x = sumX / count;
+            group.y = sumY / count;
         };
 
         const createExplosion = (
@@ -371,53 +559,249 @@ export default function MiniGame() {
                     vy: Math.sin(angle) * speed,
                     life: 1.0,
                     lifeDecayScale,
-                    color: color,
+                    color,
                     size: (Math.random() * 3 + 1) * sizeScale
                 });
             }
         };
 
-        const resolveTargetCollisions = () => {
-            const ts = targets.current;
-            for (let i = 0; i < ts.length; i++) {
-                for (let j = i + 1; j < ts.length; j++) {
-                    const a = ts[i];
-                    const b = ts[j];
+        const spawnEnemyGroup = () => {
+            const aliveUnits = countAliveUnits();
+            if (aliveUnits >= MAX_MAP_UNITS) return;
 
-                    let dx = b.x - a.x;
-                    let dy = b.y - a.y;
-                    let dist = Math.hypot(dx, dy);
-                    const minDist = (a.radius + b.radius) * physicsPreset.collisionRatio;
+            const remainingSlots = MAX_MAP_UNITS - aliveUnits;
+            const roll = Math.random();
 
-                    if (dist >= minDist) continue;
+            let family: EnemyFamily = "normal";
+            if (roll < CONNECTED_SPAWN_CHANCE) {
+                family = "cluster";
+            } else if (roll < CONNECTED_SPAWN_CHANCE + CATERPILLAR_SPAWN_CHANCE) {
+                family = "caterpillar";
+            }
 
-                    // Prevent divide-by-zero when centers are nearly identical.
-                    if (dist < 0.0001) {
-                        const angle = Math.random() * Math.PI * 2;
-                        dx = Math.cos(angle);
-                        dy = Math.sin(angle);
-                        dist = 1;
+            let unitCount = 1;
+            if (family === "cluster") {
+                const choices = [2, 3].filter((n) => n <= remainingSlots);
+                if (!choices.length) return;
+                unitCount = choices[Math.floor(Math.random() * choices.length)];
+            } else if (family === "caterpillar") {
+                const choices = [3, 4, 5].filter((n) => n <= remainingSlots);
+                if (!choices.length) return;
+                unitCount = choices[Math.floor(Math.random() * choices.length)];
+            }
+
+            const side = Math.random() > 0.5 ? "left" : "right";
+            const dir: 1 | -1 = side === "left" ? 1 : -1;
+            const radius = 25 + Math.random() * 10;
+            const unitMass = Math.max(1, (radius * radius) / 700);
+            const isFusedSpawn = unitCount > 1;
+            const isSpeedster = family === "normal" && Math.random() < SPEEDSTER_CHANCE;
+            const speedMultiplier = isSpeedster ? 1.5 : 1;
+            const sizeSpeedScale = Math.max(0.62, 1 - (unitCount - 1) * 0.09);
+            const baseSpeed = (Math.random() * 1.8 + 2.1) * 1.1 * speedMultiplier * sizeSpeedScale;
+
+            const units: EnemyUnit[] = Array.from({ length: unitCount }, () => createUnit(isFusedSpawn));
+
+            const group: EnemyGroup = {
+                id: Math.random(),
+                family,
+                x: 0,
+                y: 0,
+                vx: dir * baseSpeed,
+                vy: (Math.random() - 0.5) * 1.2,
+                dir,
+                radius,
+                unitMass,
+                mass: unitMass * unitCount,
+                baseSpeed,
+                maxSpeed: baseSpeed + Math.random() * 1.2 + 1.2,
+                driftAmp: (Math.random() * 0.9 + 0.7) * (family === "caterpillar" ? 1.1 : 1),
+                driftFreq: Math.random() * 0.055 + 0.05,
+                steer: Math.random() * 0.028 + 0.03,
+                damping: Math.random() * 0.008 + 0.987,
+                restitution:
+                    Math.random() * (physicsPreset.restitutionMax - physicsPreset.restitutionMin) +
+                    physicsPreset.restitutionMin,
+                phase: Math.random() * Math.PI * 2,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed:
+                    unitCount > 1
+                        ? (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.002 + 0.0018)
+                        : 0,
+                heading: Math.atan2((Math.random() - 0.5) * 0.6, dir),
+                turnTargetHeading: null,
+                turnAngularSpeed: Math.random() * 0.02 + 0.03,
+                turnCooldown: 0,
+                spawnProgress: family === "caterpillar" ? 0 : 1,
+                units,
+                isSpeedster
+            };
+
+            const spawnPreviewProgress = group.spawnProgress;
+            group.spawnProgress = 1;
+            const offsets = getLocalOffsets(group);
+            group.spawnProgress = spawnPreviewProgress;
+            const minOffsetX = Math.min(...offsets.map((o) => o.x));
+            const maxOffsetX = Math.max(...offsets.map((o) => o.x));
+            const halfOutside = radius * HALF_OUTSIDE_RATIO;
+            const startX =
+                side === "left"
+                    ? -halfOutside - minOffsetX
+                    : canvas.width + halfOutside - maxOffsetX;
+
+            let startY = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
+            let spawnOk = false;
+
+            for (let attempt = 0; attempt < 14; attempt++) {
+                startY = Math.random() * (canvas.height * 0.55) + canvas.height * 0.08;
+                group.x = startX;
+                group.y = startY;
+
+                const progressSnapshot = group.spawnProgress;
+                group.spawnProgress = 1;
+                const candidateUnits = getWorldUnitPositions(group);
+                group.spawnProgress = progressSnapshot;
+                const hasOverlap = enemyGroups.current.some((existing) => {
+                    const existingUnits = getWorldUnitPositions(existing);
+                    return candidateUnits.some((candidate) => {
+                        return existingUnits.some((other) => {
+                            const minDist = (group.radius + existing.radius) * physicsPreset.collisionRatio;
+                            return Math.hypot(candidate.x - other.x, candidate.y - other.y) < minDist;
+                        });
+                    });
+                });
+
+                if (!hasOverlap) {
+                    spawnOk = true;
+                    break;
+                }
+            }
+
+            if (!spawnOk && aliveUnits > 6) return;
+
+            group.x = startX;
+            group.y = startY;
+            enemyGroups.current.push(group);
+        };
+
+        const applyBoundaryConstraints = (group: EnemyGroup) => {
+            const isCaterpillar = group.family === "caterpillar";
+            const halfOutside = group.radius * HALF_OUTSIDE_RATIO;
+            const minX = -halfOutside;
+            const maxX = canvas.width + halfOutside;
+            const minY = -halfOutside;
+            const maxY = canvas.height + halfOutside;
+            let hitX = false;
+            let hitY = false;
+
+            const worldUnits = getWorldUnitPositions(group);
+            for (const world of worldUnits) {
+                if (world.x < minX) {
+                    group.x += minX - world.x;
+                    hitX = true;
+                    if (isCaterpillar) {
+                        group.vx *= 0.96;
+                    } else if (group.vx < 0) {
+                        group.vx = Math.abs(group.vx) * Math.max(group.restitution, 0.2);
+                        group.dir = 1;
+                    }
+                } else if (world.x > maxX) {
+                    group.x -= world.x - maxX;
+                    hitX = true;
+                    if (isCaterpillar) {
+                        group.vx *= 0.96;
+                    } else if (group.vx > 0) {
+                        group.vx = -Math.abs(group.vx) * Math.max(group.restitution, 0.2);
+                        group.dir = -1;
+                    }
+                }
+
+                if (world.y < minY) {
+                    group.y += minY - world.y;
+                    hitY = true;
+                    if (isCaterpillar) {
+                        group.vy *= 0.96;
+                    } else if (group.vy < 0) {
+                        group.vy = Math.abs(group.vy) * Math.max(group.restitution, 0.2);
+                    }
+                } else if (world.y > maxY) {
+                    group.y -= world.y - maxY;
+                    hitY = true;
+                    if (isCaterpillar) {
+                        group.vy *= 0.96;
+                    } else if (group.vy > 0) {
+                        group.vy = -Math.abs(group.vy) * Math.max(group.restitution, 0.2);
+                    }
+                }
+            }
+
+            return { hitX, hitY };
+        };
+
+        const resolveGroupCollisions = () => {
+            const groups = enemyGroups.current;
+
+            for (let i = 0; i < groups.length; i++) {
+                for (let j = i + 1; j < groups.length; j++) {
+                    const a = groups[i];
+                    const b = groups[j];
+                    const aOffsets = getLocalOffsets(a);
+                    const bOffsets = getLocalOffsets(b);
+
+                    let normalX = 0;
+                    let normalY = 0;
+                    let contactCount = 0;
+
+                    for (let ai = 0; ai < aOffsets.length; ai++) {
+                        for (let bi = 0; bi < bOffsets.length; bi++) {
+                            const ax = a.x + aOffsets[ai].x;
+                            const ay = a.y + aOffsets[ai].y;
+                            const bx = b.x + bOffsets[bi].x;
+                            const by = b.y + bOffsets[bi].y;
+
+                            let dx = bx - ax;
+                            let dy = by - ay;
+                            let dist = Math.hypot(dx, dy);
+                            const minDist = (a.radius + b.radius) * physicsPreset.collisionRatio;
+                            if (dist >= minDist) continue;
+
+                            if (dist < 0.0001) {
+                                const angle = Math.random() * Math.PI * 2;
+                                dx = Math.cos(angle);
+                                dy = Math.sin(angle);
+                                dist = 1;
+                            }
+
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            const overlap = minDist - dist;
+                            const totalMass = Math.max(a.mass + b.mass, 0.0001);
+
+                            a.x -= nx * overlap * (b.mass / totalMass);
+                            a.y -= ny * overlap * (b.mass / totalMass);
+                            b.x += nx * overlap * (a.mass / totalMass);
+                            b.y += ny * overlap * (a.mass / totalMass);
+
+                            normalX += nx * overlap;
+                            normalY += ny * overlap;
+                            contactCount++;
+                        }
                     }
 
-                    const nx = dx / dist;
-                    const ny = dy / dist;
-                    const overlap = minDist - dist;
-                    const totalMass = a.mass + b.mass;
+                    if (!contactCount) continue;
 
-                    // Positional correction: allow slight overlap, but avoid hard center stacking.
-                    a.x -= nx * overlap * (b.mass / totalMass);
-                    a.y -= ny * overlap * (b.mass / totalMass);
-                    b.x += nx * overlap * (a.mass / totalMass);
-                    b.y += ny * overlap * (a.mass / totalMass);
+                    const normalLength = Math.hypot(normalX, normalY) || 1;
+                    const nx = normalX / normalLength;
+                    const ny = normalY / normalLength;
 
                     const rvx = b.vx - a.vx;
                     const rvy = b.vy - a.vy;
                     const velAlongNormal = rvx * nx + rvy * ny;
 
-                    // Only apply impulse if moving toward each other.
                     if (velAlongNormal < 0) {
                         const restitution = (a.restitution + b.restitution) * 0.5;
-                        const impulseMag = (-(1 + restitution) * velAlongNormal) / ((1 / a.mass) + (1 / b.mass));
+                        const impulseMag =
+                            (-(1 + restitution) * velAlongNormal) / ((1 / a.mass) + (1 / b.mass));
                         const impulseX = impulseMag * nx;
                         const impulseY = impulseMag * ny;
 
@@ -425,56 +809,251 @@ export default function MiniGame() {
                         a.vy -= impulseY / a.mass;
                         b.vx += impulseX / b.mass;
                         b.vy += impulseY / b.mass;
-
-                        // Small tangential damping for stable, less jittery post-collision motion.
-                        const tx = -ny;
-                        const ty = nx;
-                        const velAlongTangent = rvx * tx + rvy * ty;
-                        const frictionMag = (-velAlongTangent * 0.06) / ((1 / a.mass) + (1 / b.mass));
-                        const frictionX = frictionMag * tx;
-                        const frictionY = frictionMag * ty;
-
-                        a.vx -= frictionX / a.mass;
-                        a.vy -= frictionY / a.mass;
-                        b.vx += frictionX / b.mass;
-                        b.vy += frictionY / b.mass;
                     }
+
+                    const tx = -ny;
+                    const ty = nx;
+                    const velAlongTangent = rvx * tx + rvy * ty;
+                    const frictionMag = (-velAlongTangent * 0.06) / ((1 / a.mass) + (1 / b.mass));
+                    const frictionX = frictionMag * tx;
+                    const frictionY = frictionMag * ty;
+
+                    a.vx -= frictionX / a.mass;
+                    a.vy -= frictionY / a.mass;
+                    b.vx += frictionX / b.mass;
+                    b.vy += frictionY / b.mass;
                 }
             }
         };
 
-        const animate = (time: number) => {
-            if (!canvas || !ctx) return;
+        const handleUnitDestroyed = (groupIndex: number, unitIndex: number) => {
+            const group = enemyGroups.current[groupIndex];
+            if (!group) return;
 
-            // Screen shake offset
-            const shakeX = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
-            const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
-            shakeIntensity.current *= 0.85; // Rapid decay
+            const originalUnits = group.units.slice();
+            const worldUnits = getWorldUnitPositions(group);
+            const worldByUnitId = new Map<number, Point>();
+            for (const world of worldUnits) {
+                worldByUnitId.set(world.unit.id, { x: world.x, y: world.y });
+            }
+
+            const leftUnits = originalUnits.slice(0, unitIndex);
+            const rightUnits = originalUnits.slice(unitIndex + 1);
+
+            if (group.family === "caterpillar" && leftUnits.length > 0 && rightUnits.length > 0) {
+                const leftCentroid = getCentroidFromWorldMap(leftUnits, worldByUnitId, {
+                    x: group.x - group.radius * 0.65,
+                    y: group.y
+                });
+                const rightCentroid = getCentroidFromWorldMap(rightUnits, worldByUnitId, {
+                    x: group.x + group.radius * 0.65,
+                    y: group.y
+                });
+
+                const baseVx = group.vx;
+                const baseVy = group.vy;
+                const basePhase = group.phase;
+
+                group.units = leftUnits.slice();
+                group.vx = baseVx - 0.35;
+                group.vy = baseVy + (Math.random() - 0.5) * 0.2;
+                group.phase = basePhase;
+                group.spawnProgress = 1;
+                if (group.units.length <= 3) {
+                    group.rotationSpeed =
+                        (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0016);
+                }
+                reanchorGroupFromWorldMap(group, worldByUnitId, leftCentroid);
+                recalcGroupMass(group);
+                cancelFusionBonusIfSingle(group);
+
+                const rightGroup: EnemyGroup = {
+                    ...group,
+                    id: Math.random(),
+                    vx: baseVx + 0.35,
+                    vy: baseVy + (Math.random() - 0.5) * 0.2,
+                    phase: basePhase,
+                    spawnProgress: 1,
+                    units: rightUnits.slice()
+                };
+                if (rightGroup.units.length <= 3) {
+                    rightGroup.rotationSpeed =
+                        (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0016);
+                }
+                reanchorGroupFromWorldMap(rightGroup, worldByUnitId, rightCentroid);
+                recalcGroupMass(rightGroup);
+                cancelFusionBonusIfSingle(rightGroup);
+                enemyGroups.current.push(rightGroup);
+                return;
+            }
+
+            const survivors = [...leftUnits, ...rightUnits];
+            if (!survivors.length) {
+                enemyGroups.current.splice(groupIndex, 1);
+                return;
+            }
+
+            const centroid = getCentroidFromWorldMap(survivors, worldByUnitId, { x: group.x, y: group.y });
+            group.units = survivors;
+            group.spawnProgress = 1;
+            if (group.units.length <= 3) {
+                group.rotationSpeed =
+                    (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0016);
+            }
+            reanchorGroupFromWorldMap(group, worldByUnitId, centroid);
+            recalcGroupMass(group);
+            cancelFusionBonusIfSingle(group);
+        };
+
+        const clamp = (value: number, min: number, max: number) => {
+            return Math.min(max, Math.max(min, value));
+        };
+
+        const normalizeAngle = (angle: number) => {
+            const TAU = Math.PI * 2;
+            let value = angle % TAU;
+            if (value < 0) value += TAU;
+            return value;
+        };
+
+        const getAngleDelta = (from: number, to: number) => {
+            return Math.atan2(Math.sin(to - from), Math.cos(to - from));
+        };
+
+        const mergeCircularIntervals = (intervals: Array<[number, number]>) => {
+            const TAU = Math.PI * 2;
+            if (!intervals.length) return [];
+
+            const expanded: Array<[number, number]> = [];
+            for (const [rawStart, rawEnd] of intervals) {
+                const start = normalizeAngle(rawStart);
+                const end = normalizeAngle(rawEnd);
+                if (start <= end) {
+                    expanded.push([start, end]);
+                } else {
+                    expanded.push([0, end]);
+                    expanded.push([start, TAU]);
+                }
+            }
+
+            expanded.sort((a, b) => a[0] - b[0]);
+
+            const merged: Array<[number, number]> = [];
+            for (const [start, end] of expanded) {
+                if (!merged.length || start > merged[merged.length - 1][1]) {
+                    merged.push([start, end]);
+                    continue;
+                }
+                merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], end);
+            }
+
+            return merged;
+        };
+
+        const drawDashedRingWithCutouts = (
+            x: number,
+            y: number,
+            radius: number,
+            phase: number,
+            cutouts: Array<[number, number]>,
+            strokeStyle: string
+        ) => {
+            const TAU = Math.PI * 2;
+
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.lineDashOffset = -phase * radius * 0.45;
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            const blocked = mergeCircularIntervals(cutouts);
+            if (!blocked.length) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, TAU);
+                ctx.stroke();
+                ctx.restore();
+                return;
+            }
+
+            const minVisibleArc = 0.03;
+            let cursor = 0;
+            for (const [start, end] of blocked) {
+                if (start - cursor > minVisibleArc) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, cursor, start);
+                    ctx.stroke();
+                }
+                cursor = Math.max(cursor, end);
+            }
+            if (TAU - cursor > minVisibleArc) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, cursor, TAU);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        };
+
+        const getFusionCutoutsForUnit = (
+            worldUnits: WorldUnitPosition[],
+            unitIndex: number,
+            connections: Array<[number, number]>,
+            radius: number,
+        ) => {
+            const self = worldUnits[unitIndex];
+            if (!self) return [];
+
+            const cutouts: Array<[number, number]> = [];
+            const overlapSoftness = 0.03;
+            const diameter = radius * 2;
+
+            for (const [aIndex, bIndex] of connections) {
+                const otherIndex = aIndex === unitIndex ? bIndex : bIndex === unitIndex ? aIndex : -1;
+                if (otherIndex < 0) continue;
+
+                const other = worldUnits[otherIndex];
+                if (!other) continue;
+
+                const dx = other.x - self.x;
+                const dy = other.y - self.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist <= 0.0001 || dist >= diameter) continue;
+
+                const centerAngle = Math.atan2(dy, dx);
+                const halfAngle = Math.acos(clamp(dist / diameter, -1, 1)) + overlapSoftness;
+                cutouts.push([centerAngle - halfAngle, centerAngle + halfAngle]);
+            }
+
+            return cutouts;
+        };
+
+        const animate = (time: number) => {
+            const shakeX =
+                shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
+            const shakeY =
+                shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
+            shakeIntensity.current *= 0.85;
             if (shakeIntensity.current < 0.3) shakeIntensity.current = 0;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.translate(shakeX, shakeY);
 
-            // 1. Spawning
             frameCount.current++;
-            if (frameCount.current % 40 === 0) {
-                spawnTarget();
+            const spawnInterval = getSpawnIntervalFrames();
+            if (frameCount.current % spawnInterval === 0) {
+                spawnEnemyGroup();
             }
 
-            // 2. Shooting
             if (isMouseDown.current && time - lastShotTime.current > 40) {
-                // Determine origin (20% and 80%)
                 const originSide = Math.random() > 0.5 ? "left" : "right";
                 const startX = originSide === "left" ? canvas.width * 0.2 : canvas.width * 0.8;
                 const startY = canvas.height;
-
-                // Calculate angle to mouse
                 const dx = mousePos.current.x - startX;
                 const dy = mousePos.current.y - startY;
                 const angle = Math.atan2(dy, dx);
-
-                // First shot is perfectly accurate. Follow-up shots get light spread.
                 const spread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
 
                 bullets.current.push({
@@ -487,80 +1066,82 @@ export default function MiniGame() {
                 });
 
                 burstShotCount.current++;
-                playSound("shoot"); // Audio Feedback
+                playSound("shoot");
                 lastShotTime.current = time;
             }
 
-            // 3. Update & Draw Bullets
             for (let i = bullets.current.length - 1; i >= 0; i--) {
-                const b = bullets.current[i];
-                b.x += b.vx;
-                b.y += b.vy;
+                const bullet = bullets.current[i];
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
 
-                // Boundary check
-                if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
                     bullets.current.splice(i, 1);
                     continue;
                 }
 
-                // Draw Bullet
                 ctx.beginPath();
-                ctx.moveTo(b.x - b.vx * 0.5, b.y - b.vy * 0.5);
-                ctx.lineTo(b.x, b.y);
+                ctx.moveTo(bullet.x - bullet.vx * 0.5, bullet.y - bullet.vy * 0.5);
+                ctx.lineTo(bullet.x, bullet.y);
                 ctx.strokeStyle = "#06b6d4";
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Collision Check
-                for (let j = targets.current.length - 1; j >= 0; j--) {
-                    const t = targets.current[j];
-                    const dist = Math.hypot(b.x - t.x, b.y - t.y);
+                let didHit = false;
 
-                    if (dist < t.radius + 7) { // Hitbox: +7 (was +5)
+                for (let groupIndex = enemyGroups.current.length - 1; groupIndex >= 0; groupIndex--) {
+                    const group = enemyGroups.current[groupIndex];
+                    const worldUnits = getWorldUnitPositions(group);
+
+                    for (let unitCursor = worldUnits.length - 1; unitCursor >= 0; unitCursor--) {
+                        const worldUnit = worldUnits[unitCursor];
+                        const dist = Math.hypot(bullet.x - worldUnit.x, bullet.y - worldUnit.y);
+                        if (dist >= group.radius + 7) continue;
+
                         bullets.current.splice(i, 1);
+                        didHit = true;
 
-                        // Damage
-                        t.hp--;
-                        t.squareSpinDir *= -1; // Flip inner square spin direction on every hit
-                        const bulletSpeed = Math.hypot(b.vx, b.vy) || 1;
-                        const hitNx = b.vx / bulletSpeed;
-                        const hitNy = b.vy / bulletSpeed;
-                        const knockback = physicsPreset.knockbackBase / t.mass;
-                        t.vx += hitNx * knockback;
-                        t.vy += hitNy * knockback;
-                        t.x += hitNx * 6;
-                        t.y += hitNy * 6;
+                        const unit = worldUnit.unit;
+                        unit.hp--;
+                        if (unit.fusionBonusRemaining > 0) {
+                            unit.fusionBonusRemaining--;
+                        }
+                        unit.squareSpinDir *= -1;
 
-                        createExplosion(b.x, b.y, 4, "#06b6d4", {
+                        const bulletSpeed = Math.hypot(bullet.vx, bullet.vy) || 1;
+                        const hitNx = bullet.vx / bulletSpeed;
+                        const hitNy = bullet.vy / bulletSpeed;
+                        const knockback = physicsPreset.knockbackBase / Math.max(group.mass, 1);
+                        group.vx += hitNx * knockback;
+                        group.vy += hitNy * knockback;
+                        group.x += hitNx * 6;
+                        group.y += hitNy * 6;
+
+                        createExplosion(bullet.x, bullet.y, 4, "#06b6d4", {
                             speedScale: 0.7,
                             sizeScale: 0.55,
-                            // Extra-short spark behavior for non-destroy hits.
                             lifeDecayScale: 2.2
                         });
+                        hitFlashes.current.push({ x: bullet.x, y: bullet.y, life: 1.0, radius: 5 });
 
-                        // Small hit flash on damage
-                        hitFlashes.current.push({ x: b.x, y: b.y, life: 1.0, radius: 5 });
-
-                        if (t.hp <= 0) {
-                            // Destroy
-                            createExplosion(t.x, t.y, 20, "#06b6d4", {
+                        if (unit.hp <= 0) {
+                            createExplosion(worldUnit.x, worldUnit.y, 20, "#06b6d4", {
                                 speedScale: 0.8,
                                 lifeDecayScale: 1.1
                             });
-                            playSound("hit"); // Audio Feedback
-                            targets.current.splice(j, 1);
-
-                            // Screen shake
+                            playSound("hit");
                             shakeIntensity.current = 3;
+                            hitFlashes.current.push({
+                                x: worldUnit.x,
+                                y: worldUnit.y,
+                                life: 1.0,
+                                radius: group.radius * 0.8
+                            });
 
-                            // Large hit flash on kill
-                            hitFlashes.current.push({ x: t.x, y: t.y, life: 1.0, radius: t.radius * 0.8 });
-
-                            // Floating "+1" text
                             const dir = Math.random() > 0.5 ? 1 : -1;
                             floatingTexts.current.push({
-                                x: t.x,
-                                y: t.y,
+                                x: worldUnit.x,
+                                y: worldUnit.y,
                                 vx: dir * (Math.random() * 0.5 + 0.5),
                                 vy: -1.5,
                                 life: 1.0,
@@ -569,75 +1150,144 @@ export default function MiniGame() {
 
                             scoreRef.current++;
                             setUiScore(scoreRef.current);
+
+                            handleUnitDestroyed(groupIndex, worldUnit.index);
                         }
 
                         break;
                     }
+
+                    if (didHit) break;
                 }
             }
 
-            // 4. Update & Draw Targets
             const isDark = cachedIsDark.current;
             const targetBorder = isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)";
             const targetCenter = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
 
-            // 4-A. Update target movement with subtle per-target dynamics.
-            for (let i = 0; i < targets.current.length; i++) {
-                const t = targets.current[i];
-                t.phase += t.driftFreq;
+            for (let i = 0; i < enemyGroups.current.length; i++) {
+                const group = enemyGroups.current[i];
+                group.phase += group.driftFreq;
+                group.turnCooldown = Math.max(0, group.turnCooldown - 1);
 
-                const desiredVx = t.dir * t.baseSpeed + Math.cos(t.phase * 0.7 + t.id * 10) * 0.35;
-                const desiredVy = Math.sin(t.phase) * t.driftAmp + Math.cos(t.phase * 0.6 + t.id * 6) * 0.25;
+                if (group.family === "caterpillar") {
+                    group.spawnProgress = Math.min(1, group.spawnProgress + 0.035);
+                    const weaveNudge = Math.sin(group.phase * 0.58 + group.id * 5.2) * 0.02;
+                    if (group.turnTargetHeading !== null) {
+                        const delta = getAngleDelta(group.heading, group.turnTargetHeading);
+                        const step = clamp(delta, -group.turnAngularSpeed, group.turnAngularSpeed);
+                        group.heading += step + weaveNudge * 0.25;
+                        if (Math.abs(delta) < 0.05) {
+                            group.heading = group.turnTargetHeading;
+                            group.turnTargetHeading = null;
+                        }
+                    } else {
+                        group.heading += weaveNudge;
+                    }
 
-                t.vx += (desiredVx - t.vx) * t.steer;
-                t.vy += (desiredVy - t.vy) * t.steer;
+                    const desiredVx = Math.cos(group.heading) * group.baseSpeed;
+                    const desiredVy =
+                        Math.sin(group.heading) * group.baseSpeed * 0.9 +
+                        Math.sin(group.phase * 1.25 + group.id * 3.1) * 0.28;
 
-                t.vx *= t.damping;
-                t.vy *= t.damping;
+                    group.vx += (desiredVx - group.vx) * 0.09;
+                    group.vy += (desiredVy - group.vy) * 0.09;
+                    group.vx *= 0.992;
+                    group.vy *= 0.992;
+                } else {
+                    const desiredVx = group.dir * group.baseSpeed + Math.cos(group.phase * 0.7 + group.id * 10) * 0.35;
+                    const desiredVy =
+                        Math.sin(group.phase) * group.driftAmp +
+                        Math.cos(group.phase * 0.6 + group.id * 6) * 0.25;
 
-                const speed = Math.hypot(t.vx, t.vy);
-                if (speed > t.maxSpeed) {
-                    const scale = t.maxSpeed / speed;
-                    t.vx *= scale;
-                    t.vy *= scale;
+                    group.vx += (desiredVx - group.vx) * group.steer;
+                    group.vy += (desiredVy - group.vy) * group.steer;
+                    group.vx *= group.damping;
+                    group.vy *= group.damping;
                 }
 
-                t.x += t.vx;
-                t.y += t.vy;
-            }
-
-            // 4-B. Resolve inter-target collisions after movement integration.
-            resolveTargetCollisions();
-
-            for (let i = targets.current.length - 1; i >= 0; i--) {
-                const t = targets.current[i];
-
-                if ((t.dir > 0 && t.x > canvas.width + 180) || (t.dir < 0 && t.x < -180)) {
-                    targets.current.splice(i, 1);
-                    continue;
+                const speed = Math.hypot(group.vx, group.vy);
+                if (speed > group.maxSpeed) {
+                    const scale = group.maxSpeed / speed;
+                    group.vx *= scale;
+                    group.vy *= scale;
                 }
 
-                // Draw Target
-                ctx.beginPath();
-                ctx.setLineDash([5, 5]);
-                ctx.arc(t.x, t.y, t.radius, 0 + t.phase, Math.PI * 2 + t.phase);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = targetBorder;
-                ctx.stroke();
-                ctx.setLineDash([]);
+                group.x += group.vx;
+                group.y += group.vy;
+                if (group.family !== "caterpillar") {
+                    group.dir = group.vx >= 0 ? 1 : -1;
+                }
+                if (group.units.length > 1 && getFormation(group) !== "line") {
+                    group.rotation += group.rotationSpeed;
+                }
 
-                ctx.save();
-                ctx.translate(t.x, t.y);
-                ctx.rotate(-t.phase * 1.5 * t.squareSpinDir);
-                ctx.strokeStyle = targetBorder;
-                ctx.strokeRect(-t.radius * 0.5, -t.radius * 0.5, t.radius, t.radius);
+                const wallHit = applyBoundaryConstraints(group);
+                if (
+                    group.family === "caterpillar" &&
+                    (wallHit.hitX || wallHit.hitY) &&
+                    group.turnCooldown <= 0 &&
+                    group.turnTargetHeading === null
+                ) {
+                    const turnSide = Math.random() > 0.5 ? 1 : -1;
+                    const turnAmount = (Math.PI * (0.42 + Math.random() * 0.2)) * turnSide;
+                    let nextHeading = group.heading + turnAmount;
 
-                ctx.fillStyle = targetCenter;
-                ctx.fillRect(-t.radius * 0.2, -t.radius * 0.2, t.radius * 0.4, t.radius * 0.4);
-                ctx.restore();
+                    const toCenter = Math.atan2(canvas.height * 0.5 - group.y, canvas.width * 0.5 - group.x);
+                    const centerDelta = getAngleDelta(nextHeading, toCenter);
+                    nextHeading += centerDelta * 0.22;
+
+                    const limitedDelta = clamp(getAngleDelta(group.heading, nextHeading), -Math.PI * 0.62, Math.PI * 0.62);
+                    nextHeading = group.heading + limitedDelta;
+
+                    group.turnTargetHeading = nextHeading;
+                    group.turnCooldown = 34 + Math.random() * 24;
+                }
             }
 
-            // 5. Update & Draw Particles
+            resolveGroupCollisions();
+            for (const group of enemyGroups.current) {
+                applyBoundaryConstraints(group);
+            }
+
+            for (const group of enemyGroups.current) {
+                const formation = getFormation(group);
+                const worldUnits = getWorldUnitPositions(group);
+                const connections = getConnections(group, formation);
+
+                for (const worldUnit of worldUnits) {
+                    const cutouts = getFusionCutoutsForUnit(
+                        worldUnits,
+                        worldUnit.index,
+                        connections,
+                        group.radius
+                    );
+                    drawDashedRingWithCutouts(
+                        worldUnit.x,
+                        worldUnit.y,
+                        group.radius,
+                        group.phase,
+                        cutouts,
+                        targetBorder
+                    );
+
+                    ctx.save();
+                    ctx.translate(worldUnit.x, worldUnit.y);
+                    ctx.rotate(
+                        -(group.phase * 1.5 + worldUnit.unit.spinPhaseOffset) * worldUnit.unit.squareSpinDir
+                    );
+                    ctx.strokeStyle = targetBorder;
+                    ctx.lineWidth = 1;
+                    const squareSize = group.radius * 0.5;
+                    ctx.strokeRect(-squareSize, -squareSize, squareSize * 2, squareSize * 2);
+
+                    const coreSize = group.radius * 0.2;
+                    ctx.fillStyle = targetCenter;
+                    ctx.fillRect(-coreSize, -coreSize, coreSize * 2, coreSize * 2);
+                    ctx.restore();
+                }
+            }
+
             for (let i = particles.current.length - 1; i >= 0; i--) {
                 const p = particles.current[i];
                 p.x += p.vx;
@@ -661,39 +1311,36 @@ export default function MiniGame() {
                 ctx.globalAlpha = 1.0;
             }
 
-            // 6. Update & Draw Hit Flashes
             for (let i = hitFlashes.current.length - 1; i >= 0; i--) {
-                const f = hitFlashes.current[i];
-                f.life -= 0.2; // Very fast decay (~5 frames)
+                const flash = hitFlashes.current[i];
+                flash.life -= 0.2;
 
-                if (f.life <= 0) {
+                if (flash.life <= 0) {
                     hitFlashes.current.splice(i, 1);
                     continue;
                 }
 
-                ctx.globalAlpha = f.life * 0.5;
+                ctx.globalAlpha = flash.life * 0.5;
                 ctx.fillStyle = "#ffffff";
                 ctx.beginPath();
-                ctx.arc(f.x, f.y, f.radius * f.life, 0, Math.PI * 2);
+                ctx.arc(flash.x, flash.y, flash.radius * flash.life, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
             }
 
-            // 7. Update & Draw Floating Texts (+1 popup)
             const textColor = isDark ? "255, 255, 255" : "0, 0, 0";
             for (let i = floatingTexts.current.length - 1; i >= 0; i--) {
                 const ft = floatingTexts.current[i];
                 ft.x += ft.vx;
                 ft.y += ft.vy;
-                ft.vx *= 1.06; // Accelerating scatter
-                ft.life -= 0.028; // ~35 frames total (~0.58s)
+                ft.vx *= 1.06;
+                ft.life -= 0.028;
 
                 if (ft.life <= 0) {
                     floatingTexts.current.splice(i, 1);
                     continue;
                 }
 
-                // Full opacity for first ~0.3s, then fade out
                 const alpha = Math.min(ft.life * 2, 1);
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = `rgba(${textColor}, ${alpha})`;
@@ -703,8 +1350,7 @@ export default function MiniGame() {
                 ctx.globalAlpha = 1.0;
             }
 
-            ctx.restore(); // End screen shake transform
-
+            ctx.restore();
             requestRef.current = requestAnimationFrame(animate);
         };
 
@@ -719,8 +1365,13 @@ export default function MiniGame() {
             container.removeEventListener("mouseenter", handleMouseEnter);
             container.removeEventListener("contextmenu", handleContextMenu);
             themeObserver.disconnect();
-            if (requestRef.current) cancelAnimationFrame(requestRef.current);
-            if (audioCtxRef.current) audioCtxRef.current.close();
+
+            if (requestRef.current) {
+                cancelAnimationFrame(requestRef.current);
+            }
+            if (audioCtxRef.current) {
+                audioCtxRef.current.close();
+            }
         };
     }, []);
 
@@ -777,7 +1428,7 @@ export default function MiniGame() {
                         transition={{ duration: 0.15 }}
                         className="text-cyan-500 inline-block"
                     >
-                        {uiScore.toString().padStart(3, '0')}
+                        {uiScore.toString().padStart(3, "0")}
                     </motion.span>
                 </div>
 
@@ -847,8 +1498,6 @@ export default function MiniGame() {
                     animate={{ x: isShooting ? -3 : 16 }}
                 />
             </motion.div>
-
-
         </div>
     );
 }

@@ -2,7 +2,8 @@
 # Portfolio Redesign Project: Master Planning Document
 **Project**: Portfolio 2026 (Refactoring)
 **Author**: Antigravity (Collaborating with Yakshawan)
-**Last Updated**: 2026-02-16
+**Version**: 2.2
+**Last Updated**: 2026-02-16 (MiniGame Handover Split)
 
 ---
 
@@ -83,8 +84,9 @@
 -   **Legacy**: 기존 `index.html` 및 자산은 `_legacy` 폴더에 백업.
 -   **Public Assets**: 이미지와 폰트는 `public/` 디렉토리로 이동하여 Next.js 정적 서빙 최적화.
 
-#### F. MiniGame (Vector Defense) [Updated 2026-02-13]
+#### F. MiniGame (Vector Defense) [Updated 2026-02-16]
 -   **Concept**: 포트폴리오의 정적 요소를 보완하고 체류 시간을 늘리기 위한 이스터 에그(Easter Egg) 성격의 미니게임. Hero 섹션 우측 공간을 활용.
+-   **Handover Split**: 미니게임 구현/피드백/후속 과제를 `handover-minigame.md`로 분리 관리.
 -   **Tech Specs**:
     -   **Engine**: HTML5 Canvas API + `requestAnimationFrame` (고성능 렌더링).
     -   **State Management**: `useRef`를 사용하여 리렌더링 없이 60fps 게임 루프 유지.
@@ -103,8 +105,19 @@
         -   **Pitch Variation**: 사격음의 기본 주파수(800Hz)에 ±60Hz 랜덤 변동 적용.
     -   **Score**: 'TARGET TERMINATED' 카운터가 좌측 하단에 실시간 업데이트.
     -   **Audio**: 사격음(Triangle wave) 및 파괴음(Sawtooth wave) 구현. 뮤트 토글 지원.
+    -   **Enemy System (v2)**:
+        -   단일 타겟 기반에서 `EnemyGroup + EnemyUnit` 구조로 확장.
+        -   연결체(2/3) + 애벌레(3~5) + 분리/질량/방어력(+2) 규칙 1차 반영.
+        -   맵 최대 개체수를 "그룹 수"가 아닌 "unit 총합(12)" 기준으로 처리.
+        -   동적 스폰 주기(35 -> 33 -> 31), 연결체/애벌레 출현 확률(각 3%) 적용.
+        -   화면 경계 이탈 방지(반쯤까지만 진입) 적용.
+        -   점선 융합 렌더(개별 원형 링 유지 + 연결부 cutout), 분리 시 앵커 재구성, 애벌레 no-flip 스무스 턴/웨이브 강화 반영.
     -   **Stats**: 게임플레이, 디자인 폴리싱, 사운드, 타격감 개선 완료.
-    -   **Pending**: 모바일 환경에서의 터치 최적화 (현재는 PC/마우스 중심).
+    -   **Pending**:
+        -   모바일 환경에서의 터치 최적화 (현재는 PC/마우스 중심).
+        -   애벌레 오프스크린 완성형 출현 (in-view stretch 제거).
+        -   결합 상태 비파괴 피격 시 개체별 충격량 + 회전 토크 기반 넉백.
+        -   `MiniGame.tsx` 모듈화 (상세: `handover-minigame.md`).
 
 #### G. Operator Voice System [Updated 2026-02-16]
 -   **Voice Assets**: 오퍼레이터 코멘트 25개에 대응하는 보이스 25개를 `WebM(Opus)` + `M4A(AAC)`로 운영.
@@ -142,6 +155,7 @@
 │   └── audio/           # 오퍼레이터 보이스/라디오 SFX/manifest
 ├── tools/
 │   └── audio-mastering/ # 보이스 일괄 마스터링 스크립트
+├── handover-minigame.md # MiniGame 전용 handover (전투/스폰/렌더/피드백 추적)
 └── _legacy/             # (Backup) 기존 포트폴리오 파일
 ```
 
@@ -266,6 +280,30 @@
 -   **Solution**:
     -   runtime voice volume `0.30`으로 하향.
     -   game SFX `0.70` 기준 유지.
+
+### 6.4. MiniGame Fused Enemy Expansion (2026-02-16)
+**Issue 12: 연결체/애벌레 타입 확장 및 맵 규칙 개편**
+-   **Situation**: Hero 미니게임이 단일 원형 타겟 기반이라 개체 연결/분리 규칙을 표현할 수 없었음.
+-   **Solution**:
+    -   `EnemyGroup + EnemyUnit` 구조로 리팩터링.
+    -   연결체(2/3) 및 애벌레(3~5) 스폰/분리/질량/피격 반응/점수 로직 추가.
+    -   최대 개체수 12, 스폰율 상향, 연결체/애벌레 저확률(각 3%) 반영.
+    -   화면 경계 밖 이탈 방지 정책 적용.
+-   **Result**: 플레이 밀도와 타겟 다양성 개선, 전투 템포 강화.
+
+**Issue 13: 유저 검수 기반 정밀 폴리싱 2차 반영 (2026-02-16)**
+-   **Situation**:
+    -   점선 융합 렌더가 오버레이 느낌으로 보여 의도와 차이.
+    -   애벌레 분리 시 2개체 전환에서 순간 좌표 점프.
+    -   애벌레 벽 접촉 시 flip처럼 읽히는 부자연스러운 턴.
+-   **Solution**:
+    -   개별 원형 점선 링을 유지하고 연결부를 기하 cutout으로 처리하는 렌더로 교체.
+    -   파괴 직전 월드 앵커 기반 `reanchor` 재구성으로 분리/축소 프레임 안정화.
+    -   애벌레 턴을 목표 heading 기반 점진 회전(no-flip)으로 변경하고 턴 각/속도/쿨다운 튜닝.
+    -   애벌레 wave 진폭/세로 sway를 증대해 뱀형 크롤링 체감 강화.
+-   **Result**:
+    -   사용자 검수 기준으로 애벌레 움직임/렌더 방향성은 만족 상태.
+    -   세부 남은 과제는 `handover-minigame.md`의 next tasks로 이관.
 
 ---
 

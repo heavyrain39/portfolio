@@ -35,3 +35,4 @@ next-env.d.ts
 /private/
 sidearm-framer-package/
 *.md
+!handover-minigame.md
