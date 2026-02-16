@@ -28,6 +28,13 @@ import type { Bullet, EnemyGroup, FloatingText, HitFlash, Particle, Point } from
 import { closeAudioContext, ensureAudioContext, playGameSound } from "./minigame/audio";
 
 export default function MiniGame() {
+    const HEAT_SHOTS_TO_OVERHEAT = 180;
+    const HEAT_PER_SHOT = 1 / HEAT_SHOTS_TO_OVERHEAT;
+    const HEAT_WARNING_RATIO = 0.8;
+    const HEAT_RECOVER_RATIO = 0.1;
+    const HEAT_COOLDOWN_DURATION_MS = 1600;
+    const HEAT_COOL_PER_MS = 1 / HEAT_COOLDOWN_DURATION_MS;
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
@@ -44,13 +51,18 @@ export default function MiniGame() {
     const lastShotTime = useRef(0);
     const burstShotCount = useRef(0);
     const frameCount = useRef(0);
+    const lastFrameTime = useRef<number | null>(null);
     const shakeIntensity = useRef(0);
     const cachedIsDark = useRef(false);
+    const heatRatioRef = useRef(0);
+    const isOverheatedRef = useRef(false);
 
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [heatRatio, setHeatRatio] = useState(0);
+    const [isOverheated, setIsOverheated] = useState(false);
     const [operatorThemeColor, setOperatorThemeColor] = useState("#f5f5f0");
     const [operatorContrastColor, setOperatorContrastColor] = useState("#1a1a1a");
     const isMutedRef = useRef(false);
@@ -65,6 +77,8 @@ export default function MiniGame() {
     const smoothMouseY = useSpring(rawMouseY, { stiffness: 500, damping: 30 });
 
     const physicsPreset = DEFAULT_PHYSICS_PRESET;
+    const isHeatWarning = heatRatio >= HEAT_WARNING_RATIO;
+    const heatVisualOpacity = isOverheated ? 0.9 : (isHeatWarning ? 0.7 : 0.5);
 
     const getAudioContext = (): AudioContext => ensureAudioContext(audioCtxRef);
 
@@ -128,7 +142,7 @@ export default function MiniGame() {
         const handleMouseDown = (e: MouseEvent) => {
             e.preventDefault();
             isMouseDown.current = true;
-            setIsShooting(true);
+            setIsShooting(!isOverheatedRef.current);
             lastShotTime.current = 0;
             burstShotCount.current = 0;
             getAudioContext();
@@ -160,6 +174,29 @@ export default function MiniGame() {
         container.addEventListener("contextmenu", handleContextMenu);
 
         const animate = (time: number) => {
+            if (lastFrameTime.current === null) {
+                lastFrameTime.current = time;
+            }
+            const deltaMs = Math.min(50, time - lastFrameTime.current);
+            lastFrameTime.current = time;
+
+            const shouldCoolDown = !isMouseDown.current || isOverheatedRef.current;
+            if (shouldCoolDown && heatRatioRef.current > 0) {
+                const cooled = Math.max(0, heatRatioRef.current - deltaMs * HEAT_COOL_PER_MS);
+                if (cooled !== heatRatioRef.current) {
+                    heatRatioRef.current = cooled;
+                    setHeatRatio(cooled);
+                }
+            }
+
+            if (isOverheatedRef.current && heatRatioRef.current <= HEAT_RECOVER_RATIO) {
+                isOverheatedRef.current = false;
+                setIsOverheated(false);
+                if (isMouseDown.current) {
+                    setIsShooting(true);
+                }
+            }
+
             const shakeX =
                 shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
             const shakeY =
@@ -182,7 +219,7 @@ export default function MiniGame() {
                 });
             }
 
-            if (isMouseDown.current && time - lastShotTime.current > 40) {
+            if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > 40) {
                 const originSide = Math.random() > 0.5 ? "left" : "right";
                 const startX = originSide === "left" ? canvas.width * 0.2 : canvas.width * 0.8;
                 const startY = canvas.height;
@@ -203,6 +240,15 @@ export default function MiniGame() {
                 burstShotCount.current++;
                 playSound("shoot");
                 lastShotTime.current = time;
+
+                const nextHeat = Math.min(1, heatRatioRef.current + HEAT_PER_SHOT);
+                heatRatioRef.current = nextHeat;
+                setHeatRatio(nextHeat);
+                if (nextHeat >= 1 && !isOverheatedRef.current) {
+                    isOverheatedRef.current = true;
+                    setIsOverheated(true);
+                    setIsShooting(false);
+                }
             }
 
             for (let i = bullets.current.length - 1; i >= 0; i--) {
@@ -557,6 +603,7 @@ export default function MiniGame() {
             if (requestRef.current) {
                 cancelAnimationFrame(requestRef.current);
             }
+            lastFrameTime.current = null;
             closeAudioContext(audioCtxRef);
         };
     }, []);
@@ -607,18 +654,56 @@ export default function MiniGame() {
                 </svg>
             </div>
 
-            {/* Bottom HUD (Aligned Left/Right) */}
-            <div className="absolute bottom-8 left-8 right-8 flex items-center justify-between z-10 pointer-events-none">
-                <div className="font-mono text-xs font-bold tracking-widest opacity-50 select-none flex items-center gap-2">
-                    TARGETS TERMINATED:
-                    <motion.span
-                        key={uiScore}
-                        animate={{ scale: [1.5, 1] }}
-                        transition={{ duration: 0.15 }}
-                        className="text-cyan-500 inline-block"
-                    >
-                        {uiScore.toString().padStart(3, "0")}
-                    </motion.span>
+            <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between z-10 pointer-events-none">
+                <div className="flex flex-col items-start gap-1.5 select-none pb-2">
+                    {/* Heat Gauge (Horizontal Layout) */}
+                    <div className="flex items-center gap-5">
+                        <motion.span
+                            className="font-mono text-xs font-bold tracking-widest text-foreground"
+                            animate={
+                                isHeatWarning && !isOverheated
+                                    ? { opacity: [0.5, 0.9, 0.5] }
+                                    : { opacity: heatVisualOpacity }
+                            }
+                            transition={
+                                isHeatWarning && !isOverheated
+                                    ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" }
+                                    : { duration: 0.2 }
+                            }
+                        >
+                            HEAT
+                        </motion.span>
+                        <div className="relative w-32 h-[4px] bg-foreground/5 overflow-hidden">
+                            <motion.div
+                                className="absolute inset-y-0 left-0 bg-foreground"
+                                style={{ opacity: heatVisualOpacity }}
+                                animate={{
+                                    width: `${Math.max(0, Math.min(100, heatRatio * 100))}%`,
+                                    opacity: isHeatWarning && !isOverheated ? [0.5, 0.9, 0.5] : heatVisualOpacity
+                                }}
+                                transition={{
+                                    width: { duration: 0.1, ease: "linear" },
+                                    opacity: {
+                                        duration: 0.8,
+                                        repeat: isHeatWarning && !isOverheated ? Infinity : 0,
+                                        ease: "easeInOut"
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="font-mono text-xs font-bold tracking-widest opacity-50 flex items-center gap-2">
+                        TARGETS TERMINATED
+                        <motion.span
+                            key={uiScore}
+                            animate={{ scale: [1.5, 1] }}
+                            transition={{ duration: 0.15 }}
+                            className="text-cyan-500 inline-block"
+                        >
+                            {uiScore.toString().padStart(3, "0")}
+                        </motion.span>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -663,31 +748,48 @@ export default function MiniGame() {
             >
                 <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border border-current rounded-full opacity-80"
-                    animate={{ scale: isShooting ? 0.8 : 1.2, opacity: isShooting ? 1 : 0.5 }}
+                    animate={isOverheated ? { scale: 1, opacity: 1 } : { scale: isShooting ? 0.8 : 1.2, opacity: isShooting ? 1 : 0.5 }}
+                    transition={{ duration: 0.16, ease: "easeOut" }}
                 />
                 <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-500 rounded-full"
+                    animate={{ scale: isOverheated ? 0 : 1, opacity: isOverheated ? 0 : 1 }}
+                    transition={{ duration: 0.14, ease: "easeOut" }}
                 />
 
-                {/* Pipes - Adjusted to minimal contraction */}
                 <motion.div
-                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? 3 : -16 }}
-                />
+                    className="absolute inset-0"
+                    animate={isOverheated ? { opacity: 0, scale: 0.4 } : { opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.13, ease: "easeOut" }}
+                >
+                    <motion.div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
+                        animate={{ y: isShooting ? 3 : -16 }}
+                    />
+                    <motion.div
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
+                        animate={{ y: isShooting ? -3 : 16 }}
+                    />
+                    <motion.div
+                        className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
+                        animate={{ x: isShooting ? 3 : -16 }}
+                    />
+                    <motion.div
+                        className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
+                        animate={{ x: isShooting ? -3 : 16 }}
+                    />
+                </motion.div>
+
                 <motion.div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
-                    animate={{ y: isShooting ? -3 : 16 }}
-                />
-                <motion.div
-                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? 3 : -16 }}
-                />
-                <motion.div
-                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                    animate={{ x: isShooting ? -3 : 16 }}
-                />
+                    className="absolute inset-0 flex items-center justify-center"
+                    animate={isOverheated ? { opacity: 1, scale: 1, rotate: 45 } : { opacity: 0, scale: 0.4, rotate: 0 }}
+                    transition={{ duration: 0.13, ease: "easeOut" }}
+                >
+                    <div className="absolute w-full h-[1px] bg-current" />
+                    <div className="absolute w-full h-[1px] bg-current rotate-90" />
+                </motion.div>
             </motion.div>
-        </div>
+        </div >
     );
 }
 

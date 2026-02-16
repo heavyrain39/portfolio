@@ -1,7 +1,7 @@
 ﻿# Vector Defense MiniGame Handover
 **Project**: Portfolio 2026 (Hero MiniGame)  
-**Version**: 0.4  
-**Last Updated**: 2026-02-16 (Session C)  
+**Version**: 0.6  
+**Last Updated**: 2026-02-16 (Session D)  
 **Primary File**: `components/ui/MiniGame.tsx`
 
 ---
@@ -126,6 +126,19 @@ This document tracks gameplay/rendering/audio/physics behavior for the Hero canv
   - `ampCurve` slope `0.48`
   - `muscleContraction` factor `0.3`
   - `turnBend` factor `0.75`
+- Heat / cooling system:
+  - Overheat capacity: `180` shots (`HEAT_SHOTS_TO_OVERHEAT`)
+  - Warning threshold: `90%` (`HEAT_WARNING_RATIO = 0.9`)
+  - Hard lock threshold: `100%` (fire blocked while overheated)
+  - Recover threshold: `10%` (`HEAT_RECOVER_RATIO = 0.1`)
+  - Passive cooldown: full-to-zero in `1.6s` (`HEAT_COOLDOWN_DURATION_MS = 1600`)
+  - HUD: minimal left-bottom thin rectangular bar above `TARGETS TERMINATED`
+    - Label switches `HEAT` -> `OVERHEAT` at warning threshold
+    - Uses opacity pulse (no additional warning color)
+  - Crosshair overheat lock cue:
+    - Center dot hides
+    - Original arm shape remains unchanged in normal state
+    - On lock, arms contract/fade, then full inside-circle `X` appears (`45deg`)
 
 ---
 
@@ -137,6 +150,10 @@ This document tracks gameplay/rendering/audio/physics behavior for the Hero canv
 - Per-unit impact torque still active on non-lethal fused hits.
 - Hit SFX pitch variation still active.
 - Mute toggle still blocks all SFX.
+- Heat bar appears above score in left-bottom HUD.
+- `HEAT` label transitions to `OVERHEAT` at `>= 90%`.
+- Fire locks at full heat and re-enables at `<= 20%`.
+- Crosshair transforms to locked `X` state on overheat.
 
 ---
 
