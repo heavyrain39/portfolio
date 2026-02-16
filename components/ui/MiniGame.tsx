@@ -72,6 +72,17 @@ interface WorldUnitPosition {
     index: number;
 }
 
+interface FusionBridgeShape {
+    topA: Point;
+    bottomA: Point;
+    topB: Point;
+    bottomB: Point;
+    controlTop: Point;
+    controlBottom: Point;
+    centerAngle: number;
+    cutoutHalfAngle: number;
+}
+
 interface Particle {
     id: number;
     x: number;
@@ -218,8 +229,11 @@ export default function MiniGame() {
             osc.stop(now + 0.1);
         } else {
             osc.type = "sawtooth";
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+            const hitPitchScale = 1 + (Math.random() - 0.5) * 0.34; // ~+-17%
+            const hitStartFreq = Math.max(60, 150 * hitPitchScale);
+            const hitEndFreq = Math.max(24, 50 * hitPitchScale * (0.92 + Math.random() * 0.16));
+            osc.frequency.setValueAtTime(hitStartFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(hitEndFreq, now + 0.15);
 
             gainNode.gain.setValueAtTime(0.08 * sfxLevelScale, now);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
@@ -423,12 +437,50 @@ export default function MiniGame() {
             const offsets: Point[] = [];
             for (let i = 0; i < count; i++) {
                 const rawX = (start + i) * spacing;
-                const x = headX + (rawX - headX) * progress;
-                const waveA = Math.sin(group.phase * 1.9 + i * 0.78) * group.radius * 0.34;
-                const waveB = Math.sin(group.phase * 1.35 + i * 0.45 + 1.4) * group.radius * 0.2;
-                const waveScale = group.family === "caterpillar" ? 0.82 + 0.58 * progress : 0.4 + 0.6 * progress;
-                const wave = (waveA + waveB) * waveScale;
-                offsets.push(rotatePoint({ x, y: wave }, group.heading));
+                let x: number;
+                let y: number;
+
+                if (group.family === "caterpillar") {
+                    const distFromHead = count - 1 - i;
+                    const tailRatio = count > 1 ? distFromHead / (count - 1) : 0;
+                    const spinePhase = group.phase * 3.5 - distFromHead * 0.45;
+                    const spineSignal = Math.sin(spinePhase);
+                    const pendingTurnDelta =
+                        group.turnTargetHeading !== null
+                            ? Math.atan2(
+                                Math.sin(group.turnTargetHeading - group.heading),
+                                Math.cos(group.turnTargetHeading - group.heading)
+                            )
+                            : 0;
+                    const turnSign =
+                        pendingTurnDelta !== 0 ? Math.sign(pendingTurnDelta) : Math.sign(group.angularVelocity);
+                    const turnStrength = Math.min(
+                        1,
+                        Math.abs(pendingTurnDelta) / (Math.PI * 0.65) + Math.abs(group.angularVelocity) * 6
+                    );
+                    const bendLag = Math.pow(tailRatio, 1.2);
+
+                    // Keep head stable and progressively increase sway toward the tail.
+                    const ampCurve = 0.12 + tailRatio * 0.48;
+                    const lateralOffset = spineSignal * group.radius * ampCurve;
+                    const muscleContraction = Math.cos(spinePhase) * group.radius * 0.3 * tailRatio;
+                    const turnBend = -turnSign * group.radius * 0.75 * turnStrength * bendLag;
+                    const turnLagX = group.radius * 0.07 * turnStrength * bendLag;
+
+                    x =
+                        headX +
+                        (rawX - headX) * progress +
+                        muscleContraction * (0.45 + 0.55 * progress) -
+                        turnLagX * (0.4 + 0.6 * progress);
+                    y = (lateralOffset + turnBend) * (0.5 + 0.5 * progress);
+                } else {
+                    const baseX = headX + (rawX - headX) * progress;
+                    const wave = Math.sin(group.phase * 1.9 + i * 0.78) * group.radius * 0.3;
+                    x = baseX;
+                    y = wave * (0.4 + 0.6 * progress);
+                }
+
+                offsets.push(rotatePoint({ x, y }, group.heading));
             }
             return offsets;
         };
@@ -643,7 +695,7 @@ export default function MiniGame() {
                 rotation: Math.random() * Math.PI * 2,
                 rotationSpeed:
                     unitCount > 1
-                        ? (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.0026)
+                        ? (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.0022 + 0.026)
                         : 0,
                 angularVelocity: 0,
                 angularDamping: 0.945,
@@ -1039,18 +1091,157 @@ export default function MiniGame() {
             ctx.restore();
         };
 
+        const getFusionBridgeShape = (
+            a: Point,
+            b: Point,
+            radius: number,
+            formation: EnemyFormation
+        ): FusionBridgeShape | null => {
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const dist = Math.hypot(dx, dy);
+            const diameter = radius * 2;
+            if (dist <= 0.0001 || dist >= diameter * 0.99) return null;
+
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const tx = -ny;
+            const ty = nx;
+            const baseHalfAngle = Math.acos(clamp(dist / diameter, -1, 1));
+            const overlapRatio = clamp((diameter - dist) / diameter, 0, 1);
+            const paddingBase = formation === "triangle" ? 0.35 : 0.45;
+            const anglePadding = paddingBase + overlapRatio * 0.2;
+            const theta = clamp(baseHalfAngle + anglePadding, 0.2, Math.PI * 0.48);
+
+            const radial = radius * Math.cos(theta);
+            const lateral = radius * Math.sin(theta);
+
+            const topA = {
+                x: a.x + nx * radial + tx * lateral,
+                y: a.y + ny * radial + ty * lateral
+            };
+            const bottomA = {
+                x: a.x + nx * radial - tx * lateral,
+                y: a.y + ny * radial - ty * lateral
+            };
+            const topB = {
+                x: b.x - nx * radial + tx * lateral,
+                y: b.y - ny * radial + ty * lateral
+            };
+            const bottomB = {
+                x: b.x - nx * radial - tx * lateral,
+                y: b.y - ny * radial - ty * lateral
+            };
+
+            const midTop = { x: (topA.x + topB.x) * 0.5, y: (topA.y + topB.y) * 0.5 };
+            const midBottom = { x: (bottomA.x + bottomB.x) * 0.5, y: (bottomA.y + bottomB.y) * 0.5 };
+            const pinchScale = formation === "triangle" ? 0.9 : 1;
+            const inwardPull = radius * (0.07 + (1 - overlapRatio) * 0.24) * pinchScale;
+
+            const controlTop = {
+                x: midTop.x - tx * inwardPull,
+                y: midTop.y - ty * inwardPull
+            };
+            const controlBottom = {
+                x: midBottom.x + tx * inwardPull,
+                y: midBottom.y + ty * inwardPull
+            };
+
+            return {
+                topA,
+                bottomA,
+                topB,
+                bottomB,
+                controlTop,
+                controlBottom,
+                centerAngle: Math.atan2(ny, nx),
+                cutoutHalfAngle: theta + 0.05
+            };
+        };
+
+        const drawDashedFusionBridge = (
+            a: Point,
+            b: Point,
+            radius: number,
+            phase: number,
+            strokeStyle: string,
+            formation: EnemyFormation,
+            triangleCenter?: Point
+        ) => {
+            const bridge = getFusionBridgeShape(a, b, radius, formation);
+            if (!bridge) return;
+
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.lineDashOffset = -phase * radius * 0.45;
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            const drawTopCurve = () => {
+                ctx.beginPath();
+                ctx.moveTo(bridge.topA.x, bridge.topA.y);
+                ctx.quadraticCurveTo(
+                    bridge.controlTop.x,
+                    bridge.controlTop.y,
+                    bridge.topB.x,
+                    bridge.topB.y
+                );
+                ctx.stroke();
+            };
+
+            const drawBottomCurve = () => {
+                ctx.beginPath();
+                ctx.moveTo(bridge.bottomA.x, bridge.bottomA.y);
+                ctx.quadraticCurveTo(
+                    bridge.controlBottom.x,
+                    bridge.controlBottom.y,
+                    bridge.bottomB.x,
+                    bridge.bottomB.y
+                );
+                ctx.stroke();
+            };
+
+            if (formation === "triangle" && triangleCenter) {
+                // For triangle squads, render only the outer bridge edge to avoid center clutter.
+                const topMid = {
+                    x: (bridge.topA.x + bridge.topB.x + bridge.controlTop.x * 2) * 0.25,
+                    y: (bridge.topA.y + bridge.topB.y + bridge.controlTop.y * 2) * 0.25
+                };
+                const bottomMid = {
+                    x: (bridge.bottomA.x + bridge.bottomB.x + bridge.controlBottom.x * 2) * 0.25,
+                    y: (bridge.bottomA.y + bridge.bottomB.y + bridge.controlBottom.y * 2) * 0.25
+                };
+                const topDist = Math.hypot(topMid.x - triangleCenter.x, topMid.y - triangleCenter.y);
+                const bottomDist = Math.hypot(bottomMid.x - triangleCenter.x, bottomMid.y - triangleCenter.y);
+
+                if (topDist >= bottomDist) {
+                    drawTopCurve();
+                } else {
+                    drawBottomCurve();
+                }
+                ctx.restore();
+                return;
+            }
+
+            drawTopCurve();
+            drawBottomCurve();
+
+            ctx.restore();
+        };
+
         const getFusionCutoutsForUnit = (
             worldUnits: WorldUnitPosition[],
             unitIndex: number,
             connections: Array<[number, number]>,
             radius: number,
+            formation: EnemyFormation
         ) => {
             const self = worldUnits[unitIndex];
             if (!self) return [];
 
             const cutouts: Array<[number, number]> = [];
-            const overlapSoftness = 0.03;
-            const diameter = radius * 2;
 
             for (const [aIndex, bIndex] of connections) {
                 const otherIndex = aIndex === unitIndex ? bIndex : bIndex === unitIndex ? aIndex : -1;
@@ -1059,14 +1250,18 @@ export default function MiniGame() {
                 const other = worldUnits[otherIndex];
                 if (!other) continue;
 
-                const dx = other.x - self.x;
-                const dy = other.y - self.y;
-                const dist = Math.hypot(dx, dy);
-                if (dist <= 0.0001 || dist >= diameter) continue;
+                const bridge = getFusionBridgeShape(
+                    { x: self.x, y: self.y },
+                    { x: other.x, y: other.y },
+                    radius,
+                    formation
+                );
+                if (!bridge) continue;
 
-                const centerAngle = Math.atan2(dy, dx);
-                const halfAngle = Math.acos(clamp(dist / diameter, -1, 1)) + overlapSoftness;
-                cutouts.push([centerAngle - halfAngle, centerAngle + halfAngle]);
+                cutouts.push([
+                    bridge.centerAngle - bridge.cutoutHalfAngle,
+                    bridge.centerAngle + bridge.cutoutHalfAngle
+                ]);
             }
 
             return cutouts;
@@ -1300,7 +1495,7 @@ export default function MiniGame() {
                 }
 
                 if (group.family === "caterpillar") {
-                    const weaveNudge = Math.sin(group.phase * 0.58 + group.id * 5.2) * 0.02;
+                    const weaveNudge = Math.sin(group.phase * 0.9 + group.id * 5.2) * 0.01;
                     if (group.turnTargetHeading !== null) {
                         const delta = getAngleDelta(group.heading, group.turnTargetHeading);
                         const step = clamp(delta, -group.turnAngularSpeed, group.turnAngularSpeed);
@@ -1316,7 +1511,7 @@ export default function MiniGame() {
                     const desiredVx = Math.cos(group.heading) * group.baseSpeed;
                     const desiredVy =
                         Math.sin(group.heading) * group.baseSpeed * 0.9 +
-                        Math.sin(group.phase * 1.25 + group.id * 3.1) * 0.28;
+                        Math.sin(group.phase * 1.25 + group.id * 3.1) * 0.16;
 
                     group.vx += (desiredVx - group.vx) * 0.09;
                     group.vy += (desiredVy - group.vy) * 0.09;
@@ -1381,13 +1576,21 @@ export default function MiniGame() {
                 const formation = getFormation(group);
                 const worldUnits = getWorldUnitPositions(group);
                 const connections = getConnections(group, formation);
+                const triangleCenter =
+                    formation === "triangle"
+                        ? {
+                            x: (worldUnits[0].x + worldUnits[1].x + worldUnits[2].x) / 3,
+                            y: (worldUnits[0].y + worldUnits[1].y + worldUnits[2].y) / 3
+                        }
+                        : undefined;
 
                 for (const worldUnit of worldUnits) {
                     const cutouts = getFusionCutoutsForUnit(
                         worldUnits,
                         worldUnit.index,
                         connections,
-                        group.radius
+                        group.radius,
+                        formation
                     );
                     drawDashedRingWithCutouts(
                         worldUnit.x,
@@ -1397,7 +1600,24 @@ export default function MiniGame() {
                         cutouts,
                         targetBorder
                     );
+                }
 
+                for (const [aIndex, bIndex] of connections) {
+                    const aUnit = worldUnits[aIndex];
+                    const bUnit = worldUnits[bIndex];
+                    if (!aUnit || !bUnit) continue;
+                    drawDashedFusionBridge(
+                        { x: aUnit.x, y: aUnit.y },
+                        { x: bUnit.x, y: bUnit.y },
+                        group.radius,
+                        group.phase,
+                        targetBorder,
+                        formation,
+                        triangleCenter
+                    );
+                }
+
+                for (const worldUnit of worldUnits) {
                     ctx.save();
                     ctx.translate(worldUnit.x, worldUnit.y);
                     ctx.rotate(
