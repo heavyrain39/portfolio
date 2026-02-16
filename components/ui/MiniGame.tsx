@@ -142,6 +142,9 @@ export default function MiniGame() {
     };
     const ACTIVE_PHYSICS_PRESET: keyof typeof PHYSICS_PRESETS = "balanced";
     const physicsPreset = PHYSICS_PRESETS[ACTIVE_PHYSICS_PRESET];
+    const SFX_MIX_LEVEL = 0.7;
+    const SFX_REFERENCE_LEVEL = 0.7;
+    const sfxLevelScale = SFX_MIX_LEVEL / SFX_REFERENCE_LEVEL;
 
     // Consolidated AudioContext initializer
     const getAudioContext = (): AudioContext => {
@@ -175,7 +178,7 @@ export default function MiniGame() {
             osc.frequency.setValueAtTime(baseFreq, now);
             osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
 
-            gainNode.gain.setValueAtTime(0.05, now); // Very low volume
+            gainNode.gain.setValueAtTime(0.05 * sfxLevelScale, now); // Very low volume
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
             osc.start(now);
@@ -186,7 +189,7 @@ export default function MiniGame() {
             osc.frequency.setValueAtTime(150, now);
             osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
 
-            gainNode.gain.setValueAtTime(0.08, now); // Low volume
+            gainNode.gain.setValueAtTime(0.08 * sfxLevelScale, now); // Low volume
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
             osc.start(now);
@@ -730,6 +733,7 @@ export default function MiniGame() {
                 isParentHovered={isHovered}
                 themeColor={operatorThemeColor}
                 contrastColor={operatorContrastColor}
+                isMuted={isMuted}
             />
 
             {/* Canvas Layer */}

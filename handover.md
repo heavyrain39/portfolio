@@ -2,7 +2,7 @@
 # Portfolio Redesign Project: Master Planning Document
 **Project**: Portfolio 2026 (Refactoring)
 **Author**: Antigravity (Collaborating with Yakshawan)
-**Last Updated**: 2026-02-13
+**Last Updated**: 2026-02-16
 
 ---
 
@@ -106,6 +106,20 @@
     -   **Stats**: 게임플레이, 디자인 폴리싱, 사운드, 타격감 개선 완료.
     -   **Pending**: 모바일 환경에서의 터치 최적화 (현재는 PC/마우스 중심).
 
+#### G. Operator Voice System [Updated 2026-02-16]
+-   **Voice Assets**: 오퍼레이터 코멘트 25개에 대응하는 보이스 25개를 `WebM(Opus)` + `M4A(AAC)`로 운영.
+-   **Playback Rules**:
+    -   최초 hover 진입 1회에 한해 200ms 지연 후 코멘트/보이스 시작.
+    -   `radio-open(0.2s) -> 50ms gap -> voice` 순차 재생.
+    -   hover 반복 진입 시 각 코멘트 보이스는 세션 내 1회만 재생(중복 방지).
+    -   hover out 시 UI는 즉시 숨기되, 이미 시작된 보이스는 끝까지 재생.
+-   **Mix Policy**:
+    -   Operator Voice: `0.30`
+    -   Radio Open SFX: `0.22`
+    -   Game SFX: `0.70`
+-   **Typing Sync**: 구두점 pause 리듬을 유지하면서 클립 duration 기반으로 타이핑 속도를 자동 보정.
+-   **Batch Mastering**: `tools/audio-mastering/master-operator-voices.ps1`를 통해 원본 WAV 폴더에서 일괄 마스터링/인코딩 + manifest 생성.
+
 ---
 
 ## 4. Directory Structure (폴더 구조)
@@ -124,7 +138,10 @@
 │   └── content.ts       # 모든 텍스트 및 프로젝트 데이터 (JSON 대체)
 ├── public/
 │   ├── images/          # 프로젝트 섬네일 및 에셋
-│   └── fonts/           # 로컬 폰트 파일
+│   ├── fonts/           # 로컬 폰트 파일
+│   └── audio/           # 오퍼레이터 보이스/라디오 SFX/manifest
+├── tools/
+│   └── audio-mastering/ # 보이스 일괄 마스터링 스크립트
 └── _legacy/             # (Backup) 기존 포트폴리오 파일
 ```
 
@@ -145,7 +162,7 @@
 
 ---
 
-## 6. Deployment & Troubleshooting Log (Updated 2026-02-13)
+## 6. Deployment & Troubleshooting Log (Updated 2026-02-16)
 
 ### 6.1. Deployment Strategy (GitHub Pages)
 -   **Static Export**: `output: 'export'` 설정을 통해 정적 HTML 생성.
@@ -228,6 +245,27 @@
 -   **Result**:
     -   정상 시퀀스 보장: 타이핑 -> 커서 깜빡임 -> 페이드아웃 -> 다음 문장.
     -   hover out 시 코멘트 즉시 비표시.
+
+**Issue 9: Operator 보이스 중복/겹침 재생 (2026-02-16)**
+-   **Situation**: hover 반복 진입 시 동일 보이스가 다시 재생되거나 radio SFX와 겹쳐 재생되는 현상.
+-   **Reason**: 코멘트 시작/오디오 재생의 트리거 경계가 분리되어 동시 실행 가능성이 있었음.
+-   **Solution**:
+    -   코멘트 인덱스 기반 1회 재생 Set 도입.
+    -   재생 순서를 `radio-open -> 50ms gap -> voice`로 고정.
+    -   최초 hover 진입 1회 200ms 지연 규칙 추가.
+
+**Issue 10: Tactical 마스터링 후 보이스 무음 수준 출력 (2026-02-16)**
+-   **Situation**: 파일 재생 시 거의 소리가 들리지 않는 현상.
+-   **Reason**: 과도한 필터 조합으로 출력 레벨이 과감쇠.
+-   **Solution**:
+    -   Tactical 전용 체인을 분리하고 출력 레벨이 안정적인 조합으로 재설계.
+    -   전체 25클립 재인코딩 후 레벨 검증.
+
+**Issue 11: Operator 보이스가 SFX 대비 과도하게 크게 들림 (2026-02-16)**
+-   **Situation**: 보이스가 게임 SFX보다 전면으로 튀는 문제.
+-   **Solution**:
+    -   runtime voice volume `0.30`으로 하향.
+    -   game SFX `0.70` 기준 유지.
 
 ---
 

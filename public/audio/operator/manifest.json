@@ -1,0 +1,388 @@
+﻿{
+    "generatedAt":  "2026-02-16T22:24:16.8996887+09:00",
+    "source":  "root-wav-01-to-25",
+    "target":  {
+                   "channels":  1,
+                   "sampleRate":  24000,
+                   "opusBitrate":  "28k",
+                   "aacBitrate":  "48k",
+                   "tacticalCommsLight":  true
+               },
+    "clips":  [
+                  {
+                      "index":  0,
+                      "id":  "operator-voice-01",
+                      "text":  "Initialization sequence complete. Welcome back, Raven.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/01.webm",
+                                      "m4a":  "/audio/operator/01.m4a"
+                                  },
+                      "durationMs":  3351,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  12976,
+                                    "m4a":  22013
+                                }
+                  },
+                  {
+                      "index":  1,
+                      "id":  "operator-voice-02",
+                      "text":  "Neural link stabilized. Feeling any feedback in your nerves?",
+                      "sources":  {
+                                      "webm":  "/audio/operator/02.webm",
+                                      "m4a":  "/audio/operator/02.m4a"
+                                  },
+                      "durationMs":  3421,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13129,
+                                    "m4a":  22280
+                                }
+                  },
+                  {
+                      "index":  2,
+                      "id":  "operator-voice-03",
+                      "text":  "Your vitals are steady. As always. It\u0027s almost intimidating.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/03.webm",
+                                      "m4a":  "/audio/operator/03.m4a"
+                                  },
+                      "durationMs":  3700,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  14034,
+                                    "m4a":  25400
+                                }
+                  },
+                  {
+                      "index":  3,
+                      "id":  "operator-voice-04",
+                      "text":  "The vector field is messy today. Keep your eyes peeled.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/04.webm",
+                                      "m4a":  "/audio/operator/04.m4a"
+                                  },
+                      "durationMs":  3142,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  11915,
+                                    "m4a":  20532
+                                }
+                  },
+                  {
+                      "index":  4,
+                      "id":  "operator-voice-05",
+                      "text":  "That heavy laser looks good on you. Very... dominant.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/05.webm",
+                                      "m4a":  "/audio/operator/05.m4a"
+                                  },
+                      "durationMs":  4535,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  15920,
+                                    "m4a":  29285
+                                }
+                  },
+                  {
+                      "index":  5,
+                      "id":  "operator-voice-06",
+                      "text":  "Try not to overheat the core. I hate filing those repair reports.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/06.webm",
+                                      "m4a":  "/audio/operator/06.m4a"
+                                  },
+                      "durationMs":  3491,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13419,
+                                    "m4a":  22607
+                                }
+                  },
+                  {
+                      "index":  6,
+                      "id":  "operator-voice-07",
+                      "text":  "Target sighted. Show me that 98% accuracy again, okay?",
+                      "sources":  {
+                                      "webm":  "/audio/operator/07.webm",
+                                      "m4a":  "/audio/operator/07.m4a"
+                                  },
+                      "durationMs":  4257,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  15666,
+                                    "m4a":  28130
+                                }
+                  },
+                  {
+                      "index":  7,
+                      "id":  "operator-voice-08",
+                      "text":  "Beautiful shot. You\u0027re making this look way too easy.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/08.webm",
+                                      "m4a":  "/audio/operator/08.m4a"
+                                  },
+                      "durationMs":  3282,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  12393,
+                                    "m4a":  22970
+                                }
+                  },
+                  {
+                      "index":  8,
+                      "id":  "operator-voice-09",
+                      "text":  "Enemy signal neutralized. You didn\u0027t even break a sweat.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/09.webm",
+                                      "m4a":  "/audio/operator/09.m4a"
+                                  },
+                      "durationMs":  3560,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13348,
+                                    "m4a":  23052
+                                }
+                  },
+                  {
+                      "index":  9,
+                      "id":  "operator-voice-10",
+                      "text":  "Is it hot in the cockpit, or is it just me watching the feed?",
+                      "sources":  {
+                                      "webm":  "/audio/operator/10.webm",
+                                      "m4a":  "/audio/operator/10.m4a"
+                                  },
+                      "durationMs":  3560,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13318,
+                                    "m4a":  23844
+                                }
+                  },
+                  {
+                      "index":  10,
+                      "id":  "operator-voice-11",
+                      "text":  "Focus, Raven. Don\u0027t let my chatter distract you too much.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/11.webm",
+                                      "m4a":  "/audio/operator/11.m4a"
+                                  },
+                      "durationMs":  3700,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13719,
+                                    "m4a":  23983
+                                }
+                  },
+                  {
+                      "index":  11,
+                      "id":  "operator-voice-12",
+                      "text":  "Movement is fluid. Your sync rate is literally off the charts.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/12.webm",
+                                      "m4a":  "/audio/operator/12.m4a"
+                                  },
+                      "durationMs":  3978,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  15007,
+                                    "m4a":  25454
+                                }
+                  },
+                  {
+                      "index":  12,
+                      "id":  "operator-voice-13",
+                      "text":  "I\u0027ve cleared the secondary channel. It\u0027s just us now.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/13.webm",
+                                      "m4a":  "/audio/operator/13.m4a"
+                                  },
+                      "durationMs":  3351,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  12560,
+                                    "m4a":  21696
+                                }
+                  },
+                  {
+                      "index":  13,
+                      "id":  "operator-voice-14",
+                      "text":  "Did you get my message about the post-mission drink?",
+                      "sources":  {
+                                      "webm":  "/audio/operator/14.webm",
+                                      "m4a":  "/audio/operator/14.m4a"
+                                  },
+                      "durationMs":  3142,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  12072,
+                                    "m4a":  21647
+                                }
+                  },
+                  {
+                      "index":  14,
+                      "id":  "operator-voice-15",
+                      "text":  "You\u0027re glowing on the radar. Literally and figuratively.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/15.webm",
+                                      "m4a":  "/audio/operator/15.m4a"
+                                  },
+                      "durationMs":  3560,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13261,
+                                    "m4a":  24606
+                                }
+                  },
+                  {
+                      "index":  15,
+                      "id":  "operator-voice-16",
+                      "text":  "Multiple signatures detected. Give \u0027em hell, Cowboy.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/16.webm",
+                                      "m4a":  "/audio/operator/16.m4a"
+                                  },
+                      "durationMs":  3630,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13553,
+                                    "m4a":  23851
+                                }
+                  },
+                  {
+                      "index":  16,
+                      "id":  "operator-voice-17",
+                      "text":  "I spent all night calibrating your aim. Don\u0027t waste it.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/17.webm",
+                                      "m4a":  "/audio/operator/17.m4a"
+                                  },
+                      "durationMs":  3491,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  12939,
+                                    "m4a":  23072
+                                }
+                  },
+                  {
+                      "index":  17,
+                      "id":  "operator-voice-18",
+                      "text":  "You\u0027re the only pilot who can handle this much kickback.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/18.webm",
+                                      "m4a":  "/audio/operator/18.m4a"
+                                  },
+                      "durationMs":  3212,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  12077,
+                                    "m4a":  21607
+                                }
+                  },
+                  {
+                      "index":  18,
+                      "id":  "operator-voice-19",
+                      "text":  "Stay safe out there. I don\u0027t want to lose my favorite asset.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/19.webm",
+                                      "m4a":  "/audio/operator/19.m4a"
+                                  },
+                      "durationMs":  3630,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  13314,
+                                    "m4a":  23542
+                                }
+                  },
+                  {
+                      "index":  19,
+                      "id":  "operator-voice-20",
+                      "text":  "Ever visited the Tannhauser Gate? My hometown is just a sector away.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/20.webm",
+                                      "m4a":  "/audio/operator/20.m4a"
+                                  },
+                      "durationMs":  4466,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  16628,
+                                    "m4a":  28700
+                                }
+                  },
+                  {
+                      "index":  20,
+                      "id":  "operator-voice-21",
+                      "text":  "Target terminated. Clean. I love how you handle that trigger.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/21.webm",
+                                      "m4a":  "/audio/operator/21.m4a"
+                                  },
+                      "durationMs":  3908,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  14479,
+                                    "m4a":  27061
+                                }
+                  },
+                  {
+                      "index":  21,
+                      "id":  "operator-voice-22",
+                      "text":  "Energy levels at 40%. Don\u0027t get reckless on me now.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/22.webm",
+                                      "m4a":  "/audio/operator/22.m4a"
+                                  },
+                      "durationMs":  3700,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  14026,
+                                    "m4a":  23940
+                                }
+                  },
+                  {
+                      "index":  22,
+                      "id":  "operator-voice-23",
+                      "text":  "I\u0027m recording this session... for \"tactical review.\" And my private collection.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/23.webm",
+                                      "m4a":  "/audio/operator/23.m4a"
+                                  },
+                      "durationMs":  5162,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  18333,
+                                    "m4a":  34739
+                                }
+                  },
+                  {
+                      "index":  23,
+                      "id":  "operator-voice-24",
+                      "text":  "You done? I\u0027ve got the debriefing room ready. Just for two.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/24.webm",
+                                      "m4a":  "/audio/operator/24.m4a"
+                                  },
+                      "durationMs":  4326,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  15300,
+                                    "m4a":  29422
+                                }
+                  },
+                  {
+                      "index":  24,
+                      "id":  "operator-voice-25",
+                      "text":  "System idling. Come back soon, Raven. I\u0027ll be waiting right here.",
+                      "sources":  {
+                                      "webm":  "/audio/operator/25.webm",
+                                      "m4a":  "/audio/operator/25.m4a"
+                                  },
+                      "durationMs":  5650,
+                      "volume":  0.3,
+                      "bytes":  {
+                                    "webm":  18752,
+                                    "m4a":  37758
+                                }
+                  }
+              ]
+}

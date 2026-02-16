@@ -1,7 +1,7 @@
-# Portfolio Redesign Project: Master Planning Document 2.0
+# Portfolio Redesign Project: Master Planning Document 2.1
 **Project**: Portfolio 2026 (Refactoring)
 **Author**: Antigravity (Collaborating with Yakshawan)
-**Last Updated**: 2026-02-15
+**Last Updated**: 2026-02-16
 
 ---
 
@@ -60,15 +60,28 @@
 -   **Visuals**: 'Vector Monitor' 스타일의 레트로-퓨처 디자인. 입자 폭발, 화면 흔들림(Screen Shake), 피격 플래시 등 시각적 피드백 강화.
 -   **Audio**: Triangle/Sawtooth 파형을 사용한 합성 사운드 구현 및 고유한 피치 변동 시스템 적용.
 
-#### D. Operator System (Updated: 2026-02-15)
-미니게임 플레이 중 나타나는 오퍼레이터의 코멘트 시스템을 고도화했습니다.
--   **Asset Optimization**: 모든 프로필 이미지를 **WebP** 형식으로 전환하여 리소스 부담을 최소화했습니다.
+#### D. Operator System (Updated: 2026-02-16)
+미니게임 플레이 중 나타나는 오퍼레이터 코멘트/보이스 시스템을 고도화했습니다.
+-   **Asset Optimization**: 프로필 이미지는 **WebP** 유지, 보이스는 `WebM(Opus)` + `M4A(AAC)` 듀얼 포맷으로 운영합니다.
+-   **Voice Library**: 총 25개 코멘트와 25개 보이스를 1:1 순차 매핑합니다. (`01`~`25`)
 -   **Random Selection**: 페이지 진입(새로고침) 시 `operator01` ~ `operator04` 중 한 명이 랜덤 선택되어 세션 중 고정됩니다.
 -   **Silhouette Exception**: `operator04`는 실루엣 형태이므로 눈 깜빡임 애니메이션이 자동으로 비활성화됩니다.
--   **Profile Rendering**: 
+-   **Profile Rendering**:
     -   배경/텍스트 컬러 상속을 위한 **Masking 기법** 사용 (WebP 기반).
     -   **Aspect Ratio**: 2:3 비율, 텍스트 2행 높이(2.5rem) 수평 배치 적용.
--   **Dialogue State**: 노출 2초 / 일반 공백 4초 / 사이클 종료 공백 6초의 타이밍 규칙 적용.
+-   **Dialogue State**: 노출 2초 / 일반 공백 4초 / 사이클 종료 공백 6초 규칙 유지.
+-   **Voice Trigger Policy**:
+    -   최초 hover 진입 1회에 한해 `200ms` 시작 지연.
+    -   재생 순서: `radio-open(200ms) -> 50ms gap -> voice start`.
+    -   동일 세션 내 각 보이스는 1회만 재생 (hover 반복 시 중복 재생 금지).
+    -   hover out 시 UI는 즉시 숨기되, 이미 시작된 보이스는 끝까지 재생.
+-   **Mix Policy**:
+    -   Operator Voice: `0.30`
+    -   Radio Open SFX: `0.22`
+    -   Game SFX (shoot/hit): `0.70`
+-   **Typing Sync**:
+    -   마침표/물음표/쉼표 기반 pause 리듬 유지.
+    -   클립 duration metadata를 기반으로 기본 타이핑 속도 자동 보정.
 
 ---
 
@@ -106,10 +119,16 @@
 │
 ├── public/                     # 정적 자산 (Assets)
 │   ├── fonts/                  # 웹 폰트 파일 (Playfair Display, JetBrains Mono 등)
-│   └── images/                 
-│       └── operator/           # [오늘의 작업] 오퍼레이터 WebP 자산 (01~04번)
+│   ├── images/
+│   │   └── operator/           # 오퍼레이터 WebP 자산 (01~04번)
+│   └── audio/
+│       └── operator/           # 오퍼레이터 보이스(WebM/M4A), radio-open SFX, manifest.json
 │
-├── handover 2.0.md             # [최신] 프로젝트 마스터 핸드오버 문서
+├── tools/
+│   └── audio-mastering/
+│       └── master-operator-voices.ps1 # Supertonic 원본 일괄 마스터링/인코딩 배치
+│
+├── handover 2.0.md             # [최신] 프로젝트 마스터 핸드오버 문서(문서 버전 2.1)
 └── next.config.mjs             # Next.js 설정 (Images, Path Aliases 등)
 ```
 
@@ -121,6 +140,18 @@
 -   **눈 깜빡임 시 흔들림(Jitter) 문제**: 초기 버전에서 `key` 값을 랜덤하게 바꿔 리마운트하던 방식을 폐기. `open`/`close` 두 레이어를 모두 렌더링하고 `opacity`를 토글하여 위치 오차를 0픽셀로 조정함.
 -   **배치 및 가독성 불균형**: 수직 배치가 짧은 대사 출력 시 공백을 과하게 만든다는 피드백 반영. 다시 수평(좌우) 배치로 복구하되, 이미지 높이를 3행에서 2행 크기로 줄여 텍스트와의 시각적 위계(Visual Hierarchy)를 맞춤.
 -   **컬러 매칭**: 이미지가 배경과 따로 노는 현상을 해결하기 위해 `grayscale` 필터 대신 `WebkitMaskImage`를 사용. 텍스트의 `color`와 `opacity`를 100% 동일하게 공유하도록 설계.
+
+### [Operator Voice & Audio Pipeline] (2026-02-16)
+-   **Issue: hover 반복 시 보이스 중복/겹침 재생**
+    -   **Reason**: 코멘트 표시와 음성 재생이 분리되어 있어 hover 재진입 시 재트리거가 발생.
+    -   **Fix**: 인덱스 기반 1회 재생 Set + 시작 지연 시퀀스(200ms/50ms)로 상태머신 통합.
+-   **Issue: radio SFX와 보이스가 동시 재생되어 겹침**
+    -   **Fix**: 동시 재생 제거 후 `radio-open -> gap -> voice` 순차 타이머로 강제.
+-   **Issue: Tactical 체인 과적용으로 출력이 무음에 가까워짐**
+    -   **Reason**: 대역/필터 조합 충돌로 신호 레벨이 과도 감쇠됨.
+    -   **Fix**: Tactical 전용 체인을 분리하고 출력 레벨 안정화(정상 peak 레벨 복구) 후 재인코딩.
+-   **Issue: 보이스가 SFX 대비 너무 선명하고 크게 들림**
+    -   **Fix**: bitcrush 강화(`bits=8`, `mix=0.45`) + runtime voice volume `0.30`으로 조정.
 
 ---
 

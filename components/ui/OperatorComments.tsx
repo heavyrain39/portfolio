@@ -7,6 +7,7 @@ interface OperatorCommentsProps {
     isParentHovered: boolean;
     themeColor?: string;
     contrastColor?: string;
+    isMuted?: boolean;
 }
 
 const COMMENTS = [
@@ -29,7 +30,7 @@ const COMMENTS = [
     "I spent all night calibrating your aim. Don't waste it.",
     "You're the only pilot who can handle this much kickback.",
     "Stay safe out there. I don't want to lose my favorite asset.",
-    "Ever visited the Tannhäuser Gate? My hometown is just a sector away.",
+    "Ever visited the Tannh\u00e4user Gate? My hometown is just a sector away.",
     "Target terminated. Clean. I love how you handle that trigger.",
     "Energy levels at 40%. Don't get reckless on me now.",
     "I'm recording this session... for \"tactical review.\" And my private collection.",
@@ -37,7 +38,34 @@ const COMMENTS = [
     "System idling. Come back soon, Raven. I'll be waiting right here."
 ];
 
+const BASE_PATH = "/portfolio";
+const HOVER_START_DELAY = 200;
+const DEFAULT_TYPING_DELAY = 35;
+const SPACE_DELAY = 60;
+const PUNCTUATION_DELAY = 300;
+const VOICE_VOLUME = 0.15;
+const RADIO_SFX_VOLUME = 0.15;
+const RADIO_SFX_DURATION_MS = 200;
+const RADIO_TO_VOICE_GAP_MS = 50;
+const PRELOAD_VOICE_COUNT = 2;
+
+type VoiceAudioState = {
+    audio: HTMLAudioElement;
+    sourceIndex: number;
+    sources: string[];
+    onError: () => void;
+    onLoadedMetadata: () => void;
+};
+
+type SingleAudioState = {
+    audio: HTMLAudioElement;
+    sourceIndex: number;
+    sources: string[];
+    onError: () => void;
+};
+
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const isPausePunctuation = (char: string, nextChar?: string) => /[.!?,"]/.test(char) && !/[.!?,"]/.test(nextChar ?? "");
 
 const parseColorToRgb = (color: string): { r: number; g: number; b: number } | null => {
     const normalized = color.trim();
@@ -123,10 +151,24 @@ const withAlpha = (color: string, alpha: number): string => {
     return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
 };
 
+const getVoiceSources = (index: number): string[] => {
+    const fileId = String(index + 1).padStart(2, "0");
+    return [
+        `${BASE_PATH}/audio/operator/${fileId}.webm`,
+        `${BASE_PATH}/audio/operator/${fileId}.m4a`
+    ];
+};
+
+const RADIO_SFX_SOURCES = [
+    `${BASE_PATH}/audio/operator/radio-open.webm`,
+    `${BASE_PATH}/audio/operator/radio-open.m4a`
+];
+
 export default function OperatorComments({
     isParentHovered,
     themeColor = "#f5f5f0",
-    contrastColor = "#1a1a1a"
+    contrastColor = "#1a1a1a",
+    isMuted = false
 }: OperatorCommentsProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [displayText, setDisplayText] = useState("");
@@ -140,10 +182,21 @@ export default function OperatorComments({
     const blinkCycleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blinkEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const nextMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const hoverStartDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTypingRef = useRef(false);
     const hoverRef = useRef(isParentHovered);
+    const wasHoveredRef = useRef(isParentHovered);
+    const hasAppliedInitialHoverDelayRef = useRef(false);
     const currentIndexRef = useRef(currentIndex);
     const isCompleteRef = useRef(isComplete);
+    const currentTypingDelayRef = useRef(DEFAULT_TYPING_DELAY);
+    const playedVoiceIndexesRef = useRef<Set<number>>(new Set());
+    const voiceDurationsMsRef = useRef<Map<number, number>>(new Map());
+    const voiceAudioStateRef = useRef<Map<number, VoiceAudioState>>(new Map());
+    const radioSfxStateRef = useRef<SingleAudioState | null>(null);
+    const delayedVoiceStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pendingRetryVoiceIndexRef = useRef<number | null>(null);
+    const playVoiceForIndexRef = useRef<(index: number) => void>(() => { });
 
     // Randomly select operator (operator01 - operator04) on mount
     const [selectedOperatorId] = useState(() => {
@@ -151,21 +204,39 @@ export default function OperatorComments({
         return `operator0${id}`;
     });
 
-    const basePath = "/portfolio";
     const themeTintColor = themeColor;
     const operatorTintColor = useMemo(() => getOperatorTintColor(themeTintColor), [themeTintColor]);
 
-    useEffect(() => {
-        hoverRef.current = isParentHovered;
-    }, [isParentHovered]);
+    const getTypingDelayForIndex = (index: number): number => {
+        const durationMs = voiceDurationsMsRef.current.get(index);
+        const fullText = COMMENTS[index] ?? "";
+        if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0 || !fullText) {
+            return DEFAULT_TYPING_DELAY;
+        }
 
-    useEffect(() => {
-        currentIndexRef.current = currentIndex;
-    }, [currentIndex]);
+        let fixedPauseBudgetMs = 0;
+        let adaptiveChars = 0;
+        for (let i = 0; i < fullText.length; i++) {
+            const char = fullText[i];
+            const nextChar = fullText[i + 1];
+            if (isPausePunctuation(char, nextChar)) {
+                fixedPauseBudgetMs += PUNCTUATION_DELAY;
+                continue;
+            }
+            if (char === " ") {
+                fixedPauseBudgetMs += SPACE_DELAY;
+                continue;
+            }
+            adaptiveChars += 1;
+        }
 
-    useEffect(() => {
-        isCompleteRef.current = isComplete;
-    }, [isComplete]);
+        if (adaptiveChars <= 0) {
+            return DEFAULT_TYPING_DELAY;
+        }
+
+        const usableBudgetMs = Math.max(durationMs - fixedPauseBudgetMs, adaptiveChars * 18);
+        return clamp(Math.round(usableBudgetMs / adaptiveChars), 18, 75);
+    };
 
     const clearTypingTimer = () => {
         if (typingTimeoutRef.current) {
@@ -185,6 +256,20 @@ export default function OperatorComments({
         }
     };
 
+    const clearHoverStartDelayTimer = () => {
+        if (hoverStartDelayTimeoutRef.current) {
+            clearTimeout(hoverStartDelayTimeoutRef.current);
+            hoverStartDelayTimeoutRef.current = null;
+        }
+    };
+
+    const clearDelayedVoiceStartTimer = () => {
+        if (delayedVoiceStartTimeoutRef.current) {
+            clearTimeout(delayedVoiceStartTimeoutRef.current);
+            delayedVoiceStartTimeoutRef.current = null;
+        }
+    };
+
     const clearBlinkCycleTimer = () => {
         if (blinkCycleTimeoutRef.current) {
             clearTimeout(blinkCycleTimeoutRef.current);
@@ -197,10 +282,155 @@ export default function OperatorComments({
     };
 
     const clearAllTimers = () => {
+        clearHoverStartDelayTimer();
+        clearDelayedVoiceStartTimer();
         clearTypingTimer();
         clearTransitionTimers();
         clearBlinkCycleTimer();
     };
+
+    const cleanupVoiceAudio = (state: VoiceAudioState) => {
+        state.audio.pause();
+        state.audio.removeEventListener("error", state.onError);
+        state.audio.removeEventListener("loadedmetadata", state.onLoadedMetadata);
+        state.audio.removeAttribute("src");
+        state.audio.load();
+    };
+
+    const cleanupSingleAudio = (state: SingleAudioState) => {
+        state.audio.pause();
+        state.audio.removeEventListener("error", state.onError);
+        state.audio.removeAttribute("src");
+        state.audio.load();
+    };
+
+    const getOrCreateRadioSfxAudio = (): HTMLAudioElement => {
+        const existing = radioSfxStateRef.current;
+        if (existing) {
+            return existing.audio;
+        }
+
+        const audio = new Audio();
+        audio.preload = "auto";
+        audio.volume = isMuted ? 0 : RADIO_SFX_VOLUME;
+
+        let state: SingleAudioState;
+        const onError = () => {
+            const nextSourceIndex = state.sourceIndex + 1;
+            if (nextSourceIndex >= state.sources.length) return;
+            state.sourceIndex = nextSourceIndex;
+            state.audio.src = state.sources[nextSourceIndex];
+            state.audio.load();
+        };
+
+        state = {
+            audio,
+            sourceIndex: 0,
+            sources: RADIO_SFX_SOURCES,
+            onError
+        };
+
+        audio.addEventListener("error", onError);
+        audio.src = state.sources[0];
+        audio.load();
+
+        radioSfxStateRef.current = state;
+        return audio;
+    };
+
+    const playRadioSfx = () => {
+        if (isMuted) return;
+
+        const audio = getOrCreateRadioSfxAudio();
+        audio.volume = isMuted ? 0 : RADIO_SFX_VOLUME;
+        audio.currentTime = 0;
+
+        const playPromise = audio.play();
+        if (playPromise) {
+            playPromise.catch(() => { });
+        }
+    };
+
+    const startVoicePlayback = (index: number) => {
+        const audio = getOrCreateVoiceAudio(index);
+        audio.volume = isMuted ? 0 : VOICE_VOLUME;
+        audio.currentTime = 0;
+
+        const playPromise = audio.play();
+        if (playPromise) {
+            playPromise.then(() => {
+                playedVoiceIndexesRef.current.add(index);
+                pendingRetryVoiceIndexRef.current = null;
+            }).catch((error) => {
+                if (error instanceof DOMException && error.name === "NotAllowedError") {
+                    pendingRetryVoiceIndexRef.current = index;
+                }
+            });
+        } else {
+            playedVoiceIndexesRef.current.add(index);
+        }
+    };
+
+    const getOrCreateVoiceAudio = (index: number): HTMLAudioElement => {
+        const existing = voiceAudioStateRef.current.get(index);
+        if (existing) {
+            return existing.audio;
+        }
+
+        const audio = new Audio();
+        audio.preload = "metadata";
+        audio.volume = isMuted ? 0 : VOICE_VOLUME;
+
+        const sources = getVoiceSources(index);
+        let state: VoiceAudioState;
+
+        const onError = () => {
+            const nextSourceIndex = state.sourceIndex + 1;
+            if (nextSourceIndex >= state.sources.length) return;
+            state.sourceIndex = nextSourceIndex;
+            state.audio.src = state.sources[nextSourceIndex];
+            state.audio.load();
+        };
+
+        const onLoadedMetadata = () => {
+            if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+            voiceDurationsMsRef.current.set(index, audio.duration * 1000);
+            if (currentIndexRef.current === index && !isCompleteRef.current) {
+                currentTypingDelayRef.current = getTypingDelayForIndex(index);
+            }
+        };
+
+        state = {
+            audio,
+            sourceIndex: 0,
+            sources,
+            onError,
+            onLoadedMetadata
+        };
+
+        audio.addEventListener("error", onError);
+        audio.addEventListener("loadedmetadata", onLoadedMetadata);
+        audio.src = sources[0];
+        audio.load();
+
+        voiceAudioStateRef.current.set(index, state);
+        return audio;
+    };
+
+    const playVoiceForIndex = (index: number) => {
+        if (index < 0 || index >= COMMENTS.length) return;
+        if (isMuted) return;
+        if (playedVoiceIndexesRef.current.has(index)) return;
+
+        playRadioSfx();
+        clearDelayedVoiceStartTimer();
+        delayedVoiceStartTimeoutRef.current = setTimeout(() => {
+            delayedVoiceStartTimeoutRef.current = null;
+            startVoicePlayback(index);
+        }, RADIO_SFX_DURATION_MS + RADIO_TO_VOICE_GAP_MS);
+    };
+
+    playVoiceForIndexRef.current = playVoiceForIndex;
 
     const typeNextChar = () => {
         if (!hoverRef.current || isCompleteRef.current) {
@@ -209,7 +439,13 @@ export default function OperatorComments({
         }
 
         isTypingRef.current = true;
-        const fullText = COMMENTS[currentIndexRef.current];
+        const index = currentIndexRef.current;
+        const fullText = COMMENTS[index];
+
+        if (charIndexRef.current === 0) {
+            currentTypingDelayRef.current = getTypingDelayForIndex(index);
+            playVoiceForIndexRef.current(index);
+        }
 
         if (charIndexRef.current >= fullText.length) {
             isTypingRef.current = false;
@@ -223,17 +459,61 @@ export default function OperatorComments({
         setDisplayText(fullText.slice(0, charIndexRef.current + 1));
         charIndexRef.current += 1;
 
-        let delay = 35;
-        const isPunctuation = /[.!?,"]/.test(char);
-        const isNextPunctuation = Boolean(nextChar && /[.!?,"]/.test(nextChar));
-        if (isPunctuation && !isNextPunctuation) delay = 300;
-        else if (char === " ") delay = 60;
+        let delay = currentTypingDelayRef.current;
+        if (isPausePunctuation(char, nextChar)) delay = PUNCTUATION_DELAY;
+        else if (char === " ") delay = SPACE_DELAY;
 
         typingTimeoutRef.current = setTimeout(() => {
             typingTimeoutRef.current = null;
             typeNextChar();
         }, delay);
     };
+
+    useEffect(() => {
+        hoverRef.current = isParentHovered;
+    }, [isParentHovered]);
+
+    useEffect(() => {
+        currentIndexRef.current = currentIndex;
+        currentTypingDelayRef.current = getTypingDelayForIndex(currentIndex);
+    }, [currentIndex]);
+
+    useEffect(() => {
+        isCompleteRef.current = isComplete;
+    }, [isComplete]);
+
+    useEffect(() => {
+        const voiceVolume = isMuted ? 0 : VOICE_VOLUME;
+        voiceAudioStateRef.current.forEach(({ audio }) => {
+            audio.volume = voiceVolume;
+        });
+
+        if (radioSfxStateRef.current) {
+            radioSfxStateRef.current.audio.volume = isMuted ? 0 : RADIO_SFX_VOLUME;
+        }
+    }, [isMuted]);
+
+    useEffect(() => {
+        for (let i = 0; i < Math.min(PRELOAD_VOICE_COUNT, COMMENTS.length); i++) {
+            getOrCreateVoiceAudio(i);
+        }
+    }, []);
+
+    useEffect(() => {
+        const retryPendingVoice = () => {
+            const pendingIndex = pendingRetryVoiceIndexRef.current;
+            if (pendingIndex === null) return;
+            pendingRetryVoiceIndexRef.current = null;
+            playVoiceForIndexRef.current(pendingIndex);
+        };
+
+        window.addEventListener("pointerdown", retryPendingVoice);
+        window.addEventListener("keydown", retryPendingVoice);
+        return () => {
+            window.removeEventListener("pointerdown", retryPendingVoice);
+            window.removeEventListener("keydown", retryPendingVoice);
+        };
+    }, []);
 
     // Blinking logic
     useEffect(() => {
@@ -263,24 +543,43 @@ export default function OperatorComments({
 
     useEffect(() => {
         if (!isParentHovered) {
+            wasHoveredRef.current = false;
             clearAllTimers();
             isTypingRef.current = false;
             setIsVisible(false);
             return;
         }
 
-        setIsVisible(true);
-        if (!isTypingRef.current && !isComplete) {
-            typeNextChar();
+        const startCommentCycle = () => {
+            setIsVisible(true);
+            if (!isTypingRef.current && !isComplete) {
+                typeNextChar();
+            }
+        };
+
+        const isEnteringHover = !wasHoveredRef.current;
+        wasHoveredRef.current = true;
+
+        if (isEnteringHover && !hasAppliedInitialHoverDelayRef.current) {
+            hasAppliedInitialHoverDelayRef.current = true;
+            clearHoverStartDelayTimer();
+            hoverStartDelayTimeoutRef.current = setTimeout(() => {
+                hoverStartDelayTimeoutRef.current = null;
+                if (!hoverRef.current) return;
+                startCommentCycle();
+            }, HOVER_START_DELAY);
+            return;
         }
+
+        startCommentCycle();
     }, [isParentHovered, isComplete, currentIndex]);
 
     useEffect(() => {
         if (!isParentHovered || !isComplete) return;
 
         const isLastMessage = currentIndexRef.current === COMMENTS.length - 1;
-        const fadeOutDelay = 2000; // Stay visible for 2s after typing is complete
-        const nextMessageDelay = isLastMessage ? 6000 : 4000; // Invisible for 4s (normal) or 6s (end of cycle)
+        const fadeOutDelay = 2000; // Keep existing spacing
+        const nextMessageDelay = isLastMessage ? 6000 : 4000; // Keep existing spacing
 
         clearTransitionTimers();
 
@@ -294,14 +593,31 @@ export default function OperatorComments({
                 setDisplayText("");
                 charIndexRef.current = 0;
                 setIsComplete(false);
-                setCurrentIndex((prev) => (prev + 1) % COMMENTS.length);
+                setCurrentIndex((prev) => {
+                    const nextIndex = (prev + 1) % COMMENTS.length;
+                    if (nextIndex === 0) {
+                        // New dialogue cycle starts here: allow all 25 voice clips to play again.
+                        playedVoiceIndexesRef.current.clear();
+                        pendingRetryVoiceIndexRef.current = null;
+                    }
+                    return nextIndex;
+                });
                 setIsVisible(true);
             }, nextMessageDelay);
         }, fadeOutDelay);
     }, [isParentHovered, isComplete]);
 
     useEffect(() => {
-        return () => clearAllTimers();
+        return () => {
+            clearAllTimers();
+            clearDelayedVoiceStartTimer();
+            voiceAudioStateRef.current.forEach((state) => cleanupVoiceAudio(state));
+            voiceAudioStateRef.current.clear();
+            if (radioSfxStateRef.current) {
+                cleanupSingleAudio(radioSfxStateRef.current);
+                radioSfxStateRef.current = null;
+            }
+        };
     }, []);
 
     const renderImage = (type: "open" | "close") => {
@@ -309,7 +625,7 @@ export default function OperatorComments({
         if (selectedOperatorId === "operator04" && type === "close") return null;
 
         const fileName = `${selectedOperatorId}_${type}.webp`;
-        const imageUrl = `${basePath}/images/operator/${fileName}`;
+        const imageUrl = `${BASE_PATH}/images/operator/${fileName}`;
 
         return (
             <motion.div
@@ -368,7 +684,7 @@ export default function OperatorComments({
                             height: "2.5rem", // Roughly 2 lines of text (1.25rem * 2)
                         }}
                     >
-                        {/* Static images with opacity toggle for Jitter-free Blinking */}
+                        {/* Static images with opacity toggle for jitter-free blinking */}
                         {renderImage("open")}
                         {renderImage("close")}
 

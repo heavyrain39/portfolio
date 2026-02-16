@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "audio:master": "powershell -ExecutionPolicy Bypass -File tools/audio-mastering/master-operator-voices.ps1"
   },
   "repository": {
     "type": "git",
