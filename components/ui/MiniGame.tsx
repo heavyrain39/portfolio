@@ -1,12 +1,20 @@
 ﻿"use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { motion, useSpring, useMotionValue } from "framer-motion";
+import { useSpring, useMotionValue } from "framer-motion";
 import OperatorComments from "./OperatorComments";
+import MiniGameCrosshair from "./minigame/MiniGameCrosshair";
+import MiniGameHud from "./minigame/MiniGameHud";
 import {
     DEFAULT_PHYSICS_PRESET,
     GRAVITY,
-    SFX_LEVEL_SCALE
+    HEAT_COOL_PER_MS,
+    HEAT_PER_SHOT,
+    HEAT_RECOVER_RATIO,
+    HEAT_WARNING_RATIO,
+    QUAD_MODE_HEAT_MULTIPLIER,
+    SFX_LEVEL_SCALE,
+    WHEEL_MODE_SWITCH_COOLDOWN_MS
 } from "./minigame/constants";
 import { createExplosion } from "./minigame/effects";
 import { getConnections, getFormation, getWorldUnitPositions } from "./minigame/formation";
@@ -24,17 +32,10 @@ import {
     getFusionCutoutsForUnit
 } from "./minigame/render";
 import { getSpawnIntervalFrames, spawnEnemyGroup } from "./minigame/spawn";
-import type { Bullet, EnemyGroup, FloatingText, HitFlash, Particle, Point } from "./minigame/types";
+import type { Bullet, EnemyGroup, FireMode, FloatingText, HitFlash, Particle, Point } from "./minigame/types";
 import { closeAudioContext, ensureAudioContext, playGameSound } from "./minigame/audio";
 
 export default function MiniGame() {
-    const HEAT_SHOTS_TO_OVERHEAT = 180;
-    const HEAT_PER_SHOT = 1 / HEAT_SHOTS_TO_OVERHEAT;
-    const HEAT_WARNING_RATIO = 0.8;
-    const HEAT_RECOVER_RATIO = 0.1;
-    const HEAT_COOLDOWN_DURATION_MS = 1600;
-    const HEAT_COOL_PER_MS = 1 / HEAT_COOLDOWN_DURATION_MS;
-
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
@@ -56,11 +57,15 @@ export default function MiniGame() {
     const cachedIsDark = useRef(false);
     const heatRatioRef = useRef(0);
     const isOverheatedRef = useRef(false);
+    const isHoveredRef = useRef(false);
+    const fireModeRef = useRef<FireMode>("dual");
+    const lastWheelModeSwitchAt = useRef(0);
 
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [fireMode, setFireMode] = useState<FireMode>("dual");
     const [heatRatio, setHeatRatio] = useState(0);
     const [isOverheated, setIsOverheated] = useState(false);
     const [operatorThemeColor, setOperatorThemeColor] = useState("#f5f5f0");
@@ -82,7 +87,7 @@ export default function MiniGame() {
 
     const getAudioContext = (): AudioContext => ensureAudioContext(audioCtxRef);
 
-    const playSound = (type: "shoot" | "hit") => {
+    const playSound = (type: "shoot" | "hit" | "modeSwitch") => {
         playGameSound({
             audioCtxRef,
             isMuted: isMutedRef.current,
@@ -136,6 +141,7 @@ export default function MiniGame() {
             mousePos.current = { x, y };
             rawMouseX.set(x);
             rawMouseY.set(y);
+            isHoveredRef.current = true;
             setIsHovered(true);
         };
 
@@ -155,15 +161,32 @@ export default function MiniGame() {
         };
 
         const handleMouseLeave = () => {
+            isHoveredRef.current = false;
             setIsHovered(false);
         };
 
         const handleMouseEnter = () => {
+            isHoveredRef.current = true;
             setIsHovered(true);
         };
 
         const handleContextMenu = (e: Event) => {
             e.preventDefault();
+        };
+
+        const handleWheel = (e: WheelEvent) => {
+            if (!isHoveredRef.current) return;
+            e.preventDefault();
+
+            const nowMs = performance.now();
+            if (nowMs - lastWheelModeSwitchAt.current < WHEEL_MODE_SWITCH_COOLDOWN_MS) return;
+            lastWheelModeSwitchAt.current = nowMs;
+
+            const nextMode: FireMode = fireModeRef.current === "dual" ? "quad" : "dual";
+            if (nextMode === fireModeRef.current) return;
+            fireModeRef.current = nextMode;
+            setFireMode(nextMode);
+            playSound("modeSwitch");
         };
 
         container.addEventListener("mousemove", handleMouseMove);
@@ -172,6 +195,7 @@ export default function MiniGame() {
         container.addEventListener("mouseleave", handleMouseLeave);
         container.addEventListener("mouseenter", handleMouseEnter);
         container.addEventListener("contextmenu", handleContextMenu);
+        container.addEventListener("wheel", handleWheel, { passive: false });
 
         const animate = (time: number) => {
             if (lastFrameTime.current === null) {
@@ -220,28 +244,70 @@ export default function MiniGame() {
             }
 
             if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > 40) {
-                const originSide = Math.random() > 0.5 ? "left" : "right";
-                const startX = originSide === "left" ? canvas.width * 0.2 : canvas.width * 0.8;
                 const startY = canvas.height;
-                const dx = mousePos.current.x - startX;
-                const dy = mousePos.current.y - startY;
-                const angle = Math.atan2(dy, dx);
-                const spread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
+                const leftX = canvas.width * 0.2;
+                const rightX = canvas.width * 0.8;
+                const burstSpread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
 
-                bullets.current.push({
-                    id: Math.random(),
-                    x: startX,
-                    y: startY,
-                    vx: Math.cos(angle + spread) * 45,
-                    vy: Math.sin(angle + spread) * 45,
-                    life: 1.0
-                });
+                const spawnBullet = (startX: number, spread: number) => {
+                    const dx = mousePos.current.x - startX;
+                    const dy = mousePos.current.y - startY;
+                    const angle = Math.atan2(dy, dx);
+                    bullets.current.push({
+                        id: Math.random(),
+                        x: startX,
+                        y: startY,
+                        vx: Math.cos(angle + spread) * 60,
+                        vy: Math.sin(angle + spread) * 60,
+                        life: 1.0
+                    });
+                };
+
+                if (fireModeRef.current === "dual") {
+                    const originSide = Math.random() > 0.5 ? "left" : "right";
+                    const startX = originSide === "left" ? leftX : rightX;
+                    spawnBullet(startX, burstSpread);
+                } else {
+                    const laneOffsetX = 4;
+                    const sidePickA = Math.random() > 0.5 ? "left" : "right";
+                    const sidePickB = Math.random() > 0.5 ? "left" : "right";
+                    const shotSides: Array<"left" | "right"> = [sidePickA, sidePickB];
+                    const sideTotals = {
+                        left: shotSides.filter((side) => side === "left").length,
+                        right: shotSides.filter((side) => side === "right").length
+                    };
+                    let leftAssigned = 0;
+                    let rightAssigned = 0;
+
+                    for (const side of shotSides) {
+                        const isLeft = side === "left";
+                        const centerX = isLeft ? leftX : rightX;
+                        if (isLeft) {
+                            leftAssigned++;
+                        } else {
+                            rightAssigned++;
+                        }
+
+                        const sideCount = isLeft ? sideTotals.left : sideTotals.right;
+                        const sideIndex = isLeft ? leftAssigned : rightAssigned;
+                        const laneSign =
+                            sideCount > 1
+                                ? (sideIndex === 1 ? -1 : 1)
+                                : (Math.random() > 0.5 ? 1 : -1);
+                        const horizontalJitter = (Math.random() - 0.5) * 1.6;
+                        const startX = centerX + laneSign * laneOffsetX + horizontalJitter;
+                        const randomSpray = (Math.random() - 0.5) * 0.1;
+                        const spread = burstSpread * 0.45 + randomSpray;
+                        spawnBullet(startX, spread);
+                    }
+                }
 
                 burstShotCount.current++;
                 playSound("shoot");
                 lastShotTime.current = time;
 
-                const nextHeat = Math.min(1, heatRatioRef.current + HEAT_PER_SHOT);
+                const heatMultiplier = fireModeRef.current === "quad" ? QUAD_MODE_HEAT_MULTIPLIER : 1;
+                const nextHeat = Math.min(1, heatRatioRef.current + HEAT_PER_SHOT * heatMultiplier);
                 heatRatioRef.current = nextHeat;
                 setHeatRatio(nextHeat);
                 if (nextHeat >= 1 && !isOverheatedRef.current) {
@@ -598,6 +664,7 @@ export default function MiniGame() {
             container.removeEventListener("mouseleave", handleMouseLeave);
             container.removeEventListener("mouseenter", handleMouseEnter);
             container.removeEventListener("contextmenu", handleContextMenu);
+            container.removeEventListener("wheel", handleWheel);
             themeObserver.disconnect();
 
             if (requestRef.current) {
@@ -654,142 +721,23 @@ export default function MiniGame() {
                 </svg>
             </div>
 
-            <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between z-10 pointer-events-none">
-                <div className="flex flex-col items-start gap-1.5 select-none pb-2">
-                    {/* Heat Gauge (Horizontal Layout) */}
-                    <div className="flex items-center gap-5">
-                        <motion.span
-                            className="font-mono text-xs font-bold tracking-widest text-foreground"
-                            animate={
-                                isHeatWarning && !isOverheated
-                                    ? { opacity: [0.5, 0.9, 0.5] }
-                                    : { opacity: heatVisualOpacity }
-                            }
-                            transition={
-                                isHeatWarning && !isOverheated
-                                    ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" }
-                                    : { duration: 0.2 }
-                            }
-                        >
-                            HEAT
-                        </motion.span>
-                        <div className="relative w-32 h-[4px] bg-foreground/5 overflow-hidden">
-                            <motion.div
-                                className="absolute inset-y-0 left-0 bg-foreground"
-                                style={{ opacity: heatVisualOpacity }}
-                                animate={{
-                                    width: `${Math.max(0, Math.min(100, heatRatio * 100))}%`,
-                                    opacity: isHeatWarning && !isOverheated ? [0.5, 0.9, 0.5] : heatVisualOpacity
-                                }}
-                                transition={{
-                                    width: { duration: 0.1, ease: "linear" },
-                                    opacity: {
-                                        duration: 0.8,
-                                        repeat: isHeatWarning && !isOverheated ? Infinity : 0,
-                                        ease: "easeInOut"
-                                    }
-                                }}
-                            />
-                        </div>
-                    </div>
+            <MiniGameHud
+                heatRatio={heatRatio}
+                isHeatWarning={isHeatWarning}
+                isOverheated={isOverheated}
+                heatVisualOpacity={heatVisualOpacity}
+                uiScore={uiScore}
+                isMuted={isMuted}
+                fireMode={fireMode}
+                onToggleMute={() => setIsMuted(!isMuted)}
+            />
 
-                    <div className="font-mono text-xs font-bold tracking-widest opacity-50 flex items-center gap-2">
-                        TARGETS TERMINATED
-                        <motion.span
-                            key={uiScore}
-                            animate={{ scale: [1.5, 1] }}
-                            transition={{ duration: 0.15 }}
-                            className="text-cyan-500 inline-block"
-                        >
-                            {uiScore.toString().padStart(3, "0")}
-                        </motion.span>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    {/* Hint Text */}
-                    <div className="text-[10px] font-mono opacity-30 text-right text-foreground">
-                        <div>VECTOR_SYS_V2.0</div>
-                        <div>CLICK_TO_ENGAGE</div>
-                    </div>
-
-                    {/* Mute Button */}
-                    <button
-                        onClick={() => setIsMuted(!isMuted)}
-                        className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-foreground"
-                        title={isMuted ? "Unmute Sound" : "Mute Sound"}
-                    >
-                        {isMuted ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                                <line x1="23" y1="9" x2="17" y2="15" />
-                                <line x1="17" y1="9" x2="23" y2="15" />
-                            </svg>
-                        ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                            </svg>
-                        )}
-                    </button>
-                </div>
-            </div>
-
-            {/* Crosshair */}
-            <motion.div
-                className="fixed w-8 h-8 pointer-events-none z-50 mix-blend-difference"
-                style={{
-                    x: smoothMouseX,
-                    y: smoothMouseY,
-                    top: 0,
-                    left: 0,
-                    position: "absolute"
-                }}
-            >
-                <motion.div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border border-current rounded-full opacity-80"
-                    animate={isOverheated ? { scale: 1, opacity: 1 } : { scale: isShooting ? 0.8 : 1.2, opacity: isShooting ? 1 : 0.5 }}
-                    transition={{ duration: 0.16, ease: "easeOut" }}
-                />
-                <motion.div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-500 rounded-full"
-                    animate={{ scale: isOverheated ? 0 : 1, opacity: isOverheated ? 0 : 1 }}
-                    transition={{ duration: 0.14, ease: "easeOut" }}
-                />
-
-                <motion.div
-                    className="absolute inset-0"
-                    animate={isOverheated ? { opacity: 0, scale: 0.4 } : { opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.13, ease: "easeOut" }}
-                >
-                    <motion.div
-                        className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-2 bg-current"
-                        animate={{ y: isShooting ? 3 : -16 }}
-                    />
-                    <motion.div
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[1px] h-2 bg-current"
-                        animate={{ y: isShooting ? -3 : 16 }}
-                    />
-                    <motion.div
-                        className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                        animate={{ x: isShooting ? 3 : -16 }}
-                    />
-                    <motion.div
-                        className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2 h-[1px] bg-current"
-                        animate={{ x: isShooting ? -3 : 16 }}
-                    />
-                </motion.div>
-
-                <motion.div
-                    className="absolute inset-0 flex items-center justify-center"
-                    animate={isOverheated ? { opacity: 1, scale: 1, rotate: 45 } : { opacity: 0, scale: 0.4, rotate: 0 }}
-                    transition={{ duration: 0.13, ease: "easeOut" }}
-                >
-                    <div className="absolute w-full h-[1px] bg-current" />
-                    <div className="absolute w-full h-[1px] bg-current rotate-90" />
-                </motion.div>
-            </motion.div>
+            <MiniGameCrosshair
+                x={smoothMouseX}
+                y={smoothMouseY}
+                isOverheated={isOverheated}
+                isShooting={isShooting}
+            />
         </div >
     );
 }
-

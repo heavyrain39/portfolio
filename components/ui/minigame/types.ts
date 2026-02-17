@@ -23,6 +23,7 @@ export interface EnemyUnit {
 
 export type EnemyFamily = "normal" | "cluster" | "caterpillar";
 export type EnemyFormation = "single" | "peanut" | "triangle" | "line";
+export type FireMode = "dual" | "quad";
 
 export interface EnemyGroup {
     id: number;

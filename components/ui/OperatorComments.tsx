@@ -671,57 +671,62 @@ export default function OperatorComments({
             style={{ color: contrastColor }}
         >
             {/* Operator Profile Image Area */}
-            <AnimatePresence>
-                {isVisible && (
-                    <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.5 }}
-                        className="relative w-8 overflow-hidden border border-current/20 bg-current/5 isolate"
-                        style={{
-                            aspectRatio: "2/3",
-                            height: "2.5rem", // Roughly 2 lines of text (1.25rem * 2)
-                        }}
-                    >
-                        {/* Static images with opacity toggle for jitter-free blinking */}
-                        {renderImage("open")}
-                        {renderImage("close")}
-
-                        {/* Scanline Pattern (softened to blend with comment text tone) */}
-                        <div
-                            className="absolute inset-0 z-20 pointer-events-none"
-                            style={{
-                                opacity: 0.1,
-                                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, ${themeTintColor} 4px)`
-                            }}
-                        />
-
-                        {/* Bright Sweep Line (Every 2.5s) */}
+            <div
+                className="relative w-8 shrink-0"
+                style={{
+                    aspectRatio: "2/3",
+                    height: "2.5rem" // Roughly 2 lines of text (1.25rem * 2)
+                }}
+            >
+                <AnimatePresence>
+                    {isVisible && (
                         <motion.div
-                            className="absolute inset-0 pointer-events-none z-30"
-                            style={{
-                                background: `linear-gradient(to bottom, transparent, ${withAlpha(themeTintColor, 0.4)} 50%, transparent)`,
-                                height: "4px",
-                                width: "100%",
-                                filter: "blur(0.8px)",
-                            }}
-                            animate={{
-                                top: ["-10%", "110%"]
-                            }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 2.5,
-                                ease: "linear",
-                                repeatDelay: 0.5
-                            }}
-                        />
+                            initial={{ opacity: 0, scale: 0.72 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.78 }}
+                            transition={{ duration: 0.24, ease: "easeOut" }}
+                            className="absolute inset-0 overflow-hidden border border-current/20 bg-current/5 isolate"
+                            style={{ transformOrigin: "50% 60%" }}
+                        >
+                            {/* Static images with opacity toggle for jitter-free blinking */}
+                            {renderImage("open")}
+                            {renderImage("close")}
 
-                        {/* Overall Monitor Glow */}
-                        <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" style={{ opacity: 0.6 }} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            {/* Scanline Pattern (softened to blend with comment text tone) */}
+                            <div
+                                className="absolute inset-0 z-20 pointer-events-none"
+                                style={{
+                                    opacity: 0.1,
+                                    backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, ${themeTintColor} 4px)`
+                                }}
+                            />
+
+                            {/* Bright Sweep Line (Every 2.5s) */}
+                            <motion.div
+                                className="absolute inset-0 pointer-events-none z-30"
+                                style={{
+                                    background: `linear-gradient(to bottom, transparent, ${withAlpha(themeTintColor, 0.4)} 50%, transparent)`,
+                                    height: "4px",
+                                    width: "100%",
+                                    filter: "blur(0.8px)",
+                                }}
+                                animate={{
+                                    top: ["-10%", "110%"]
+                                }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 2.5,
+                                    ease: "linear",
+                                    repeatDelay: 0.5
+                                }}
+                            />
+
+                            {/* Overall Monitor Glow */}
+                            <div className="absolute inset-0 z-10 bg-current/5 pointer-events-none" style={{ opacity: 0.6 }} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
 
             {/* Comment Text Area */}
             <div className="max-w-[30ch]">

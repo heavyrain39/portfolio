@@ -15,7 +15,7 @@ export const ensureAudioContext = (audioCtxRef: AudioContextRefLike): AudioConte
 interface PlayGameSoundParams {
     audioCtxRef: AudioContextRefLike;
     isMuted: boolean;
-    type: "shoot" | "hit";
+    type: "shoot" | "hit" | "modeSwitch";
     sfxLevelScale: number;
 }
 
@@ -28,15 +28,39 @@ export const playGameSound = ({
     if (isMuted) return;
 
     const ctx = ensureAudioContext(audioCtxRef);
-    const osc = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    osc.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
     const now = ctx.currentTime;
 
-    if (type === "shoot") {
+    if (type === "modeSwitch") {
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = "square";
+        osc1.frequency.setValueAtTime(180, now);
+        osc1.frequency.exponentialRampToValueAtTime(130, now + 0.035);
+        gain1.gain.setValueAtTime(0.065 * sfxLevelScale, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.035);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(100, now + 0.024);
+        osc2.frequency.exponentialRampToValueAtTime(78, now + 0.075);
+        gain2.gain.setValueAtTime(0.0001, now);
+        gain2.gain.setValueAtTime(0.072 * sfxLevelScale, now + 0.024);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.075);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.024);
+        osc2.stop(now + 0.075);
+    } else if (type === "shoot") {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
         osc.type = "triangle";
         const baseFreq = 800 + (Math.random() - 0.5) * 120;
         osc.frequency.setValueAtTime(baseFreq, now);
@@ -48,6 +72,11 @@ export const playGameSound = ({
         osc.start(now);
         osc.stop(now + 0.1);
     } else {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
         osc.type = "sawtooth";
         const hitPitchScale = 1 + (Math.random() - 0.5) * 0.34; // ~+-17%
         const hitStartFreq = Math.max(60, 150 * hitPitchScale);
