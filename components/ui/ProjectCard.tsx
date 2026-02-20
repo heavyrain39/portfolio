@@ -24,7 +24,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                     src={project.thumbnail}
                     alt={project.title}
                     fill
-                    className="object-cover saturate-[0.8] brightness-[0.9] group-hover:saturate-100 group-hover:brightness-100 transition-all duration-300"
+                    className="project-card-image object-cover transition-all duration-300"
                     unoptimized
                 />
             </div>

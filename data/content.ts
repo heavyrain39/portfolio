@@ -31,6 +31,19 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "iching",
+        title: "주역점",
+        enTitle: "Daily I Ching",
+        lastUpdated: "2026-02-20",
+        concept: "브라우저에서 즐기는 데일리 주역점 운세",
+        description: "크롬 사이드 패널에서 3D 주사위를 굴려 64괘 중 하나를 뽑아볼 수 있는 무료 주역점 익스텐션. 매일 빠르고 간편하게 그날의 운세를 확인할 수 있다. 차분한 에디토리얼 UI, 5개 국어 지원.",
+        techStack: ["React 18", "TypeScript", "Vite 5", "Three.js", "Chrome Extension MV3"],
+        link: "https://chromewebstore.google.com/detail/leanlpamofllkckfmjiannjefkbbjheb",
+        linkText: "사용해 보기",
+        thumbnail: "/portfolio/images/thumbnail_iching.png",
+        category: "vibe-coding"
+    },
+    {
         id: "takt",
         title: "TAKT",
         enTitle: "Engineered Brown Noise",

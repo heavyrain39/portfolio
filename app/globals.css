@@ -64,3 +64,22 @@ body {
     font-family: var(--font-inter), sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Project card image treatment: lighter base, full color on non-hover devices */
+.project-card-image {
+    filter: saturate(0.9) brightness(0.96);
+}
+
+.group:hover .project-card-image {
+    filter: saturate(1) brightness(1);
+}
+
+@media (any-hover: none) {
+    .project-card-image {
+        filter: none !important;
+    }
+
+    .group:hover .project-card-image {
+        filter: none !important;
+    }
+}

@@ -2,8 +2,8 @@
 # Portfolio Redesign Project: Master Planning Document
 **Project**: Portfolio 2026 (Refactoring)
 **Author**: Antigravity (Collaborating with Yakshawan)
-**Version**: 2.2
-**Last Updated**: 2026-02-16 (MiniGame Handover Split)
+**Version**: 2.3
+**Last Updated**: 2026-02-17 (MiniGame 0.8 Sync)
 
 ---
 
@@ -84,27 +84,31 @@
 -   **Legacy**: 기존 `index.html` 및 자산은 `_legacy` 폴더에 백업.
 -   **Public Assets**: 이미지와 폰트는 `public/` 디렉토리로 이동하여 Next.js 정적 서빙 최적화.
 
-#### F. MiniGame (Vector Defense) [Updated 2026-02-16]
+#### F. MiniGame (Sidearm: Vector Defense) [Updated 2026-02-17]
 -   **Concept**: 포트폴리오의 정적 요소를 보완하고 체류 시간을 늘리기 위한 이스터 에그(Easter Egg) 성격의 미니게임. Hero 섹션 우측 공간을 활용.
 -   **Handover Split**: 미니게임 구현/피드백/후속 과제를 `handover-minigame.md`로 분리 관리.
 -   **Tech Specs**:
     -   **Engine**: HTML5 Canvas API + `requestAnimationFrame` (고성능 렌더링).
     -   **State Management**: `useRef`를 사용하여 리렌더링 없이 60fps 게임 루프 유지.
-    -   **Interaction**: `MouseEvent`를 직접 바인딩하여 마우스 추적 및 발사 처리. `mouseup`은 `window` 레벨에서 감지하여 클릭 상태 유실 방지.
+    -   **Interaction**: `MouseEvent` 직접 바인딩 + `mouseup` window 감지 + hover 중 wheel 입력으로 발사 모드 전환(스크롤 차단 포함).
     -   **Theme Caching**: `MutationObserver`로 `data-theme` 변경 감지 후 캐싱 (매 프레임 DOM 쿼리 제거).
 -   **Features**:
     -   **Gameplay**: 화면 양측에서 랜덤하게 생성되어 움직이는 타겟을 클릭하여 요격. 히트박스 관대화(+7) 및 첫 클릭 즉시 발사 보장.
     -   **Visuals**: 점선 링, 회전하는 사각형, 파티클 폭발 등 'Vector Monitor' 스타일의 레트로-퓨처리스틱 디자인.
     -   **Feedback**: 
         -   타겟 피격 시 밀려나는 **Knockback** 물리 효과 적용.
-        -   **Interactive Crosshair**: 평상시엔 열려있고, 사격 시 수축하는 애니메이션 (Framer Motion).
+        -   **Interactive Crosshair**: 미니게임 모듈(`MiniGameCrosshair`)로 분리. 평상시 open, 과열 시 lock-X 전환.
         -   **Dynamic UI**: 게임 영역 호버 시 은은하게 나타나는 코너 브래킷 및 테두리.
         -   **Screen Shake**: 타겟 파괴 시 캔버스 미세 흔들림 (3px 강도, 빠른 감쇠).
         -   **Hit Flash**: 피격 시 작은 원형 플래시, 파괴 시 큰 플래시 (흰색, 5프레임 감쇠).
         -   **Kill Popup**: 파괴 시 "+1" 텍스트가 표시 후 좌우로 흩어지며 페이드아웃.
         -   **Pitch Variation**: 사격음의 기본 주파수(800Hz)에 ±60Hz 랜덤 변동 적용.
-    -   **Score**: 'TARGET TERMINATED' 카운터가 좌측 하단에 실시간 업데이트.
-    -   **Audio**: 사격음(Triangle wave) 및 파괴음(Sawtooth wave) 구현. 뮤트 토글 지원.
+    -   **Score/HUD**: HUD를 `MiniGameHud`로 분리. 좌하단 `MODE`, `HEAT`, `TARGETS TERMINATED` 정렬 개선 및 점수 pop 모션 유지.
+    -   **Audio**: 사격/피격 합성음 + 모드 전환 click(`modeSwitch`) 합성음 추가. 뮤트 토글 연동.
+    -   **Fire Mode**:
+        -   기본 `DUAL`, wheel 전환으로 `QUAD` 토글.
+        -   `QUAD`는 발사 cadence 유지 + 샷 수 증가 패턴.
+        -   `QUAD`에서 heat 누적 1.5배.
     -   **Enemy System (v2)**:
         -   단일 타겟 기반에서 `EnemyGroup + EnemyUnit` 구조로 확장.
         -   연결체(2/3) + 애벌레(3~5) + 분리/질량/방어력(+2) 규칙 1차 반영.
@@ -112,12 +116,12 @@
         -   동적 스폰 주기(35 -> 33 -> 31), 연결체/애벌레 출현 확률(각 3%) 적용.
         -   화면 경계 이탈 방지(반쯤까지만 진입) 적용.
         -   점선 융합 렌더(개별 원형 링 유지 + 연결부 cutout), 분리 시 앵커 재구성, 애벌레 no-flip 스무스 턴/웨이브 강화 반영.
-    -   **Stats**: 게임플레이, 디자인 폴리싱, 사운드, 타격감 개선 완료.
+    -   **Stats**: 게임플레이, UI 모듈화, 사운드, 타격감 개선 완료.
     -   **Pending**:
         -   모바일 환경에서의 터치 최적화 (현재는 PC/마우스 중심).
         -   애벌레 오프스크린 완성형 출현 (in-view stretch 제거).
-        -   결합 상태 비파괴 피격 시 개체별 충격량 + 회전 토크 기반 넉백.
-        -   `MiniGame.tsx` 모듈화 (상세: `handover-minigame.md`).
+        -   (선택) 발사/열관리 계수 debug 토글화.
+        -   상세 변경 이력/튜너블/회귀 체크리스트는 `handover-minigame.md` 0.8 기준 참조.
 
 #### G. Operator Voice System [Updated 2026-02-16]
 -   **Voice Assets**: 오퍼레이터 코멘트 25개에 대응하는 보이스 25개를 `WebM(Opus)` + `M4A(AAC)`로 운영.
