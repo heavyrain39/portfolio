@@ -31,6 +31,19 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "mstrmnd",
+        title: "마스터마인드",
+        enTitle: "Mastermind - Web Audio Mastering",
+        lastUpdated: "2026-02-21",
+        concept: "유튜브 음원을 위한 영리한 배치 마스터링 도구.",
+        description: "최대 50곡까지 일괄 처리하는 웹 기반 마스터링 툴. 유튜브 최적화 볼륨 세팅과 6개 프리셋 완비, 커스텀 설정 가능. 프로페셔널한 사운드를 무료로, 빠르게 완성하자.",
+        techStack: ["React 18", "TypeScript", "Vite 5", "Web Audio API", "Web Workers"],
+        link: "https://mstr-mnd.vercel.app/",
+        linkText: "사용해 보기",
+        thumbnail: "/portfolio/images/thumbnail_mstrmnd.png",
+        category: "vibe-coding"
+    },
+    {
         id: "iching",
         title: "易: 주역으로 보는 오늘의 운세",
         enTitle: "易: Daily I Ching",
