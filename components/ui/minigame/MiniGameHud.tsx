@@ -89,7 +89,7 @@ export default function MiniGameHud({
 
             <div className="flex items-center gap-4">
                 <div className="text-[10px] font-mono opacity-30 text-right text-foreground">
-                    <div>VECTOR_SYS_V2.0</div>
+                    <div>WHEEL_TO_SWITCH</div>
                     <div>CLICK_TO_ENGAGE</div>
                 </div>
 
