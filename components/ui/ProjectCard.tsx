@@ -4,27 +4,50 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Project } from "@/data/content";
 import { ExternalLink } from "lucide-react";
+import { useRef } from "react";
 
 interface ProjectCardProps {
     project: Project;
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        cardRef.current.style.setProperty("--mouse-x", `${x}%`);
+        cardRef.current.style.setProperty("--mouse-y", `${y}%`);
+    };
+
+    const handleMouseLeave = () => {
+        if (!cardRef.current) return;
+        cardRef.current.style.setProperty("--mouse-x", `50%`);
+        cardRef.current.style.setProperty("--mouse-y", `50%`);
+    };
+
     return (
-        <div className="group relative flex flex-col gap-4">
+        <div className="group relative flex flex-col gap-3">
             {/* Timestamp / Meta */}
-            <div className="flex justify-between items-center text-xs font-mono opacity-50 border-b border-border/50 pb-2">
+            <div className="flex justify-between items-center text-xs font-mono opacity-50 border-b border-border/50 pb-1">
                 <span>{project.id.toUpperCase()}</span>
                 <span>{project.lastUpdated}</span>
             </div>
 
-            <div className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-border/50 group-hover:border-foreground/50 transition-colors duration-300">
+            <div
+                ref={cardRef}
+                className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-border/50 group-hover:border-foreground/50 transition-colors duration-300"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+            >
                 {/* Next.js Image component handles basePath automatically when src starts with / */}
                 <Image
                     src={project.thumbnail}
                     alt={project.title}
                     fill
-                    className="project-card-image object-cover transition-all duration-300"
+                    className="project-card-image object-cover"
                     unoptimized
                 />
             </div>
