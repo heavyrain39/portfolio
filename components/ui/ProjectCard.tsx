@@ -69,16 +69,28 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                     {project.description}
                 </p>
 
-                {project.link && (
-                    <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="self-start mt-2 text-xs font-bold border-b border-foreground pb-0.5 hover:opacity-50 transition-opacity flex items-center gap-1"
-                    >
-                        {project.linkText || "VIEW PROJECT"} <ExternalLink size={10} />
-                    </a>
-                )}
+                <div className="flex gap-3">
+                    {project.link && (
+                        <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="self-start mt-2 text-xs font-bold border-b border-foreground pb-0.5 hover:opacity-50 transition-opacity flex items-center gap-1"
+                        >
+                            {project.linkText || "VIEW PROJECT"} <ExternalLink size={10} />
+                        </a>
+                    )}
+                    {project.secondaryLink && (
+                        <a
+                            href={project.secondaryLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="self-start mt-2 text-xs font-bold border-b border-foreground pb-0.5 hover:opacity-50 transition-opacity flex items-center gap-1"
+                        >
+                            {project.secondaryLinkText || "VIEW PROJECT"} <ExternalLink size={10} />
+                        </a>
+                    )}
+                </div>
             </div>
         </div>
     );

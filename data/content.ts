@@ -9,6 +9,8 @@ export interface Project {
     techStack: string[];
     link?: string;
     linkText?: string;
+    secondaryLink?: string;
+    secondaryLinkText?: string;
     thumbnail: string; // Path to image
     category: "vibe-coding" | "web-app" | "game" | "other";
 }
@@ -34,12 +36,14 @@ export const projects: Project[] = [
         id: "mstrmnd",
         title: "마스터마인드",
         enTitle: "Mastermind: Your clever audio mastering ally",
-        lastUpdated: "2026-02-21",
+        lastUpdated: "2026-02-23",
         concept: "유튜브 음원을 위한 영리한 마스터링 도구.",
         description: "다수의 트랙을 처리하는 작업자를 위해 만들어진 웹 기반 배치 마스터링 솔루션. 최대 50개 트랙 일괄 처리. 유튜브/스트리밍 최적화 볼륨 세팅과 6개 프리셋, 커스텀 설정 가능. 프로페셔널한 사운드를 무료로, 빠르게 완성하자.",
         techStack: ["React 18", "TypeScript", "Vite 5", "Web Audio API", "Web Workers"],
         link: "https://mstr-mnd.vercel.app/",
         linkText: "사용해 보기",
+        secondaryLink: "https://chromewebstore.google.com/detail/mastermind/amifcacblgkkccoejchknikodagjhopk",
+        secondaryLinkText: "크롬 익스텐션",
         thumbnail: "/portfolio/images/thumbnail_mstrmnd.png",
         category: "vibe-coding"
     },
