@@ -60,6 +60,7 @@ export default function MiniGame() {
     const isHoveredRef = useRef(false);
     const fireModeRef = useRef<FireMode>("dual");
     const lastWheelModeSwitchAt = useRef(0);
+    const physicsAccumulator = useRef(0);
 
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
@@ -221,307 +222,361 @@ export default function MiniGame() {
                 }
             }
 
-            const shakeX =
-                shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
-            const shakeY =
-                shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
-            shakeIntensity.current *= 0.85;
-            if (shakeIntensity.current < 0.3) shakeIntensity.current = 0;
+            const isDark = cachedIsDark.current;
+            const bulletColor = isDark ? "#06b6d4" : "#c89290"; // Cyan for dark, Dusty Pink for light
+
+            physicsAccumulator.current += deltaMs;
+            // Limit the accumulator to avoid "spiral of death" or huge catches up if tab is backgrounded
+            if (physicsAccumulator.current > 100) {
+                physicsAccumulator.current = 100;
+            }
+
+            // The original developer tuned all velocities (e.g. vx = 60), damping, and spawn intervals 
+            // strictly on a 30Hz monitor without delta time multipliers. 
+            // Therefore, "1.0x" normal speed for this game is exactly 30 physics ticks per second (33.33ms).
+            const FIXED_STEP = 33.3333333;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
-            ctx.translate(shakeX, shakeY);
 
-            frameCount.current++;
-            const spawnInterval = getSpawnIntervalFrames(scoreRef.current);
-            if (frameCount.current % spawnInterval === 0) {
-                spawnEnemyGroup({
-                    enemyGroups: enemyGroups.current,
-                    canvasWidth: canvas.width,
-                    canvasHeight: canvas.height,
-                    physicsPreset
-                });
-            }
+            while (physicsAccumulator.current >= FIXED_STEP) {
+                physicsAccumulator.current -= FIXED_STEP;
 
-            if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > 40) {
-                const startY = canvas.height;
-                const leftX = canvas.width * 0.2;
-                const rightX = canvas.width * 0.8;
-                const burstSpread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
+                shakeIntensity.current *= 0.85;
+                if (shakeIntensity.current < 0.3) shakeIntensity.current = 0;
 
-                const spawnBullet = (startX: number, spread: number) => {
-                    const dx = mousePos.current.x - startX;
-                    const dy = mousePos.current.y - startY;
-                    const angle = Math.atan2(dy, dx);
-                    bullets.current.push({
-                        id: Math.random(),
-                        x: startX,
-                        y: startY,
-                        vx: Math.cos(angle + spread) * 60,
-                        vy: Math.sin(angle + spread) * 60,
-                        life: 1.0
+                frameCount.current++;
+                const spawnInterval = getSpawnIntervalFrames(scoreRef.current);
+                if (frameCount.current % spawnInterval === 0) {
+                    spawnEnemyGroup({
+                        enemyGroups: enemyGroups.current,
+                        canvasWidth: canvas.width,
+                        canvasHeight: canvas.height,
+                        physicsPreset
                     });
-                };
+                }
 
-                if (fireModeRef.current === "dual") {
-                    const originSide = Math.random() > 0.5 ? "left" : "right";
-                    const startX = originSide === "left" ? leftX : rightX;
-                    spawnBullet(startX, burstSpread);
-                } else {
-                    const laneOffsetX = 4;
-                    const sidePickA = Math.random() > 0.5 ? "left" : "right";
-                    const sidePickB = Math.random() > 0.5 ? "left" : "right";
-                    const shotSides: Array<"left" | "right"> = [sidePickA, sidePickB];
-                    const sideTotals = {
-                        left: shotSides.filter((side) => side === "left").length,
-                        right: shotSides.filter((side) => side === "right").length
+                if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > 40) {
+                    const startY = canvas.height;
+                    const leftX = canvas.width * 0.2;
+                    const rightX = canvas.width * 0.8;
+                    const burstSpread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
+
+                    const spawnBullet = (startX: number, spread: number) => {
+                        const dx = mousePos.current.x - startX;
+                        const dy = mousePos.current.y - startY;
+                        const angle = Math.atan2(dy, dx);
+                        bullets.current.push({
+                            id: Math.random(),
+                            x: startX,
+                            y: startY,
+                            vx: Math.cos(angle + spread) * 60,
+                            vy: Math.sin(angle + spread) * 60,
+                            life: 1.0
+                        });
                     };
-                    let leftAssigned = 0;
-                    let rightAssigned = 0;
 
-                    for (const side of shotSides) {
-                        const isLeft = side === "left";
-                        const centerX = isLeft ? leftX : rightX;
-                        if (isLeft) {
-                            leftAssigned++;
-                        } else {
-                            rightAssigned++;
+                    if (fireModeRef.current === "dual") {
+                        const originSide = Math.random() > 0.5 ? "left" : "right";
+                        const startX = originSide === "left" ? leftX : rightX;
+                        spawnBullet(startX, burstSpread);
+                    } else {
+                        const laneOffsetX = 4;
+                        const sidePickA = Math.random() > 0.5 ? "left" : "right";
+                        const sidePickB = Math.random() > 0.5 ? "left" : "right";
+                        const shotSides: Array<"left" | "right"> = [sidePickA, sidePickB];
+                        const sideTotals = {
+                            left: shotSides.filter((side) => side === "left").length,
+                            right: shotSides.filter((side) => side === "right").length
+                        };
+                        let leftAssigned = 0;
+                        let rightAssigned = 0;
+
+                        for (const side of shotSides) {
+                            const isLeft = side === "left";
+                            const centerX = isLeft ? leftX : rightX;
+                            if (isLeft) {
+                                leftAssigned++;
+                            } else {
+                                rightAssigned++;
+                            }
+
+                            const sideCount = isLeft ? sideTotals.left : sideTotals.right;
+                            const sideIndex = isLeft ? leftAssigned : rightAssigned;
+                            const laneSign =
+                                sideCount > 1
+                                    ? (sideIndex === 1 ? -1 : 1)
+                                    : (Math.random() > 0.5 ? 1 : -1);
+                            const horizontalJitter = (Math.random() - 0.5) * 1.6;
+                            const startX = centerX + laneSign * laneOffsetX + horizontalJitter;
+                            const randomSpray = (Math.random() - 0.5) * 0.1;
+                            const spread = burstSpread * 0.45 + randomSpray;
+                            spawnBullet(startX, spread);
                         }
+                    }
 
-                        const sideCount = isLeft ? sideTotals.left : sideTotals.right;
-                        const sideIndex = isLeft ? leftAssigned : rightAssigned;
-                        const laneSign =
-                            sideCount > 1
-                                ? (sideIndex === 1 ? -1 : 1)
-                                : (Math.random() > 0.5 ? 1 : -1);
-                        const horizontalJitter = (Math.random() - 0.5) * 1.6;
-                        const startX = centerX + laneSign * laneOffsetX + horizontalJitter;
-                        const randomSpray = (Math.random() - 0.5) * 0.1;
-                        const spread = burstSpread * 0.45 + randomSpray;
-                        spawnBullet(startX, spread);
+                    burstShotCount.current++;
+                    playSound("shoot");
+                    lastShotTime.current = time;
+
+                    const heatMultiplier = fireModeRef.current === "quad" ? QUAD_MODE_HEAT_MULTIPLIER : 1;
+                    const nextHeat = Math.min(1, heatRatioRef.current + HEAT_PER_SHOT * heatMultiplier);
+                    heatRatioRef.current = nextHeat;
+                    setHeatRatio(nextHeat);
+                    if (nextHeat >= 1 && !isOverheatedRef.current) {
+                        isOverheatedRef.current = true;
+                        setIsOverheated(true);
+                        setIsShooting(false);
                     }
                 }
 
-                burstShotCount.current++;
-                playSound("shoot");
-                lastShotTime.current = time;
+                for (let i = bullets.current.length - 1; i >= 0; i--) {
+                    const bullet = bullets.current[i];
+                    bullet.x += bullet.vx;
+                    bullet.y += bullet.vy;
 
-                const heatMultiplier = fireModeRef.current === "quad" ? QUAD_MODE_HEAT_MULTIPLIER : 1;
-                const nextHeat = Math.min(1, heatRatioRef.current + HEAT_PER_SHOT * heatMultiplier);
-                heatRatioRef.current = nextHeat;
-                setHeatRatio(nextHeat);
-                if (nextHeat >= 1 && !isOverheatedRef.current) {
-                    isOverheatedRef.current = true;
-                    setIsOverheated(true);
-                    setIsShooting(false);
+                    if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                        bullets.current.splice(i, 1);
+                        continue;
+                    }
+
+                    let didHit = false;
+
+                    for (let groupIndex = enemyGroups.current.length - 1; groupIndex >= 0; groupIndex--) {
+                        const group = enemyGroups.current[groupIndex];
+                        const worldUnits = getWorldUnitPositions(group);
+
+                        for (let unitCursor = worldUnits.length - 1; unitCursor >= 0; unitCursor--) {
+                            const worldUnit = worldUnits[unitCursor];
+                            const dist = Math.hypot(bullet.x - worldUnit.x, bullet.y - worldUnit.y);
+                            if (dist >= group.radius + 7) continue;
+
+                            bullets.current.splice(i, 1);
+                            didHit = true;
+
+                            const unit = worldUnit.unit;
+                            unit.hp--;
+                            if (unit.fusionBonusRemaining > 0) {
+                                unit.fusionBonusRemaining--;
+                            }
+                            unit.squareSpinDir *= -1;
+
+                            const bulletSpeed = Math.hypot(bullet.vx, bullet.vy) || 1;
+                            const hitNx = bullet.vx / bulletSpeed;
+                            const hitNy = bullet.vy / bulletSpeed;
+                            const isNonLethalFusionHit = group.units.length > 1 && unit.hp > 0;
+                            if (isNonLethalFusionHit) {
+                                applyPerUnitImpactKnockback(
+                                    group,
+                                    worldUnits,
+                                    worldUnit.index,
+                                    hitNx,
+                                    hitNy,
+                                    physicsPreset
+                                );
+                            } else {
+                                const knockback = physicsPreset.knockbackBase / Math.max(group.mass, 1);
+                                group.vx += hitNx * knockback;
+                                group.vy += hitNy * knockback;
+                                group.x += hitNx * 6;
+                                group.y += hitNy * 6;
+                            }
+
+                            createExplosion(particles.current, bullet.x, bullet.y, 4, bulletColor, {
+                                speedScale: 0.7,
+                                sizeScale: 0.55,
+                                lifeDecayScale: 2.2
+                            });
+                            hitFlashes.current.push({ x: bullet.x, y: bullet.y, life: 1.0, radius: 5 });
+
+                            if (unit.hp <= 0) {
+                                createExplosion(particles.current, worldUnit.x, worldUnit.y, 20, bulletColor, {
+                                    speedScale: 0.8,
+                                    lifeDecayScale: 1.1
+                                });
+                                playSound("hit");
+                                shakeIntensity.current = 3;
+                                hitFlashes.current.push({
+                                    x: worldUnit.x,
+                                    y: worldUnit.y,
+                                    life: 1.0,
+                                    radius: group.radius * 0.8
+                                });
+
+                                const dir = Math.random() > 0.5 ? 1 : -1;
+                                floatingTexts.current.push({
+                                    x: worldUnit.x,
+                                    y: worldUnit.y,
+                                    vx: dir * (Math.random() * 0.5 + 0.5),
+                                    vy: -1.5,
+                                    life: 1.0,
+                                    text: "+1"
+                                });
+
+                                scoreRef.current++;
+                                setUiScore(scoreRef.current);
+
+                                handleUnitDestroyed(enemyGroups.current, groupIndex, worldUnit.index);
+                            }
+
+                            break;
+                        }
+
+                        if (didHit) break;
+                    } // End groupIndex loop
+
+                    if (didHit) break;
+                } // End bullet loop
+
+                for (let i = 0; i < enemyGroups.current.length; i++) {
+                    const group = enemyGroups.current[i];
+                    const formation = getFormation(group);
+                    group.phase += group.driftFreq;
+                    group.turnCooldown = Math.max(0, group.turnCooldown - 1);
+                    group.angularVelocity *= group.angularDamping;
+                    if (Math.abs(group.angularVelocity) < 0.00002) {
+                        group.angularVelocity = 0;
+                    }
+                    if (group.units.length > 1 && formation !== "line") {
+                        // Keep idle spin active, but let hit impulse torque dominate short-term motion.
+                        group.angularVelocity += (group.rotationSpeed - group.angularVelocity) * 0.045;
+                        group.rotation += group.angularVelocity;
+                        if (group.family === "caterpillar" && formation === "peanut") {
+                            const alignDelta = getAngleDelta(group.heading, group.rotation);
+                            group.heading += clamp(alignDelta, -0.02, 0.02);
+                        }
+                    } else if (group.family === "caterpillar" && formation === "line" && group.angularVelocity !== 0) {
+                        group.heading += group.angularVelocity;
+                    }
+
+                    if (group.family === "caterpillar") {
+                        const weaveNudge = Math.sin(group.phase * 0.9 + group.id * 5.2) * 0.01;
+                        if (group.turnTargetHeading !== null) {
+                            const delta = getAngleDelta(group.heading, group.turnTargetHeading);
+                            const step = clamp(delta, -group.turnAngularSpeed, group.turnAngularSpeed);
+                            group.heading += step + weaveNudge * 0.25;
+                            if (Math.abs(delta) < 0.05) {
+                                group.heading = group.turnTargetHeading;
+                                group.turnTargetHeading = null;
+                            }
+                        } else {
+                            group.heading += weaveNudge;
+                        }
+
+                        const desiredVx = Math.cos(group.heading) * group.baseSpeed;
+                        const desiredVy =
+                            Math.sin(group.heading) * group.baseSpeed * 0.9 +
+                            Math.sin(group.phase * 1.25 + group.id * 3.1) * 0.16;
+
+                        group.vx += (desiredVx - group.vx) * 0.09;
+                        group.vy += (desiredVy - group.vy) * 0.09;
+                        group.vx *= 0.992;
+                        group.vy *= 0.992;
+                    } else {
+                        const desiredVx = group.dir * group.baseSpeed + Math.cos(group.phase * 0.7 + group.id * 10) * 0.35;
+                        const desiredVy =
+                            Math.sin(group.phase) * group.driftAmp +
+                            Math.cos(group.phase * 0.6 + group.id * 6) * 0.25;
+
+                        group.vx += (desiredVx - group.vx) * group.steer;
+                        group.vy += (desiredVy - group.vy) * group.steer;
+                        group.vx *= group.damping;
+                        group.vy *= group.damping;
+                    }
+
+                    const speed = Math.hypot(group.vx, group.vy);
+                    if (speed > group.maxSpeed) {
+                        const scale = group.maxSpeed / speed;
+                        group.vx *= scale;
+                        group.vy *= scale;
+                    }
+
+                    group.x += group.vx;
+                    group.y += group.vy;
+                    if (group.family !== "caterpillar") {
+                        group.dir = group.vx >= 0 ? 1 : -1;
+                    }
+
+                    updateArenaEntryState(group, canvas.width);
+                    const wallHit = applyBoundaryConstraints(group, canvas.width, canvas.height);
+                    if (
+                        group.family === "caterpillar" &&
+                        (wallHit.hitX || wallHit.hitY) &&
+                        group.turnCooldown <= 0 &&
+                        group.turnTargetHeading === null
+                    ) {
+                        const turnSide = Math.random() > 0.5 ? 1 : -1;
+                        const turnAmount = (Math.PI * (0.42 + Math.random() * 0.2)) * turnSide;
+                        let nextHeading = group.heading + turnAmount;
+
+                        const toCenter = Math.atan2(canvas.height * 0.5 - group.y, canvas.width * 0.5 - group.x);
+                        const centerDelta = getAngleDelta(nextHeading, toCenter);
+                        nextHeading += centerDelta * 0.22;
+
+                        const limitedDelta = clamp(getAngleDelta(group.heading, nextHeading), -Math.PI * 0.62, Math.PI * 0.62);
+                        nextHeading = group.heading + limitedDelta;
+
+                        group.turnTargetHeading = nextHeading;
+                        group.turnCooldown = 34 + Math.random() * 24;
+                    }
                 }
-            }
+
+                resolveGroupCollisions(enemyGroups.current, physicsPreset);
+                for (const group of enemyGroups.current) {
+                    updateArenaEntryState(group, canvas.width);
+                    applyBoundaryConstraints(group, canvas.width, canvas.height);
+                }
+
+                for (let i = particles.current.length - 1; i >= 0; i--) {
+                    const p = particles.current[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += GRAVITY;
+                    p.life -= 0.03 * p.lifeDecayScale;
+
+                    if (p.life <= 0) {
+                        particles.current.splice(i, 1);
+                    }
+                }
+
+                for (let i = hitFlashes.current.length - 1; i >= 0; i--) {
+                    const flash = hitFlashes.current[i];
+                    flash.life -= 0.2;
+
+                    if (flash.life <= 0) {
+                        hitFlashes.current.splice(i, 1);
+                    }
+                }
+
+                for (let i = floatingTexts.current.length - 1; i >= 0; i--) {
+                    const ft = floatingTexts.current[i];
+                    ft.x += ft.vx;
+                    ft.y += ft.vy;
+                    ft.vx *= 1.06;
+                    ft.life -= 0.028;
+
+                    if (ft.life <= 0) {
+                        floatingTexts.current.splice(i, 1);
+                    }
+                }
+            } // end of physics update loop
+
+            const shakeX = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
+            const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
+            ctx.translate(shakeX, shakeY);
 
             for (let i = bullets.current.length - 1; i >= 0; i--) {
                 const bullet = bullets.current[i];
-                bullet.x += bullet.vx;
-                bullet.y += bullet.vy;
-
-                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
-                    bullets.current.splice(i, 1);
-                    continue;
-                }
-
                 ctx.beginPath();
                 ctx.moveTo(bullet.x - bullet.vx * 0.5, bullet.y - bullet.vy * 0.5);
                 ctx.lineTo(bullet.x, bullet.y);
-                ctx.strokeStyle = "#06b6d4";
+                ctx.strokeStyle = bulletColor;
                 ctx.lineWidth = 2;
                 ctx.stroke();
-
-                let didHit = false;
-
-                for (let groupIndex = enemyGroups.current.length - 1; groupIndex >= 0; groupIndex--) {
-                    const group = enemyGroups.current[groupIndex];
-                    const worldUnits = getWorldUnitPositions(group);
-
-                    for (let unitCursor = worldUnits.length - 1; unitCursor >= 0; unitCursor--) {
-                        const worldUnit = worldUnits[unitCursor];
-                        const dist = Math.hypot(bullet.x - worldUnit.x, bullet.y - worldUnit.y);
-                        if (dist >= group.radius + 7) continue;
-
-                        bullets.current.splice(i, 1);
-                        didHit = true;
-
-                        const unit = worldUnit.unit;
-                        unit.hp--;
-                        if (unit.fusionBonusRemaining > 0) {
-                            unit.fusionBonusRemaining--;
-                        }
-                        unit.squareSpinDir *= -1;
-
-                        const bulletSpeed = Math.hypot(bullet.vx, bullet.vy) || 1;
-                        const hitNx = bullet.vx / bulletSpeed;
-                        const hitNy = bullet.vy / bulletSpeed;
-                        const isNonLethalFusionHit = group.units.length > 1 && unit.hp > 0;
-                        if (isNonLethalFusionHit) {
-                            applyPerUnitImpactKnockback(
-                                group,
-                                worldUnits,
-                                worldUnit.index,
-                                hitNx,
-                                hitNy,
-                                physicsPreset
-                            );
-                        } else {
-                            const knockback = physicsPreset.knockbackBase / Math.max(group.mass, 1);
-                            group.vx += hitNx * knockback;
-                            group.vy += hitNy * knockback;
-                            group.x += hitNx * 6;
-                            group.y += hitNy * 6;
-                        }
-
-                        createExplosion(particles.current, bullet.x, bullet.y, 4, "#06b6d4", {
-                            speedScale: 0.7,
-                            sizeScale: 0.55,
-                            lifeDecayScale: 2.2
-                        });
-                        hitFlashes.current.push({ x: bullet.x, y: bullet.y, life: 1.0, radius: 5 });
-
-                        if (unit.hp <= 0) {
-                            createExplosion(particles.current, worldUnit.x, worldUnit.y, 20, "#06b6d4", {
-                                speedScale: 0.8,
-                                lifeDecayScale: 1.1
-                            });
-                            playSound("hit");
-                            shakeIntensity.current = 3;
-                            hitFlashes.current.push({
-                                x: worldUnit.x,
-                                y: worldUnit.y,
-                                life: 1.0,
-                                radius: group.radius * 0.8
-                            });
-
-                            const dir = Math.random() > 0.5 ? 1 : -1;
-                            floatingTexts.current.push({
-                                x: worldUnit.x,
-                                y: worldUnit.y,
-                                vx: dir * (Math.random() * 0.5 + 0.5),
-                                vy: -1.5,
-                                life: 1.0,
-                                text: "+1"
-                            });
-
-                            scoreRef.current++;
-                            setUiScore(scoreRef.current);
-
-                            handleUnitDestroyed(enemyGroups.current, groupIndex, worldUnit.index);
-                        }
-
-                        break;
-                    }
-
-                    if (didHit) break;
-                }
             }
 
-            const isDark = cachedIsDark.current;
             const targetBorder = isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)";
             const targetCenter = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
-
-            for (let i = 0; i < enemyGroups.current.length; i++) {
-                const group = enemyGroups.current[i];
-                const formation = getFormation(group);
-                group.phase += group.driftFreq;
-                group.turnCooldown = Math.max(0, group.turnCooldown - 1);
-                group.angularVelocity *= group.angularDamping;
-                if (Math.abs(group.angularVelocity) < 0.00002) {
-                    group.angularVelocity = 0;
-                }
-                if (group.units.length > 1 && formation !== "line") {
-                    // Keep idle spin active, but let hit impulse torque dominate short-term motion.
-                    group.angularVelocity += (group.rotationSpeed - group.angularVelocity) * 0.045;
-                    group.rotation += group.angularVelocity;
-                    if (group.family === "caterpillar" && formation === "peanut") {
-                        const alignDelta = getAngleDelta(group.heading, group.rotation);
-                        group.heading += clamp(alignDelta, -0.02, 0.02);
-                    }
-                } else if (group.family === "caterpillar" && formation === "line" && group.angularVelocity !== 0) {
-                    group.heading += group.angularVelocity;
-                }
-
-                if (group.family === "caterpillar") {
-                    const weaveNudge = Math.sin(group.phase * 0.9 + group.id * 5.2) * 0.01;
-                    if (group.turnTargetHeading !== null) {
-                        const delta = getAngleDelta(group.heading, group.turnTargetHeading);
-                        const step = clamp(delta, -group.turnAngularSpeed, group.turnAngularSpeed);
-                        group.heading += step + weaveNudge * 0.25;
-                        if (Math.abs(delta) < 0.05) {
-                            group.heading = group.turnTargetHeading;
-                            group.turnTargetHeading = null;
-                        }
-                    } else {
-                        group.heading += weaveNudge;
-                    }
-
-                    const desiredVx = Math.cos(group.heading) * group.baseSpeed;
-                    const desiredVy =
-                        Math.sin(group.heading) * group.baseSpeed * 0.9 +
-                        Math.sin(group.phase * 1.25 + group.id * 3.1) * 0.16;
-
-                    group.vx += (desiredVx - group.vx) * 0.09;
-                    group.vy += (desiredVy - group.vy) * 0.09;
-                    group.vx *= 0.992;
-                    group.vy *= 0.992;
-                } else {
-                    const desiredVx = group.dir * group.baseSpeed + Math.cos(group.phase * 0.7 + group.id * 10) * 0.35;
-                    const desiredVy =
-                        Math.sin(group.phase) * group.driftAmp +
-                        Math.cos(group.phase * 0.6 + group.id * 6) * 0.25;
-
-                    group.vx += (desiredVx - group.vx) * group.steer;
-                    group.vy += (desiredVy - group.vy) * group.steer;
-                    group.vx *= group.damping;
-                    group.vy *= group.damping;
-                }
-
-                const speed = Math.hypot(group.vx, group.vy);
-                if (speed > group.maxSpeed) {
-                    const scale = group.maxSpeed / speed;
-                    group.vx *= scale;
-                    group.vy *= scale;
-                }
-
-                group.x += group.vx;
-                group.y += group.vy;
-                if (group.family !== "caterpillar") {
-                    group.dir = group.vx >= 0 ? 1 : -1;
-                }
-
-                updateArenaEntryState(group, canvas.width);
-                const wallHit = applyBoundaryConstraints(group, canvas.width, canvas.height);
-                if (
-                    group.family === "caterpillar" &&
-                    (wallHit.hitX || wallHit.hitY) &&
-                    group.turnCooldown <= 0 &&
-                    group.turnTargetHeading === null
-                ) {
-                    const turnSide = Math.random() > 0.5 ? 1 : -1;
-                    const turnAmount = (Math.PI * (0.42 + Math.random() * 0.2)) * turnSide;
-                    let nextHeading = group.heading + turnAmount;
-
-                    const toCenter = Math.atan2(canvas.height * 0.5 - group.y, canvas.width * 0.5 - group.x);
-                    const centerDelta = getAngleDelta(nextHeading, toCenter);
-                    nextHeading += centerDelta * 0.22;
-
-                    const limitedDelta = clamp(getAngleDelta(group.heading, nextHeading), -Math.PI * 0.62, Math.PI * 0.62);
-                    nextHeading = group.heading + limitedDelta;
-
-                    group.turnTargetHeading = nextHeading;
-                    group.turnCooldown = 34 + Math.random() * 24;
-                }
-            }
-
-            resolveGroupCollisions(enemyGroups.current, physicsPreset);
-            for (const group of enemyGroups.current) {
-                updateArenaEntryState(group, canvas.width);
-                applyBoundaryConstraints(group, canvas.width, canvas.height);
-            }
 
             for (const group of enemyGroups.current) {
                 const formation = getFormation(group);
@@ -588,18 +643,8 @@ export default function MiniGame() {
                 }
             }
 
-            for (let i = particles.current.length - 1; i >= 0; i--) {
+            for (let i = 0; i < particles.current.length; i++) {
                 const p = particles.current[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += GRAVITY;
-                p.life -= 0.03 * p.lifeDecayScale;
-
-                if (p.life <= 0) {
-                    particles.current.splice(i, 1);
-                    continue;
-                }
-
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
@@ -611,15 +656,8 @@ export default function MiniGame() {
                 ctx.globalAlpha = 1.0;
             }
 
-            for (let i = hitFlashes.current.length - 1; i >= 0; i--) {
+            for (let i = 0; i < hitFlashes.current.length; i++) {
                 const flash = hitFlashes.current[i];
-                flash.life -= 0.2;
-
-                if (flash.life <= 0) {
-                    hitFlashes.current.splice(i, 1);
-                    continue;
-                }
-
                 ctx.globalAlpha = flash.life * 0.5;
                 ctx.fillStyle = "#ffffff";
                 ctx.beginPath();
@@ -629,18 +667,8 @@ export default function MiniGame() {
             }
 
             const textColor = isDark ? "255, 255, 255" : "0, 0, 0";
-            for (let i = floatingTexts.current.length - 1; i >= 0; i--) {
+            for (let i = 0; i < floatingTexts.current.length; i++) {
                 const ft = floatingTexts.current[i];
-                ft.x += ft.vx;
-                ft.y += ft.vy;
-                ft.vx *= 1.06;
-                ft.life -= 0.028;
-
-                if (ft.life <= 0) {
-                    floatingTexts.current.splice(i, 1);
-                    continue;
-                }
-
                 const alpha = Math.min(ft.life * 2, 1);
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = `rgba(${textColor}, ${alpha})`;
@@ -673,6 +701,7 @@ export default function MiniGame() {
             lastFrameTime.current = null;
             closeAudioContext(audioCtxRef);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

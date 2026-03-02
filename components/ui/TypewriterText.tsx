@@ -68,8 +68,8 @@ export default function TypewriterText({ text, className }: TypewriterTextProps)
         const lines = content.split("<br>");
 
         lines.forEach((line, lineIndex) => {
-            // Parse links in each line
-            const linkRegex = /<a href="([^"]+)">([^<]+)<\/a>/g;
+            // Parse links in each line, supporting attributes like target and rel
+            const linkRegex = /<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g;
             let lastIndex = 0;
             let match;
 

@@ -15,7 +15,7 @@ export default function Projects() {
                 </h2>
                 <div className="flex gap-6 text-sm font-mono opacity-50 uppercase tracking-widest">
                     <span>Total {projects.length}</span>
-                    <span>Vibe Coding / Web / Game</span>
+                    <span>Indie Dev / Web / Game</span>
                 </div>
             </div>
 

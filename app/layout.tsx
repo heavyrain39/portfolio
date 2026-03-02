@@ -4,6 +4,7 @@ import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google"; // K
 import "./globals.css";
 import { clsx } from "clsx";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { LanguageProvider } from "@/context/LanguageContext";
 import GridBackground from "@/components/layout/GridBackground";
 
 // Fonts
@@ -27,13 +28,13 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
     title: "야차완 | 夜叉腕 Portfolio",
-    description: "Writer, Vibe Coder, Planner. Portfolio of Yakshawan.",
+    description: "Writer, Indie Developer. Portfolio of Yakshawan.",
     icons: {
         icon: "/portfolio/images/favicon.png",
     },
     openGraph: {
         title: "야차완 | 夜叉腕 Portfolio",
-        description: "Writer, Vibe Coder, Planner. Portfolio of Yakshawan.",
+        description: "Writer, Indie Developer. Portfolio of Yakshawan.",
         url: "https://heavyrain39.github.io/portfolio/",
         siteName: "야차완 Portfolio",
         images: [
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "야차완 | 夜叉腕 Portfolio",
-        description: "Writer, Vibe Coder, Planner. Portfolio of Yakshawan.",
+        description: "Writer, Indie Developer. Portfolio of Yakshawan.",
         images: ["https://heavyrain39.github.io/portfolio/images/og-image.jpg"],
     },
     alternates: {
@@ -64,7 +65,7 @@ const jsonLd = {
     name: "야차완",
     alternateName: "Yakshawan",
     url: "https://heavyrain39.github.io/portfolio/",
-    jobTitle: "Writer, Vibe Coder, Planner",
+    jobTitle: "Writer, Indie Developer",
     image: "https://heavyrain39.github.io/portfolio/images/favicon.png",
     sameAs: [
         "https://github.com/heavyrain39"
@@ -78,17 +79,19 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ko" suppressHydrationWarning className={clsx(playfair.variable, inter.variable, jetbrains.variable)}>
-            <body className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
+            <body suppressHydrationWarning className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
-                <ThemeProvider>
-                    <GridBackground />
-                    <div className="relative z-10 flex flex-col min-h-screen">
-                        {children}
-                    </div>
-                </ThemeProvider>
+                <LanguageProvider>
+                    <ThemeProvider>
+                        <GridBackground />
+                        <div className="relative z-10 flex flex-col min-h-screen">
+                            {children}
+                        </div>
+                    </ThemeProvider>
+                </LanguageProvider>
             </body>
         </html>
     );

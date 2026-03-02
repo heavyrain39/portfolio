@@ -2,8 +2,13 @@
 
 import TypewriterText from "@/components/ui/TypewriterText";
 import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
+import { useLanguage } from "@/context/LanguageContext";
+import { dictionary } from "@/data/dictionary";
 
 export default function About() {
+    const { language, isMounted } = useLanguage();
+    const t = dictionary[language].about;
+
     return (
         <section id="about" className="container mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-12 gap-12">
 
@@ -15,26 +20,25 @@ export default function About() {
                 <div className="w-12 h-1 bg-current mb-6" />
                 <p className="font-mono text-sm opacity-60">
                     SYSTEM_ID: YAKSHAWAN<br />
-                    ROLE: WRITER / VIBE CODER / PLANNER<br />
+                    ROLE: WRITER / DEVELOPER<br />
                     LOCATION: SEOUL, KR
                 </p>
             </div>
 
             <div className="md:col-span-8 flex flex-col gap-8 text-lg opacity-80 leading-relaxed text-justify break-keep">
                 <div className="text-2xl md:text-3xl font-serif font-bold opacity-100 mb-4 flex items-center">
-                    <TypewriterText text="이야기와 기술의 교차점." className="block" />
+                    <TypewriterText text={isMounted ? t.title : dictionary.ko.about.title} className="block" />
                 </div>
                 <div>
-                    <TypewriterText text={'야차완은 콘텐츠 창작자이자 바이브 코더입니다. LLM을 활용해 다양한 콘텐츠 경험을 설계·개발하고 있습니다.<br>문의는 <a href="https://www.threads.com/@yakshawan">스레드</a> 혹은 <a href="mailto:ggolem@naver.com">이메일</a>로 부탁드립니다. 감사합니다.'} />
+                    <TypewriterText text={isMounted ? t.description : dictionary.ko.about.description} />
                 </div>
 
                 <div className="pt-4 mt-4">
-                    <h4 className="font-mono text-sm uppercase mb-4 opacity-50">Career Highlights</h4>
+                    <h4 className="font-mono text-sm uppercase mb-4 opacity-50">{isMounted ? t.highlightsTitle : dictionary.ko.about.highlightsTitle}</h4>
                     <ul className="space-y-4 list-disc pl-5 marker:text-current/50">
-                        <li>現 웹소설 작가</li>
-                        <li>前 카카오 콘텐츠 기획자</li>
-                        <li>1인 인디게임 / 웹앱 개발</li>
-                        <li>LLM 기반 서비스 기획 및 개발</li>
+                        {(isMounted ? t.highlights : dictionary.ko.about.highlights).map((highlight, index) => (
+                            <li key={index}>{highlight}</li>
+                        ))}
                     </ul>
                 </div>
             </div >
