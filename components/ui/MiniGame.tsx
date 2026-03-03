@@ -71,6 +71,7 @@ export default function MiniGame() {
     const [isOverheated, setIsOverheated] = useState(false);
     const [operatorThemeColor, setOperatorThemeColor] = useState("#f5f5f0");
     const [operatorContrastColor, setOperatorContrastColor] = useState("#1a1a1a");
+    const [pointColor, setPointColor] = useState("#06b6d4");
     const isMutedRef = useRef(false);
 
     useEffect(() => {
@@ -115,6 +116,7 @@ export default function MiniGame() {
 
             setOperatorThemeColor(background || (isDarkTheme ? "#1a1a1a" : "#f5f5f0"));
             setOperatorContrastColor(foreground || (isDarkTheme ? "#f5f5f0" : "#1a1a1a"));
+            setPointColor(isDarkTheme ? "#06b6d4" : "#d98d9c"); // Softer dusty pink
         };
 
         syncThemeState();
@@ -223,7 +225,7 @@ export default function MiniGame() {
             }
 
             const isDark = cachedIsDark.current;
-            const bulletColor = isDark ? "#06b6d4" : "#c89290"; // Cyan for dark, Dusty Pink for light
+            const bulletColor = isDark ? "#06b6d4" : "#d98d9c"; // Cyan for dark, Softer Dusty Pink for light
 
             physicsAccumulator.current += deltaMs;
             // Limit the accumulator to avoid "spiral of death" or huge catches up if tab is backgrounded
@@ -759,6 +761,7 @@ export default function MiniGame() {
                 isMuted={isMuted}
                 fireMode={fireMode}
                 onToggleMute={() => setIsMuted(!isMuted)}
+                pointColor={pointColor}
             />
 
             <MiniGameCrosshair
@@ -766,6 +769,7 @@ export default function MiniGame() {
                 y={smoothMouseY}
                 isOverheated={isOverheated}
                 isShooting={isShooting}
+                pointColor={pointColor}
             />
         </div >
     );

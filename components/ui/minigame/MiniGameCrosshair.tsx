@@ -6,13 +6,15 @@ type MiniGameCrosshairProps = {
     y: MotionValue<number>;
     isOverheated: boolean;
     isShooting: boolean;
+    pointColor: string;
 };
 
 export default function MiniGameCrosshair({
     x,
     y,
     isOverheated,
-    isShooting
+    isShooting,
+    pointColor
 }: MiniGameCrosshairProps) {
     return (
         <motion.div
@@ -31,7 +33,8 @@ export default function MiniGameCrosshair({
                 transition={{ duration: 0.16, ease: "easeOut" }}
             />
             <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-500 rounded-full"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full"
+                style={{ backgroundColor: pointColor }}
                 animate={{ scale: isOverheated ? 0 : 1, opacity: isOverheated ? 0 : 1 }}
                 transition={{ duration: 0.14, ease: "easeOut" }}
             />

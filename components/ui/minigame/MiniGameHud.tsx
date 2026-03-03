@@ -11,6 +11,7 @@ type MiniGameHudProps = {
     isMuted: boolean;
     fireMode: FireMode;
     onToggleMute: () => void;
+    pointColor: string;
 };
 
 export default function MiniGameHud({
@@ -21,7 +22,8 @@ export default function MiniGameHud({
     uiScore,
     isMuted,
     fireMode,
-    onToggleMute
+    onToggleMute,
+    pointColor
 }: MiniGameHudProps) {
     return (
         <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between z-10 pointer-events-none">
@@ -78,7 +80,8 @@ export default function MiniGameHud({
                                 key={uiScore}
                                 animate={{ scale: [1.5, 1] }}
                                 transition={{ duration: 0.15 }}
-                                className="text-cyan-500 inline-block origin-center"
+                                className="inline-block origin-center"
+                                style={{ color: pointColor }}
                             >
                                 {uiScore.toString().padStart(3, "0")}
                             </motion.span>
