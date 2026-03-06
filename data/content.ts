@@ -90,7 +90,7 @@ export const projects: Project[] = [
         id: "hanjul",
         title: "한줄한줄: 내 생각의 타임라인",
         enTitle: "Hanjul Hanjul",
-        lastUpdated: "2025-12-30",
+        lastUpdated: "2026-03-07",
         concept: "새 탭에서 만나는 나만의 한 줄 기록",
         enConcept: "Your one-line journal upon opening a new tab",
         description: "무의식적인 새 탭 열기를 의식적인 성찰의 순간으로. AI가 읽고 답하는 미니멀한 기록 앱. 크롬 익스텐션을 설치하면 새 탭을 열 때 기록 화면이 나타나고, 세 가지 성격의 AI가 당신의 기록을 읽고 유익한 (혹은 흥미로운) 피드백을 제공한다.",
