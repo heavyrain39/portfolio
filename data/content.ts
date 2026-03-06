@@ -106,7 +106,7 @@ export const projects: Project[] = [
         id: "haruna",
         title: "하루나 온 스크린",
         enTitle: "Haruna on Screen",
-        lastUpdated: "2025-12-18",
+        lastUpdated: "2026-03-07",
         concept: "당신의 데스크탑에 머무는 AI 미소녀",
         enConcept: "An AI screen-mate residing on your desktop",
         description: "PC 바탕화면에 상주하며 사용자와 소통하는 AI 스크린메이트. 사용자와의 모든 대화를 기억하며, 페르소나 프롬프트 에디터로 성격과 기억을 편집할 수 있다. 캐릭터 3종, 의상 10종.",
