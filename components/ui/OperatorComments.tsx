@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ensureAudioContext, createRadioFilter } from "./minigame/audio";
 
 interface OperatorCommentsProps {
     isParentHovered: boolean;
@@ -51,6 +52,7 @@ const PRELOAD_VOICE_COUNT = 2;
 
 type VoiceAudioState = {
     audio: HTMLAudioElement;
+    sourceNode: MediaElementAudioSourceNode;
     sourceIndex: number;
     sources: string[];
     onError: () => void;
@@ -59,6 +61,7 @@ type VoiceAudioState = {
 
 type SingleAudioState = {
     audio: HTMLAudioElement;
+    sourceNode: MediaElementAudioSourceNode;
     sourceIndex: number;
     sources: string[];
     onError: () => void;
@@ -194,6 +197,9 @@ export default function OperatorComments({
     const voiceDurationsMsRef = useRef<Map<number, number>>(new Map());
     const voiceAudioStateRef = useRef<Map<number, VoiceAudioState>>(new Map());
     const radioSfxStateRef = useRef<SingleAudioState | null>(null);
+    const audioCtxRef = useRef<AudioContext | null>(null);
+    const radioFilterRef = useRef<{ input: AudioNode; output: AudioNode } | null>(null);
+
     const delayedVoiceStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pendingRetryVoiceIndexRef = useRef<number | null>(null);
     const playVoiceForIndexRef = useRef<(index: number) => void>(() => { });
@@ -295,6 +301,7 @@ export default function OperatorComments({
         state.audio.removeEventListener("loadedmetadata", state.onLoadedMetadata);
         state.audio.removeAttribute("src");
         state.audio.load();
+        try { state.sourceNode.disconnect(); } catch (e) { }
     };
 
     const cleanupSingleAudio = (state: SingleAudioState) => {
@@ -302,6 +309,7 @@ export default function OperatorComments({
         state.audio.removeEventListener("error", state.onError);
         state.audio.removeAttribute("src");
         state.audio.load();
+        try { state.sourceNode.disconnect(); } catch (e) { }
     };
 
     const getOrCreateRadioSfxAudio = (): HTMLAudioElement => {
@@ -310,9 +318,20 @@ export default function OperatorComments({
             return existing.audio;
         }
 
+        const ctx = ensureAudioContext(audioCtxRef);
+        if (!radioFilterRef.current) {
+            const filter = createRadioFilter(ctx);
+            filter.output.connect(ctx.destination);
+            radioFilterRef.current = filter;
+        }
+
         const audio = new Audio();
         audio.preload = "auto";
         audio.volume = isMuted ? 0 : RADIO_SFX_VOLUME;
+        audio.crossOrigin = "anonymous";
+
+        const sourceNode = ctx.createMediaElementSource(audio);
+        sourceNode.connect(radioFilterRef.current.input);
 
         let state: SingleAudioState;
         const onError = () => {
@@ -325,6 +344,7 @@ export default function OperatorComments({
 
         state = {
             audio,
+            sourceNode,
             sourceIndex: 0,
             sources: RADIO_SFX_SOURCES,
             onError
@@ -377,9 +397,20 @@ export default function OperatorComments({
             return existing.audio;
         }
 
+        const ctx = ensureAudioContext(audioCtxRef);
+        if (!radioFilterRef.current) {
+            const filter = createRadioFilter(ctx);
+            filter.output.connect(ctx.destination);
+            radioFilterRef.current = filter;
+        }
+
         const audio = new Audio();
         audio.preload = "metadata";
         audio.volume = isMuted ? 0 : VOICE_VOLUME;
+        audio.crossOrigin = "anonymous";
+
+        const sourceNode = ctx.createMediaElementSource(audio);
+        sourceNode.connect(radioFilterRef.current.input);
 
         const sources = getVoiceSources(index);
         let state: VoiceAudioState;
@@ -402,6 +433,7 @@ export default function OperatorComments({
 
         state = {
             audio,
+            sourceNode,
             sourceIndex: 0,
             sources,
             onError,

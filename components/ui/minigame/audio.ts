@@ -97,3 +97,19 @@ export const closeAudioContext = (audioCtxRef: AudioContextRefLike) => {
     audioCtxRef.current.close();
     audioCtxRef.current = null;
 };
+
+export const createRadioFilter = (ctx: AudioContext): { input: AudioNode; output: AudioNode } => {
+    const highpass = ctx.createBiquadFilter();
+    highpass.type = "highpass";
+    highpass.frequency.value = 600; // Increased from 400 for more "thin" sound
+    highpass.Q.value = 1.0; // Slightly sharper resonance at the cutoff
+
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = "lowpass";
+    lowpass.frequency.value = 3000; // Decreased from 3500 for more "muffled" high-end
+    lowpass.Q.value = 0.7;
+
+    highpass.connect(lowpass);
+
+    return { input: highpass, output: lowpass };
+};
