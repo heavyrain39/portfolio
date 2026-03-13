@@ -36,6 +36,22 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "nimblist",
+        title: "Nimblist: Minimal Todo List",
+        enTitle: "Nimblist: Minimal Todo List",
+        lastUpdated: "2026-03-13",
+        concept: "내 브라우저에 들어온 깔끔한 투두 리스트",
+        enConcept: "A clean todo list right in your browser",
+        description: "크롬 사이드 패널에서 빠르고 쾌적하게 접근할 수 있는 미니멀 & 클린 To-do 앱. 3종 테마와 5종 폰트 프리셋 제공. Google Drive를 활용해 기기간 클라우드 동기화 지원.",
+        enDescription: "A minimal and clean to-do app for your Chrome side panel. Features 3 themes and 5 font presets. Supports cloud sync across devices via Google Drive.",
+        techStack: ["React 18", "Vite 5", "Framer Motion", "Chrome Extension API", "Google Drive API"],
+        link: "https://chromewebstore.google.com/detail/nimblist-minimal-todo-lis/pbihcnodidndjaoilckhhpdbcfjoignl",
+        linkText: "사용해 보기",
+        enLinkText: "Try it out",
+        thumbnail: "/portfolio/images/thumbnail_nimblist.png",
+        category: "vibe-coding"
+    },
+    {
         id: "mstrmnd",
         title: "마스터마인드",
         enTitle: "MSTRMND: Your clever audio mastering ally",
