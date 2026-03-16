@@ -71,8 +71,13 @@ html {
 }
 
 /* Custom cursors for interactive elements */
-a, button, [role="button"], input[type="submit"], input[type="button"], select {
-    cursor: url('/portfolio/cursors/hand-cursor.svg') 17 5, pointer;
+a,
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+select {
+    cursor: url('/portfolio/cursors/hand-cursor-50.png') 4 0, pointer;
 }
 
 /* Project card image treatment: lighter base, full color on non-hover devices */
