@@ -63,6 +63,16 @@ body {
     background: var(--background);
     font-family: var(--font-inter), sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: url('/portfolio/cursors/cursor.svg') 18 5, auto;
+}
+
+html {
+    cursor: url('/portfolio/cursors/cursor.svg') 18 5, auto;
+}
+
+/* Custom cursors for interactive elements */
+a, button, [role="button"], input[type="submit"], input[type="button"], select {
+    cursor: url('/portfolio/cursors/hand-cursor.svg') 17 5, pointer;
 }
 
 /* Project card image treatment: lighter base, full color on non-hover devices */
