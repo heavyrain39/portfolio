@@ -83,12 +83,12 @@ a, button, [role="button"], input[type="submit"], input[type="button"], select {
     will-change: transform, filter;
 }
 
-.group:hover .project-card-image {
+.project-image-container:hover .project-card-image {
     filter: saturate(1) brightness(1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .group:hover .project-card-image {
+    .project-image-container:hover .project-card-image {
         transform: scale(1.2);
         transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.3s ease, transform-origin 0.15s ease-out;
     }

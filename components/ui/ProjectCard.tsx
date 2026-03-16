@@ -40,7 +40,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
             <div
                 ref={cardRef}
-                className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-border/50 group-hover:border-foreground/50 transition-colors duration-300"
+                className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-border/50 group-hover:border-foreground/50 transition-colors duration-300 project-image-container"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
