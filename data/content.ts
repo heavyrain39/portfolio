@@ -39,7 +39,7 @@ export const projects: Project[] = [
         id: "nimblist",
         title: "Nimblist: Minimal Todo List",
         enTitle: "Nimblist: Minimal Todo List",
-        lastUpdated: "2026-03-13",
+        lastUpdated: "2026-03-17",
         concept: "내 브라우저에 들어온 깔끔한 투두 리스트",
         enConcept: "A clean todo list right in your browser",
         description: "크롬 사이드 패널에서 빠르고 쾌적하게 접근할 수 있는 미니멀 & 클린 To-do 앱. 3종 테마와 5종 폰트 프리셋 제공. Google Drive를 활용해 기기간 클라우드 동기화 지원.",
