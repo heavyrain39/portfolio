@@ -37,7 +37,7 @@ export const heroContent = {
 export const projects: Project[] = [
     {
         id: "nimblist",
-        title: "Nimblist: Minimal Todo List",
+        title: "님블리스트",
         enTitle: "Nimblist: Minimal Todo List",
         lastUpdated: "2026-03-17",
         concept: "내 브라우저에 들어온 깔끔한 투두 리스트",
