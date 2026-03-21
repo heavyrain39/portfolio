@@ -48,7 +48,7 @@ export default function Hero() {
                         </div>
                     )}
                 </div>
-                <h1 className="flex justify-between items-end w-full text-5xl md:text-7xl font-serif font-bold tracking-tight mb-8 leading-[0.9] pointer-events-auto select-none">
+                <h1 className="flex justify-between items-end w-full text-5xl md:text-7xl font-serif font-bold tracking-tight mb-5 leading-[0.9] pointer-events-auto select-none">
                     {heroContent.headline.split("|").map((part, i) => (
                         <span key={i} className={i === 1 ? "opacity-30 font-light inline-block" : ""}>{part.trim()}</span>
                     ))}

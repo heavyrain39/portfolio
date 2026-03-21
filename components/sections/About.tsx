@@ -33,9 +33,9 @@ export default function About() {
                     <TypewriterText text={isMounted ? t.description : dictionary.ko.about.description} />
                 </div>
 
-                <div className="pt-4 mt-4">
-                    <h4 className="font-mono text-sm uppercase mb-4 opacity-50">{isMounted ? t.highlightsTitle : dictionary.ko.about.highlightsTitle}</h4>
-                    <ul className="space-y-4 list-disc pl-5 marker:text-current/50">
+                <div className="pt-2 mt-4">
+                    <h4 className="font-mono text-sm uppercase mb-3 opacity-50">{isMounted ? t.highlightsTitle : dictionary.ko.about.highlightsTitle}</h4>
+                    <ul className="space-y-2 list-disc pl-5 marker:text-current/50 font-sans text-base">
                         {(isMounted ? t.highlights : dictionary.ko.about.highlights).map((highlight, index) => (
                             <li key={index}>{highlight}</li>
                         ))}
