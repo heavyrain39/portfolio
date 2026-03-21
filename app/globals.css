@@ -1,3 +1,4 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import "tailwindcss";
 
 :root {
@@ -24,9 +25,9 @@
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-border: var(--border-color);
-    --font-sans: var(--font-inter), sans-serif;
-    --font-serif: var(--font-playfair), serif;
-    --font-mono: var(--font-jetbrains), monospace;
+    --font-sans: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+    --font-serif: var(--font-space-grotesk), "Pretendard Variable", Pretendard, sans-serif;
+    --font-mono: var(--font-plex-mono), monospace;
 
     --animate-scan-horizontal: scan-horizontal 3s linear infinite;
     --animate-fade-in-up: fade-in-up 0.5s ease-out forwards;

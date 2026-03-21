@@ -25,7 +25,7 @@ export default function Hero() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                className="w-fit z-10 pointer-events-none"
+                className="w-full max-w-[28rem] z-10 pointer-events-none"
             >
                 <div className="flex justify-between items-center w-full font-mono text-sm mb-4 pointer-events-auto select-none">
                     <span className="opacity-60 tracking-widest">PORTFOLIO.2026 ■■■■</span>
@@ -48,9 +48,9 @@ export default function Hero() {
                         </div>
                     )}
                 </div>
-                <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight mb-8 leading-[0.9] w-fit pointer-events-auto select-none">
+                <h1 className="flex justify-between items-end w-full text-5xl md:text-7xl font-serif font-bold tracking-tight mb-8 leading-[0.9] pointer-events-auto select-none">
                     {heroContent.headline.split("|").map((part, i) => (
-                        <span key={i} className={i === 1 ? "opacity-30 font-light ml-2 inline-block" : ""}>{part}</span>
+                        <span key={i} className={i === 1 ? "opacity-30 font-light inline-block" : ""}>{part.trim()}</span>
                     ))}
                 </h1>
 

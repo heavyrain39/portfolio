@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google"; // Keep these
-// import localFont if needed, but Google Fonts are fine for now.
+import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google"; // 2번 옵션
 import "./globals.css";
 import { clsx } from "clsx";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -8,21 +7,16 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import GridBackground from "@/components/layout/GridBackground";
 
 // Fonts
-const playfair = Playfair_Display({
+const spaceGrotesk = Space_Grotesk({
     subsets: ["latin"],
-    variable: "--font-playfair",
+    variable: "--font-space-grotesk",
     display: "swap",
 });
 
-const inter = Inter({
+const plexMono = IBM_Plex_Mono({
+    weight: ['400', '500', '600'],
     subsets: ["latin"],
-    variable: "--font-inter",
-    display: "swap",
-});
-
-const jetbrains = JetBrains_Mono({
-    subsets: ["latin"],
-    variable: "--font-jetbrains",
+    variable: "--font-plex-mono",
     display: "swap",
 });
 
@@ -78,7 +72,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="ko" suppressHydrationWarning className={clsx(playfair.variable, inter.variable, jetbrains.variable)}>
+        <html lang="ko" suppressHydrationWarning className={clsx(spaceGrotesk.variable, plexMono.variable)}>
             <body suppressHydrationWarning className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
                 <script
                     type="application/ld+json"

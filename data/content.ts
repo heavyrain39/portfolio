@@ -38,7 +38,7 @@ export const projects: Project[] = [
     {
         id: "nimblist",
         title: "님블리스트",
-        enTitle: "Nimblist: Minimal Todo List",
+        enTitle: "Nimblist",
         lastUpdated: "2026-03-17",
         concept: "내 브라우저에 들어온 깔끔한 투두 리스트",
         enConcept: "A clean todo list right in your browser",
@@ -54,7 +54,7 @@ export const projects: Project[] = [
     {
         id: "mstrmnd",
         title: "마스터마인드",
-        enTitle: "MSTRMND: Your clever audio mastering ally",
+        enTitle: "MSTRMND",
         lastUpdated: "2026-02-23",
         concept: "유튜브 음원을 위한 영리한 마스터링 도구.",
         enConcept: "A clever audio mastering tool for Youtube creators.",
@@ -89,7 +89,7 @@ export const projects: Project[] = [
     {
         id: "takt",
         title: "TAKT",
-        enTitle: "Engineered Brown Noise",
+        enTitle: "TAKT",
         lastUpdated: "2026-02-04",
         concept: "브라우저 속의 브라운 노이즈 엔진",
         enConcept: "Engineered brown noise engine in your browser",

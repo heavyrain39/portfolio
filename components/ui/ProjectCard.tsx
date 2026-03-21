@@ -53,9 +53,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
             {/* Info */}
             <div className="flex flex-col gap-3 w-full md:w-3/5 lg:w-2/3 py-1">
-                <h3 className="font-serif text-2xl leading-tight">
+                <h3 className="font-serif font-bold text-2xl leading-tight">
                     {isMounted && language === "en" ? project.enTitle : project.title}
-                    <span className="block text-sm font-sans font-normal opacity-60 mt-1">
+                    <span className="block text-sm font-sans font-medium opacity-80 mt-1">
                         {isMounted && language === "en" ? (project.enConcept || project.concept) : project.concept}
                     </span>
                 </h3>

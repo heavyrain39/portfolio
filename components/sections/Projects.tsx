@@ -23,10 +23,14 @@ export default function Projects() {
                 {projects.map((project, index) => (
                     <motion.div
                         key={project.id}
-                        initial={{ opacity: 0, y: 50 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0 }}
+                        whileInView={{ clipPath: "inset(0 0% 0 0)", opacity: 1 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        transition={{ duration: 0.5, delay: (index % 2) * 0.1, ease: "easeOut" }}
+                        transition={{ 
+                            clipPath: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }, 
+                            opacity: { duration: 0.2 }, 
+                            delay: (index % 2) * 0.1 
+                        }}
                     >
                         <ProjectCard project={project} />
                     </motion.div>
