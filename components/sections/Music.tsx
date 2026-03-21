@@ -46,7 +46,7 @@ export default function Music() {
             >
                 {allMusic.map((item) => (
                     <div key={item.id} className="min-w-[300px] md:min-w-[400px] snap-center flex flex-col gap-4">
-                        <div className="aspect-video bg-black/5 rounded-sm overflow-hidden border border-border/20 relative">
+                        <div className="aspect-video bg-black/5 overflow-hidden border border-border/20 relative">
                             <iframe
                                 width="100%"
                                 height="100%"

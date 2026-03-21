@@ -19,14 +19,14 @@ export default function Projects() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16 md:gap-y-20">
                 {projects.map((project, index) => (
                     <motion.div
                         key={project.id}
                         initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        transition={{ duration: 0.3, delay: index * 0.05, ease: "easeOut" }}
+                        transition={{ duration: 0.5, delay: (index % 2) * 0.1, ease: "easeOut" }}
                     >
                         <ProjectCard project={project} />
                     </motion.div>
