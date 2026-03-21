@@ -95,7 +95,7 @@ select {
 
 @media (hover: hover) and (pointer: fine) {
     .project-image-container:hover .project-card-image {
-        transform: scale(1.2);
+        transform: scale(1.5);
         transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.3s ease, transform-origin 0.15s ease-out;
     }
 }
