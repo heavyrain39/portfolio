@@ -19,14 +19,14 @@ export default function Music() {
     const allMusic = [...musicAlbums, ...electronicMusic];
 
     return (
-        <section id="music" className="container mx-auto px-6 py-32 border-t border-border/20">
+        <section id="music" className="container mx-auto px-6 py-32 border-t border-border/15">
             <div className="flex justify-between items-end mb-12">
                 <div>
                     <h2 className="text-4xl font-serif font-bold flex items-center gap-1">
                         Auditory Log
                         <DecorativeSymbol />
                     </h2>
-                    <p className="font-mono text-sm opacity-50 mt-2">SERAPHIM EP & ELECTRONIC WORKS</p>
+                    <p className="font-mono text-sm opacity-40 mt-2">SERAPHIM EP & ELECTRONIC WORKS</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -46,7 +46,7 @@ export default function Music() {
             >
                 {allMusic.map((item) => (
                     <div key={item.id} className="min-w-[300px] md:min-w-[400px] snap-center flex flex-col gap-4">
-                        <div className="aspect-video bg-black/5 overflow-hidden border border-border/20 relative">
+                        <div className="aspect-video bg-black/5 overflow-hidden border border-border/15 relative">
                             <iframe
                                 width="100%"
                                 height="100%"

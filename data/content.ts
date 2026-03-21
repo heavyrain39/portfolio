@@ -28,8 +28,9 @@ export const heroContent = {
     headline: "야차완 | 夜叉腕",
     introduction: "안녕하세요. 이곳은 작가, 바이브 코더, 기획자인 야차완의 포트폴리오 웹페이지입니다. 재미있게 둘러보고 가시면 좋겠습니다. 😙",
     socials: {
-        github: "https://github.com/heavyrain39",
+        threads: "https://www.threads.net/@yakshawan",
         twitter: "https://x.com/yakshawan",
+        github: "https://github.com/heavyrain39",
         email: "mailto:ggolem@naver.com"
     }
 };

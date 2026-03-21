@@ -55,20 +55,20 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <div className="flex flex-col gap-3 w-full md:w-3/5 lg:w-2/3 py-1">
                 <h3 className="font-serif font-bold text-2xl leading-tight">
                     {isMounted && language === "en" ? project.enTitle : project.title}
-                    <span className="block text-sm font-sans font-medium opacity-80 mt-1">
+                    <span className="block text-sm font-sans font-medium opacity-60 mt-1">
                         {isMounted && language === "en" ? (project.enConcept || project.concept) : project.concept}
                     </span>
                 </h3>
 
-                <div className="flex flex-wrap gap-1.5 text-[10px] font-mono uppercase tracking-wider opacity-70 mt-1">
+                <div className="flex flex-wrap gap-1.5 text-[10px] font-mono uppercase tracking-wider opacity-40 mt-1">
                     {project.techStack.map((tech) => (
-                        <span key={tech} className="border border-border/50 px-1.5 py-0.5 rounded-sm">{tech}</span>
+                        <span key={tech} className="border border-border/15 px-1.5 py-0.5 rounded-sm">{tech}</span>
                     ))}
                 </div>
 
-                <p className="text-sm opacity-80 break-keep w-full mt-1 leading-relaxed">
+                <p className="text-sm opacity-60 break-keep w-full mt-1 leading-relaxed">
                     {isMounted && language === "en" ? (project.enDescription || project.description) : project.description}
-                    <span className="inline-block ml-2 px-2 py-0.5 rounded-full border border-border/40 text-[10px] font-mono opacity-60 whitespace-nowrap transform -translate-y-[2px]">
+                    <span className="inline-block ml-2 px-2 py-0.5 rounded-full border border-border/15 text-[10px] font-mono opacity-40 whitespace-nowrap transform -translate-y-[2px]">
                         {project.lastUpdated}
                     </span>
                 </p>
@@ -79,7 +79,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                             href={project.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="self-start text-xs font-bold border-b border-foreground pb-0.5 hover:opacity-50 transition-opacity flex items-center gap-1"
+                            className="self-start text-xs font-bold border-b border-current/30 pb-0.5 opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1"
                         >
                             {isMounted && language === "en" ? (project.enLinkText || project.linkText || "VIEW PROJECT") : (project.linkText || "VIEW PROJECT")} <ExternalLink size={10} />
                         </a>
@@ -89,7 +89,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                             href={project.secondaryLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="self-start text-xs font-bold border-b border-foreground pb-0.5 hover:opacity-50 transition-opacity flex items-center gap-1"
+                            className="self-start text-xs font-bold border-b border-current/30 pb-0.5 opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1"
                         >
                             {isMounted && language === "en" ? (project.enSecondaryLinkText || project.secondaryLinkText || "VIEW PROJECT") : (project.secondaryLinkText || "VIEW PROJECT")} <ExternalLink size={10} />
                         </a>
