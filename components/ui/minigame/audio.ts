@@ -63,7 +63,9 @@ export const playGameSound = ({
         const tickGain = ctx.createGain();
         tickOsc.type = "square";
 
-        tickOsc.frequency.setValueAtTime(1800, now);
+        // 기계적 격발음이 반복될 때 귀가 피로하지 않도록 1800Hz 기준 ±150Hz의 미세한 랜덤 피치를 줍니다.
+        const clickFreq = 1800 + (Math.random() - 0.5) * 300;
+        tickOsc.frequency.setValueAtTime(clickFreq, now);
         tickOsc.frequency.exponentialRampToValueAtTime(150, now + 0.025);
 
         tickGain.gain.setValueAtTime(0.02 * sfxLevelScale, now);
