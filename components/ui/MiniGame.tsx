@@ -244,8 +244,8 @@ export default function MiniGame() {
             while (physicsAccumulator.current >= FIXED_STEP) {
                 physicsAccumulator.current -= FIXED_STEP;
 
-                shakeIntensity.current *= 0.85;
-                if (shakeIntensity.current < 0.3) shakeIntensity.current = 0;
+                shakeIntensity.current *= 0.7; // 0.85에서 0.7로 감쇠율을 높여 훨씬 짧게 끊어지도록 함
+                if (shakeIntensity.current < 0.15) shakeIntensity.current = 0;
 
                 frameCount.current++;
                 const spawnInterval = getSpawnIntervalFrames(scoreRef.current);
@@ -397,7 +397,7 @@ export default function MiniGame() {
                                     lifeDecayScale: 1.1
                                 });
                                 playSound("hit");
-                                shakeIntensity.current = 3;
+                                shakeIntensity.current = 2.5; // 3에서 2.5로 초기 강도 감소
                                 hitFlashes.current.push({
                                     x: worldUnit.x,
                                     y: worldUnit.y,
@@ -563,9 +563,18 @@ export default function MiniGame() {
                 }
             } // end of physics update loop
 
-            const shakeX = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
-            const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
-            ctx.translate(shakeX, shakeY);
+            // 화면 이동 픽셀 배율 감소 (* 2 -> * 1.5)
+            const shakeX = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 1.5 : 0;
+            const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 1.5 : 0;
+
+            // 컨텍스트(캔버스 내부)가 아니라 게임 전체 DOM을 직접 흔들어 UI 모두에 피격감을 부여합니다.
+            if (containerRef.current) {
+                if (shakeIntensity.current > 0.15) {
+                    containerRef.current.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+                } else if (containerRef.current.style.transform !== "none") {
+                    containerRef.current.style.transform = "none";
+                }
+            }
 
             ctx.globalCompositeOperation = isDark ? "lighter" : "source-over";
             for (let i = bullets.current.length - 1; i >= 0; i--) {
@@ -577,7 +586,7 @@ export default function MiniGame() {
                 ctx.moveTo(tailX, tailY);
                 ctx.lineTo(bullet.x, bullet.y);
                 ctx.strokeStyle = bulletColor;
-                
+
                 if (isDark) {
                     // 1. Halo layer
                     ctx.globalAlpha = 0.6;
@@ -595,7 +604,7 @@ export default function MiniGame() {
                     ctx.lineWidth = 2; // 원본 두께
                 }
                 ctx.stroke();
-                
+
                 ctx.globalAlpha = 1.0; // 투명도 복구
             }
             ctx.globalCompositeOperation = "source-over"; // 블렌딩 모드 복구
@@ -672,7 +681,7 @@ export default function MiniGame() {
 
             for (let i = 0; i < particles.current.length; i++) {
                 const p = particles.current[i];
-                
+
                 if (isDark) {
                     const tailX = p.x - p.vx * 0.9; // 속도 기반 잔상 꼬리
                     const tailY = p.y - p.vy * 0.9;
@@ -682,7 +691,7 @@ export default function MiniGame() {
                     ctx.beginPath();
                     ctx.moveTo(tailX, tailY);
                     ctx.lineTo(p.x, p.y);
-                    ctx.lineWidth = p.size * 1.5; 
+                    ctx.lineWidth = p.size * 1.5;
                     ctx.strokeStyle = p.color;
                     ctx.stroke();
 
@@ -691,7 +700,7 @@ export default function MiniGame() {
                     ctx.beginPath();
                     ctx.moveTo(tailX, tailY);
                     ctx.lineTo(p.x, p.y);
-                    ctx.lineWidth = p.size * 0.5; 
+                    ctx.lineWidth = p.size * 0.5;
                     ctx.strokeStyle = "#ffffff";
                     ctx.stroke();
                 } else {
@@ -709,7 +718,7 @@ export default function MiniGame() {
 
             for (let i = 0; i < hitFlashes.current.length; i++) {
                 const flash = hitFlashes.current[i];
-                
+
                 if (isDark) {
                     // 폭발(피격) 플래시 Halo
                     ctx.globalAlpha = flash.life * 0.4;
