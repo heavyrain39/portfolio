@@ -28,7 +28,7 @@ export default function MiniGameHud({
     return (
         <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between z-10 pointer-events-none">
             <div className="select-none pb-2">
-                <div className="font-mono text-xs font-bold tracking-widest text-foreground space-y-1.5">
+                <div className="font-mono text-xs tracking-widest text-foreground space-y-1.5">
                     <div className="w-[calc(18ch+1.7em)] grid grid-cols-[5.2ch_1fr] items-center gap-x-4">
                         <span className="opacity-50 whitespace-nowrap">MODE</span>
                         <div className="ml-[5px] flex items-center gap-5">

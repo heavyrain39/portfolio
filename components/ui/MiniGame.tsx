@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useRef, useEffect, useState } from "react";
 import { useSpring, useMotionValue } from "framer-motion";
@@ -674,7 +674,7 @@ export default function MiniGame() {
                 const alpha = Math.min(ft.life * 2, 1);
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = `rgba(${textColor}, ${alpha})`;
-                ctx.font = "12px 'JetBrains Mono', monospace";
+                ctx.font = "12px 'Share Tech Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.fillText(ft.text, ft.x, ft.y);
                 ctx.globalAlpha = 1.0;

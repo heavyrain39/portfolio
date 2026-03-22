@@ -610,8 +610,8 @@ export default function OperatorComments({
         if (!isParentHovered || !isComplete) return;
 
         const isLastMessage = currentIndexRef.current === COMMENTS.length - 1;
-        const fadeOutDelay = 2000; // Keep existing spacing
-        const nextMessageDelay = isLastMessage ? 6000 : 4000; // Keep existing spacing
+        const fadeOutDelay = 2000; // 메시지 출력 후 사라지기 전 대기 시간
+        const nextMessageDelay = isLastMessage ? 7000 : 5000; // 다음 메시지까지의 간격 (기존 4000/6000ms)
 
         clearTransitionTimers();
 

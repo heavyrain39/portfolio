@@ -35,8 +35,6 @@ const Mail = ({ size = 20 }: { size?: number }) => (
     </svg>
 );
 
-
-
 export default function Hero() {
     const { language, toggleLanguage, isMounted } = useLanguage();
     const t = dictionary[language].hero;
@@ -57,7 +55,7 @@ export default function Hero() {
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                 className="w-full max-w-[28rem] z-10 pointer-events-none"
             >
-                <div className="flex justify-between items-center w-full font-mono text-sm mb-4 pointer-events-auto select-none">
+                <div className="flex justify-between items-center w-full font-mono text-sm mb-5 pointer-events-auto select-none">
                     <span className="opacity-60 tracking-widest">PORTFOLIO.2026 ■■■■</span>
                     {/* Language Toggle */}
                     {isMounted && (

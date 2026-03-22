@@ -1,24 +1,12 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google"; // 2번 옵션
+
 import "./globals.css";
 import { clsx } from "clsx";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import GridBackground from "@/components/layout/GridBackground";
 
-// Fonts
-const spaceGrotesk = Space_Grotesk({
-    subsets: ["latin"],
-    variable: "--font-space-grotesk",
-    display: "swap",
-});
 
-const plexMono = IBM_Plex_Mono({
-    weight: ['400', '500', '600'],
-    subsets: ["latin"],
-    variable: "--font-plex-mono",
-    display: "swap",
-});
 
 export const metadata: Metadata = {
     title: "야차완 | 夜叉腕 Portfolio",
@@ -72,7 +60,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="ko" suppressHydrationWarning className={clsx(spaceGrotesk.variable, plexMono.variable)}>
+        <html lang="ko" suppressHydrationWarning>
             <body suppressHydrationWarning className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
                 <script
                     type="application/ld+json"
