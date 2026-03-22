@@ -534,7 +534,7 @@ export default function MiniGame() {
                     p.x += p.vx;
                     p.y += p.vy;
                     p.vy += GRAVITY;
-                    p.life -= 0.03 * p.lifeDecayScale;
+                    p.life -= 0.036 * p.lifeDecayScale; // 20% faster decay (was 0.03)
 
                     if (p.life <= 0) {
                         particles.current.splice(i, 1);
@@ -543,7 +543,7 @@ export default function MiniGame() {
 
                 for (let i = hitFlashes.current.length - 1; i >= 0; i--) {
                     const flash = hitFlashes.current[i];
-                    flash.life -= 0.2;
+                    flash.life -= 0.24; // 20% faster decay (was 0.2)
 
                     if (flash.life <= 0) {
                         hitFlashes.current.splice(i, 1);
@@ -567,30 +567,35 @@ export default function MiniGame() {
             const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 2 : 0;
             ctx.translate(shakeX, shakeY);
 
-            ctx.globalCompositeOperation = "lighter";
+            ctx.globalCompositeOperation = isDark ? "lighter" : "source-over";
             for (let i = bullets.current.length - 1; i >= 0; i--) {
                 const bullet = bullets.current[i];
-                const tailX = bullet.x - bullet.vx * 0.6;
+                const tailX = bullet.x - bullet.vx * 0.6; // 테마 무관하게 0.6 유지
                 const tailY = bullet.y - bullet.vy * 0.6;
 
-                // 1. Halo layer (은은한 빛 무무리)
                 ctx.beginPath();
                 ctx.moveTo(tailX, tailY);
                 ctx.lineTo(bullet.x, bullet.y);
                 ctx.strokeStyle = bulletColor;
-                ctx.globalAlpha = 0.6;
-                ctx.lineWidth = 4;
-                ctx.stroke();
+                
+                if (isDark) {
+                    // 1. Halo layer
+                    ctx.globalAlpha = 0.6;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
 
-                // 2. Core layer (밝은 빔 중심점)
-                ctx.beginPath();
-                ctx.moveTo(tailX, tailY);
-                ctx.lineTo(bullet.x, bullet.y);
-                ctx.strokeStyle = "#ffffff";
-                ctx.globalAlpha = 0.8;
-                ctx.lineWidth = 1.5;
+                    // 2. Core layer
+                    ctx.beginPath();
+                    ctx.moveTo(tailX, tailY);
+                    ctx.lineTo(bullet.x, bullet.y);
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.globalAlpha = 0.8;
+                    ctx.lineWidth = 1.5;
+                } else {
+                    ctx.lineWidth = 2; // 원본 두께
+                }
                 ctx.stroke();
-
+                
                 ctx.globalAlpha = 1.0; // 투명도 복구
             }
             ctx.globalCompositeOperation = "source-over"; // 블렌딩 모드 복구
@@ -663,48 +668,70 @@ export default function MiniGame() {
                 }
             }
 
-            ctx.globalCompositeOperation = "lighter"; // 파티클에도 가산 혼합(에너지 방출 효과) 적용
+            ctx.globalCompositeOperation = isDark ? "lighter" : "source-over";
 
             for (let i = 0; i < particles.current.length; i++) {
                 const p = particles.current[i];
-                const tailX = p.x - p.vx * 0.9; // 속도 기반 잔상 꼬리
-                const tailY = p.y - p.vy * 0.9;
+                
+                if (isDark) {
+                    const tailX = p.x - p.vx * 0.9; // 속도 기반 잔상 꼬리
+                    const tailY = p.y - p.vy * 0.9;
 
-                // 파티클 Halo
-                ctx.globalAlpha = p.life * 0.5;
-                ctx.beginPath();
-                ctx.moveTo(tailX, tailY);
-                ctx.lineTo(p.x, p.y);
-                ctx.lineWidth = p.size * 1.5; // 너무 굵지 않게 얇은 선으로 복구
-                ctx.strokeStyle = p.color;
-                ctx.stroke();
+                    // 파티클 Halo
+                    ctx.globalAlpha = p.life * 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(tailX, tailY);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.lineWidth = p.size * 1.5; 
+                    ctx.strokeStyle = p.color;
+                    ctx.stroke();
 
-                // 파티클 Core
-                ctx.globalAlpha = p.life * 0.9;
-                ctx.beginPath();
-                ctx.moveTo(tailX, tailY);
-                ctx.lineTo(p.x, p.y);
-                ctx.lineWidth = p.size * 0.5; // 코어도 얇고 날카롭게
-                ctx.strokeStyle = "#ffffff";
-                ctx.stroke();
+                    // 파티클 Core
+                    ctx.globalAlpha = p.life * 0.9;
+                    ctx.beginPath();
+                    ctx.moveTo(tailX, tailY);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.lineWidth = p.size * 0.5; 
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.stroke();
+                } else {
+                    // 원본 파티클 렌더링 (단, 길이는 0.9로 유지)
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - p.vx * 0.9, p.y - p.vy * 0.9);
+                    ctx.lineWidth = p.size;
+                    ctx.strokeStyle = p.color;
+                    ctx.stroke();
+                }
             }
 
             for (let i = 0; i < hitFlashes.current.length; i++) {
                 const flash = hitFlashes.current[i];
+                
+                if (isDark) {
+                    // 폭발(피격) 플래시 Halo
+                    ctx.globalAlpha = flash.life * 0.4;
+                    ctx.fillStyle = bulletColor;
+                    ctx.beginPath();
+                    ctx.arc(flash.x, flash.y, flash.radius * flash.life * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
 
-                // 폭발(피격) 플래시 Halo
-                ctx.globalAlpha = flash.life * 0.4;
-                ctx.fillStyle = bulletColor;
-                ctx.beginPath();
-                ctx.arc(flash.x, flash.y, flash.radius * flash.life * 1.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 폭발(피격) 플래시 Core
-                ctx.globalAlpha = flash.life * 0.8;
-                ctx.fillStyle = "#ffffff";
-                ctx.beginPath();
-                ctx.arc(flash.x, flash.y, flash.radius * flash.life * 0.7, 0, Math.PI * 2);
-                ctx.fill();
+                    // 폭발(피격) 플래시 Core
+                    ctx.globalAlpha = flash.life * 0.8;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.beginPath();
+                    ctx.arc(flash.x, flash.y, flash.radius * flash.life * 0.7, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // 원본 피격 플래시
+                    ctx.globalAlpha = flash.life * 0.5;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.beginPath();
+                    ctx.arc(flash.x, flash.y, flash.radius * flash.life, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
             ctx.globalAlpha = 1.0;

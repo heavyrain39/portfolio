@@ -18,6 +18,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         setMounted(true);
 
+        // Check URL first for ?theme=light or ?theme=dark overrides
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTheme = urlParams.get("theme") as Theme | null;
+
+        if (urlTheme === "light" || urlTheme === "dark") {
+            setTheme(urlTheme);
+            localStorage.setItem("theme", urlTheme);
+            document.documentElement.setAttribute("data-theme", urlTheme);
+            return;
+        }
+
         // Check local storage first
         const savedTheme = localStorage.getItem("theme") as Theme | null;
         if (savedTheme) {

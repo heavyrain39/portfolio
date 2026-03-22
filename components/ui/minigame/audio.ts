@@ -56,21 +56,40 @@ export const playGameSound = ({
         osc2.start(now + 0.024);
         osc2.stop(now + 0.075);
     } else if (type === "shoot") {
+        // 1. 금속성 기계 격발음 (Mechanical Metallic Click)
+        // Square 파형을 고주파수(1800Hz)에서 매우 짧은 시간(0.025초) 내에 급격히 떨어뜨려 
+        // 쇳덩이가 부딪히는 듯한 날카롭고 딱딱한 타격음을 냅니다.
+        const tickOsc = ctx.createOscillator();
+        const tickGain = ctx.createGain();
+        tickOsc.type = "square";
+
+        tickOsc.frequency.setValueAtTime(1800, now);
+        tickOsc.frequency.exponentialRampToValueAtTime(150, now + 0.025);
+
+        tickGain.gain.setValueAtTime(0.02 * sfxLevelScale, now);
+        tickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+        tickOsc.connect(tickGain);
+        tickGain.connect(ctx.destination);
+        tickOsc.start(now);
+        tickOsc.stop(now + 0.025);
+
+        // 2. 레이저 본체음
         const osc = ctx.createOscillator();
         const gainNode = ctx.createGain();
         osc.connect(gainNode);
         gainNode.connect(ctx.destination);
 
         osc.type = "triangle";
-        const baseFreq = 800 + (Math.random() - 0.5) * 120;
+        const baseFreq = 800 + (Math.random() - 0.5) * 80;
         osc.frequency.setValueAtTime(baseFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
 
         gainNode.gain.setValueAtTime(0.05 * sfxLevelScale, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
         osc.start(now);
-        osc.stop(now + 0.1);
+        osc.stop(now + 0.12);
     } else {
         const osc = ctx.createOscillator();
         const gainNode = ctx.createGain();
