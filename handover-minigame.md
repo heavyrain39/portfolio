@@ -1,7 +1,7 @@
 # Vector Defense MiniGame Handover
 **Project**: Portfolio 2026 (Hero MiniGame)  
-**Version**: 0.8  
-**Last Updated**: 2026-02-17 (Session F, post-UI/FireMode refactor)  
+**Version**: 1.0 (Dynamic Luma Sync)  
+**Last Updated**: 2026-03-24 (Post-Color/Luma refactor)  
 **Primary Entry**: `components/ui/MiniGame.tsx`
 
 ---
@@ -12,8 +12,10 @@ This document tracks the **actual current code state** of the Hero canvas miniga
 - Fire mode system (wheel toggle, dual/quad behavior)
 - Heat/overheat integration with fire modes
 - Mode switch SFX synthesis update
-- HUD alignment polish
-- Operator profile animation + layout-shift fix
+- **Kinetic Physics Refactor** (Impulse-based collisions, torque, angular momentum)
+- **Caterpillar Splitting Logic** (Real-time group re-anchoring)
+- **Procedural Audio Layering** (Square wave mechanical click + Triangle wave laser)
+- **Fusion Bridge Visuals** (Quadratic curves and circular cutout merging)
 
 This handover is intended for the next engineer to pick up work without re-discovering implementation details.
 
@@ -36,6 +38,7 @@ The minigame is no longer only a single giant component. Core loop stays in `Min
   - Includes new `FireMode = "dual" | "quad"`
 - `components/ui/minigame/audio.ts`
   - `shoot`, `hit`, and new `modeSwitch` synthesized SFX
+  - `shoot` now supports dual-layer synthesis (Mechanical Click + Laser)
 - `components/ui/minigame/MiniGameHud.tsx`
   - Bottom-left status block (`MODE`, `HEAT`, `TARGETS TERMINATED`)
 - `components/ui/minigame/MiniGameCrosshair.tsx`
@@ -67,6 +70,13 @@ Unchanged base systems from previous version remain:
 - Fusion HP:
   - Spawn +2 temporary HP (`fusionBonusRemaining`)
   - Bonus removed when de-fused to single
+- **Kinetic Physics (New in 0.9)**:
+  - Impulse-based collision resolution for "meaty" impact feel.
+  - Angular momentum/torque: Off-center hits cause realistic rotation.
+  - Mass-based knockback: `impulseMagnitude` scaled by inverse mass.
+- **Caterpillar Splitting (New in 0.9)**:
+  - Real-time splitting of caterpillar groups when an internal segment is destroyed.
+  - Handled via `handleUnitDestroyed` with centroid recalculation and re-anchoring.
 
 ---
 
@@ -149,7 +159,9 @@ Current bullet speed:
 ## 6. Audio State (Current)
 `components/ui/minigame/audio.ts` now supports three game SFX types:
 - `shoot`:
-  - triangle osc with randomized start pitch
+  - **Layer 1 (Mechanical Click)**: Square osc, `1800Hz (+-150Hz) -> 150Hz` decay in `0.025s`.
+  - **Layer 2 (Laser Body)**: Triangle osc, `800Hz (+-40Hz) -> 300Hz` decay in `0.12s`.
+  - Randomized start pitch prevents "machine gun" ear fatigue.
 - `hit`:
   - sawtooth with randomized pitch envelope (same as prior behavior)
 - `modeSwitch` (new):
@@ -247,6 +259,11 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 - Layer 2:
   - triangle, delayed `100 -> 78`, short decay
 
+### 9.5 Rendering (New in 0.9)
+- **Fusion Bridges**: Quadratic Bezier curves between fused units.
+- **Circular Cutouts**: `mergeCircularIntervals` logic to suppress overlap artifacts.
+- **Dashed Lines**: Phase-mapped line dash offset for "marching ant" movement effect.
+
 ---
 
 ## 10. Regression Checklist (Updated)
@@ -317,11 +334,29 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 
 ---
 
-## 13. One-Glance Change Summary (0.7 -> 0.8)
-- Introduced modular HUD/crosshair components.
-- Added dual/quad fire mode with wheel toggle + hover scroll lock.
-- Added synthesized mode-switch SFX and mute integration.
-- Implemented quad-specific heat increase (`x1.5`).
-- Tuned quad lane/spray behavior for more parallel machinegun feel.
-- Polished HUD alignment and score animation behavior.
-- Updated operator profile reveal animation and removed text-shift on exit.
+## 13. One-Glance Change Summary (0.8 -> 0.9)
+- Implemented mathematical fusion bridges using quadratic curves and interval merging.
+- Added **Dynamic Color Cycling (Breathing Blue)** as a Dark Mode easter egg.
+
+---
+
+## 14. Dynamic Color Cycling (Easter Egg)
+### 14.1 "Breathing Blue" Cycle
+- **Theme**: Dark Mode only (`data-theme="dark"`).
+- **Trigger**: Active participation time (`participationTimeRef`) accumulated while cursor is over the game area.
+- **Cycle Duration**: **40,000ms** (40 seconds).
+- **Pattern**: Ping-pong loop between **Cyan** and **Cobalt Blue**.
+  - `Cyan -> Cobalt (20s)`
+  - `Cobalt -> Cyan (20s)`
+
+### 14.2 Transition & Hold Logic
+To ensure a "breathing" feel, each 20s segment is split:
+- **Transition (15s)**: Linear HSL interpolation between states.
+- **Hold (5s)**: Static color hold at the target state.
+- Calculation: `if (subProgress < 0.75) factor = subProgress / 0.75; else factor = 1.0;`
+
+### 14.3 Dual-Lightness Synchronization (Clarity Sync)
+To maintain both visual punch and HUD readability:
+- **Bullet Color**: Fixed at `L: 43%` for a dense, high-energy laser look.
+- **HUD Point Color**: Boosted to `L: 80%` for crisp text contrast against dark backgrounds.
+- **Hue Sync**: Both share the exact same `normalizedHue` to maintain thematic cohesion.

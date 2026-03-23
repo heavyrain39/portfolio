@@ -61,6 +61,7 @@ export default function MiniGame() {
     const fireModeRef = useRef<FireMode>("dual");
     const lastWheelModeSwitchAt = useRef(0);
     const physicsAccumulator = useRef(0);
+    const participationTimeRef = useRef(0);
 
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
@@ -216,6 +217,63 @@ export default function MiniGame() {
                 }
             }
 
+            if (isHoveredRef.current) {
+                participationTimeRef.current += deltaMs;
+            }
+
+            const isDark = cachedIsDark.current;
+            const getDynamicColor = () => {
+                if (!isDark) {
+                    const lightColor = "#d98d9c"; // Softer dusty pink for light mode
+                    return { bulletColor: lightColor, pointColorValue: lightColor };
+                }
+                const baseS = 95;
+                // Cycle over 40 seconds (40000ms)
+                const cycleMs = 40000;
+                const progress = (participationTimeRef.current % cycleMs) / cycleMs;
+
+                // State Sequence [H, S, L] - Minimalist 'Breathing Blue' cycle
+                // Cyan(188) -> Cobalt(225) -> Cyan(188)
+                const states = [
+                    [188, 95, 43],  // Cyan (Precision)
+                    [225, 95, 43],  // Cobalt (Intellect/Cool)
+                    [188, 95, 43]   // Back to Cyan
+                ];
+
+                const segmentProgress = progress * (states.length - 1);
+                const index = Math.floor(segmentProgress);
+                const subProgress = segmentProgress - index;
+
+                // 15s transition + 5s hold = 20s segment. 
+                // transitionRatio = 15 / 20 = 0.75
+                const transitionRatio = 0.75;
+                let factor = 1;
+                if (subProgress < transitionRatio) {
+                    factor = subProgress / transitionRatio;
+                }
+
+                const start = states[index];
+                const end = states[index + 1];
+
+                const hue = start[0] + (end[0] - start[0]) * factor;
+                const saturation = start[1] + (end[1] - start[1]) * factor;
+                const baseL = start[2] + (end[2] - start[2]) * factor;
+
+                const normalizedHue = hue < 0 ? hue + 360 : hue;
+                
+                // Bullet color (punchy L)
+                const bColor = `hsl(${normalizedHue}, ${saturation}%, ${baseL}%)`;
+                // HUD point color (bright L for readability)
+                const pColor = `hsl(${normalizedHue}, ${saturation}%, 80%)`;
+
+                return { bulletColor: bColor, pointColorValue: pColor };
+            };
+
+            const { bulletColor, pointColorValue } = getDynamicColor();
+            if (isDark) {
+                // Sync pointColor state for HUD every frame with boosted lightness
+                setPointColor(pointColorValue);
+            }
             if (isOverheatedRef.current && heatRatioRef.current <= HEAT_RECOVER_RATIO) {
                 isOverheatedRef.current = false;
                 setIsOverheated(false);
@@ -224,8 +282,6 @@ export default function MiniGame() {
                 }
             }
 
-            const isDark = cachedIsDark.current;
-            const bulletColor = isDark ? "#06b6d4" : "#d98d9c"; // Cyan for dark, Softer Dusty Pink for light
 
             physicsAccumulator.current += deltaMs;
             // Limit the accumulator to avoid "spiral of death" or huge catches up if tab is backgrounded
