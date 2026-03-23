@@ -1,7 +1,7 @@
 # Vector Defense MiniGame Handover
 **Project**: Portfolio 2026 (Hero MiniGame)  
-**Version**: 1.0 (Dynamic Luma Sync)  
-**Last Updated**: 2026-03-24 (Post-Color/Luma refactor)  
+**Version**: 1.1 (Luma Sync + Balance)  
+**Last Updated**: 2026-03-24 (Post-Color/Heat refactor)  
 **Primary Entry**: `components/ui/MiniGame.tsx`
 
 ---
@@ -142,7 +142,7 @@ Current bullet speed:
 
 ### 5.2 Mode interaction
 - `quad` heat multiplier:
-  - `QUAD_MODE_HEAT_MULTIPLIER = 1.5`
+  - `QUAD_MODE_HEAT_MULTIPLIER = 2.0`
 - Applied per firing tick:
   - `nextHeat = heat + HEAT_PER_SHOT * multiplier`
   - multiplier is `1.5` only in quad, `1` in dual
