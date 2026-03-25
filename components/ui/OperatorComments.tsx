@@ -199,6 +199,7 @@ export default function OperatorComments({
     const radioSfxStateRef = useRef<SingleAudioState | null>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     const radioFilterRef = useRef<{ input: AudioNode; output: AudioNode } | null>(null);
+    const hasFadedOutRef = useRef(false);
 
     const delayedVoiceStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pendingRetryVoiceIndexRef = useRef<number | null>(null);
@@ -583,6 +584,11 @@ export default function OperatorComments({
         }
 
         const startCommentCycle = () => {
+            if (isComplete && hasFadedOutRef.current) {
+                // If it already completed and faded out automatically, don't show it again.
+                // It will transition to the next message when its timer triggers.
+                return;
+            }
             setIsVisible(true);
             if (!isTypingRef.current && !isComplete) {
                 typeNextChar();
@@ -618,6 +624,7 @@ export default function OperatorComments({
         blinkTimeoutRef.current = setTimeout(() => {
             if (!hoverRef.current) return;
             setIsVisible(false);
+            hasFadedOutRef.current = true;
 
             nextMessageTimeoutRef.current = setTimeout(() => {
                 if (!hoverRef.current) return;
@@ -625,6 +632,7 @@ export default function OperatorComments({
                 setDisplayText("");
                 charIndexRef.current = 0;
                 setIsComplete(false);
+                hasFadedOutRef.current = false;
                 setCurrentIndex((prev) => {
                     const nextIndex = (prev + 1) % COMMENTS.length;
                     if (nextIndex === 0) {
