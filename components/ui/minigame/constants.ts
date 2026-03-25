@@ -49,3 +49,20 @@ export const HEAT_COOLDOWN_DURATION_MS = 1600;
 export const HEAT_COOL_PER_MS = 1 / HEAT_COOLDOWN_DURATION_MS;
 export const QUAD_MODE_HEAT_MULTIPLIER = 2.0;
 export const WHEEL_MODE_SWITCH_COOLDOWN_MS = 140;
+
+// Fire pattern
+export const FIRE_CADENCE_MS = 40;
+export const BULLET_SPEED = 60;
+export const CANNON_LEFT_RATIO = 0.2;
+export const CANNON_RIGHT_RATIO = 0.8;
+export const BURST_SPREAD_RANGE = 0.12;
+
+// Quad-specific pattern
+export const QUAD_LANE_OFFSET_X = 4;
+export const QUAD_HORIZONTAL_JITTER = 1.6;
+export const QUAD_RANDOM_SPRAY = 0.1;
+export const QUAD_BURST_SPREAD_SCALE = 0.45;
+
+// Soft-alternating side balance
+export const SIDE_BALANCE_WINDOW = 6;
+export const SIDE_BALANCE_BIAS_STRENGTH = 0.25;

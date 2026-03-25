@@ -1,7 +1,7 @@
 # Vector Defense MiniGame Handover
 **Project**: Portfolio 2026 (Hero MiniGame)  
-**Version**: 1.2 (Hit SFX Redesign)  
-**Last Updated**: 2026-03-26 (Post-Hit SFX V3 refactor)  
+**Version**: 1.3 (Soft-Alternating Fire + Constants Extraction)  
+**Last Updated**: 2026-03-26 (Side balance + fire constants refactor)  
 **Primary Entry**: `components/ui/MiniGame.tsx`
 
 ---
@@ -85,11 +85,11 @@ Unchanged base systems from previous version remain:
 ### 4.1 Modes
 - `dual` (default):
   - Legacy-style single shot per firing tick
-  - Left/right origin chosen randomly each tick
+  - Left/right origin via **soft-alternating** `pickSide()` (see §4.4)
 - `quad`:
   - Still same firing cadence (tick interval unchanged)
   - Two shots per tick (not faster cadence)
-  - Spawn side randomization preserved
+  - Side selection via shared `pickSide()` (same balance window)
   - Lane behavior tuned to keep parallel-machinegun feel (see below)
 
 ### 4.2 Input: wheel toggle
@@ -103,32 +103,41 @@ Unchanged base systems from previous version remain:
     - `WHEEL_MODE_SWITCH_COOLDOWN_MS = 140`
 
 ### 4.3 Shot pattern details
-In `MiniGame.tsx`, firing tick gate remains:
-- `time - lastShotTime.current > 40` (unchanged cadence)
+In `MiniGame.tsx`, firing tick gate:
+- `time - lastShotTime.current > FIRE_CADENCE_MS` (`40`)
 
 Current bullet speed:
-- `vx/vy` magnitude multiplier = `60` (was `45` earlier in previous state)
+- `BULLET_SPEED = 60` (was `45` earlier in previous state)
+
+All fire-pattern numerics now live in `constants.ts` (extracted from inline).
 
 #### dual behavior (current)
-- Random side origin each tick
+- Side origin via `pickSide()` (soft-alternating)
 - Single bullet from chosen origin center, with burst spread:
-  - `burstSpread` uses `0.12` range expression for non-first burst shots
+  - `burstSpread` uses `BURST_SPREAD_RANGE` (`0.12`) for non-first burst shots
 
 #### quad behavior (current)
-- Two side picks generated per tick (`sidePickA`, `sidePickB`)
+- Two side picks via `pickSide()` per tick (`sidePickA`, `sidePickB`)
 - For each shot:
   - base center at left or right cannon origin
   - lane offset:
     - if two shots on same side: split `-/+` lanes
     - if only one shot on side: forced random lane sign (`left or right lane`, not dead center)
   - lane offset magnitude:
-    - `laneOffsetX = 4`
+    - `QUAD_LANE_OFFSET_X = 4`
   - horizontal jitter:
-    - `(Math.random() - 0.5) * 1.6`
+    - `(Math.random() - 0.5) * QUAD_HORIZONTAL_JITTER` (`1.6`)
   - spray term:
-    - `randomSpray = (Math.random() - 0.5) * 0.1` (tuned down from `0.12`)
+    - `(Math.random() - 0.5) * QUAD_RANDOM_SPRAY` (`0.1`)
   - final spread:
-    - `spread = burstSpread * 0.45 + randomSpray`
+    - `burstSpread * QUAD_BURST_SPREAD_SCALE + randomSpray`
+
+### 4.4 Soft-Alternating Side Selection (2026-03-26)
+Prevents one-sided firing streaks while preserving natural randomness.
+- **Mechanism**: `pickSide()` tracks recent `SIDE_BALANCE_WINDOW` (`6`) shots in `recentSides` ref.
+- **Balance formula**: `leftProb = 0.5 + (rightCount - leftCount) / windowSize * SIDE_BALANCE_BIAS_STRENGTH`
+- **Bias strength**: `0.25` → maximum correction is 75:25 (never forced alternation)
+- **Shared**: Both dual and quad modes use the same `pickSide()` and history window.
 
 ---
 
@@ -248,20 +257,24 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 ## 9. Notable Tunables (Quick Reference)
 ### 9.1 Fire mode & wheel
 - `WHEEL_MODE_SWITCH_COOLDOWN_MS = 140`
-- firing cadence gate:
-  - `time - lastShotTime > 40`
+- `FIRE_CADENCE_MS = 40`
+- `BULLET_SPEED = 60`
+- `CANNON_LEFT_RATIO = 0.2`, `CANNON_RIGHT_RATIO = 0.8`
+- `BURST_SPREAD_RANGE = 0.12`
 - spawn interval frames:
   - `33 / 31 / 29` (Base / Mid / High score)
 - unit cap:
   - `14`
-- bullet speed multiplier:
-  - `60` (`vx/vy`)
 
 ### 9.2 Quad pattern
-- `laneOffsetX = 4`
-- `horizontalJitter = +-0.8` equivalent from `(rand - 0.5) * 1.6`
-- `randomSpray = +-0.05` equivalent from `(rand - 0.5) * 0.1`
-- `burstSpread` source range still tied to `0.12` expression for burst variation
+- `QUAD_LANE_OFFSET_X = 4`
+- `QUAD_HORIZONTAL_JITTER = 1.6` (±0.8)
+- `QUAD_RANDOM_SPRAY = 0.1` (±0.05)
+- `QUAD_BURST_SPREAD_SCALE = 0.45`
+
+### 9.x Side balance
+- `SIDE_BALANCE_WINDOW = 6`
+- `SIDE_BALANCE_BIAS_STRENGTH = 0.25`
 
 ### 9.3 Heat
 - `QUAD_MODE_HEAT_MULTIPLIER = 1.5`
@@ -323,9 +336,6 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 ---
 
 ## 11. Known Risks / Notes
-- Several fire-pattern values are currently inline in `MiniGame.tsx` (not constants):
-  - lane offsets, jitter, spread blend, bullet speed scalar
-  - acceptable for rapid tuning, but extraction may help future balancing
 - `MiniGameHud` alignment currently uses mixed unit strategy:
   - `w-[calc(18ch+1.7em)]` and `grid-cols-[5.2ch_1fr]`
   - this was intentionally tuned for visual alignment under `tracking-widest`
@@ -335,7 +345,7 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 ---
 
 ## 12. Suggested Next Work (Backlog)
-1. Extract fire-pattern numerics (lane/jitter/spread/bullet speed) into `constants.ts` for faster A/B tuning.
+1. ~~Extract fire-pattern numerics~~ → **Done** (v1.3, all in `constants.ts`).
 2. Add in-game debug toggles (dev only) for:
    - bullet speed
    - quad heat multiplier

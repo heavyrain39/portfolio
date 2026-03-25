@@ -6,14 +6,25 @@ import OperatorComments from "./OperatorComments";
 import MiniGameCrosshair from "./minigame/MiniGameCrosshair";
 import MiniGameHud from "./minigame/MiniGameHud";
 import {
+    BULLET_SPEED,
+    BURST_SPREAD_RANGE,
+    CANNON_LEFT_RATIO,
+    CANNON_RIGHT_RATIO,
     DEFAULT_PHYSICS_PRESET,
+    FIRE_CADENCE_MS,
     GRAVITY,
     HEAT_COOL_PER_MS,
     HEAT_PER_SHOT,
     HEAT_RECOVER_RATIO,
     HEAT_WARNING_RATIO,
+    QUAD_BURST_SPREAD_SCALE,
+    QUAD_HORIZONTAL_JITTER,
+    QUAD_LANE_OFFSET_X,
     QUAD_MODE_HEAT_MULTIPLIER,
+    QUAD_RANDOM_SPRAY,
     SFX_LEVEL_SCALE,
+    SIDE_BALANCE_BIAS_STRENGTH,
+    SIDE_BALANCE_WINDOW,
     WHEEL_MODE_SWITCH_COOLDOWN_MS
 } from "./minigame/constants";
 import { createExplosion } from "./minigame/effects";
@@ -62,6 +73,7 @@ export default function MiniGame() {
     const lastWheelModeSwitchAt = useRef(0);
     const physicsAccumulator = useRef(0);
     const participationTimeRef = useRef(0);
+    const recentSides = useRef<Array<"left" | "right">>([]);
 
     const [uiScore, setUiScore] = useState(0);
     const [isShooting, setIsShooting] = useState(false);
@@ -89,6 +101,18 @@ export default function MiniGame() {
     const heatVisualOpacity = isOverheated ? 0.9 : (isHeatWarning ? 0.7 : 0.5);
 
     const getAudioContext = (): AudioContext => ensureAudioContext(audioCtxRef);
+
+    const pickSide = (): "left" | "right" => {
+        const history = recentSides.current;
+        const leftCount = history.filter(s => s === "left").length;
+        const rightCount = history.length - leftCount;
+        const balance = (rightCount - leftCount) / Math.max(history.length, 1);
+        const leftProb = 0.5 + balance * SIDE_BALANCE_BIAS_STRENGTH;
+        const side = Math.random() < leftProb ? "left" : "right";
+        history.push(side);
+        if (history.length > SIDE_BALANCE_WINDOW) history.shift();
+        return side;
+    };
 
     const playSound = (type: "shoot" | "hit" | "modeSwitch" | "impact") => {
         playGameSound({
@@ -314,11 +338,11 @@ export default function MiniGame() {
                     });
                 }
 
-                if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > 40) {
+                if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > FIRE_CADENCE_MS) {
                     const startY = canvas.height;
-                    const leftX = canvas.width * 0.2;
-                    const rightX = canvas.width * 0.8;
-                    const burstSpread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * 0.12;
+                    const leftX = canvas.width * CANNON_LEFT_RATIO;
+                    const rightX = canvas.width * CANNON_RIGHT_RATIO;
+                    const burstSpread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * BURST_SPREAD_RANGE;
 
                     const spawnBullet = (startX: number, spread: number) => {
                         const dx = mousePos.current.x - startX;
@@ -328,20 +352,19 @@ export default function MiniGame() {
                             id: Math.random(),
                             x: startX,
                             y: startY,
-                            vx: Math.cos(angle + spread) * 60,
-                            vy: Math.sin(angle + spread) * 60,
+                            vx: Math.cos(angle + spread) * BULLET_SPEED,
+                            vy: Math.sin(angle + spread) * BULLET_SPEED,
                             life: 1.0
                         });
                     };
 
                     if (fireModeRef.current === "dual") {
-                        const originSide = Math.random() > 0.5 ? "left" : "right";
+                        const originSide = pickSide();
                         const startX = originSide === "left" ? leftX : rightX;
                         spawnBullet(startX, burstSpread);
                     } else {
-                        const laneOffsetX = 4;
-                        const sidePickA = Math.random() > 0.5 ? "left" : "right";
-                        const sidePickB = Math.random() > 0.5 ? "left" : "right";
+                        const sidePickA = pickSide();
+                        const sidePickB = pickSide();
                         const shotSides: Array<"left" | "right"> = [sidePickA, sidePickB];
                         const sideTotals = {
                             left: shotSides.filter((side) => side === "left").length,
@@ -365,10 +388,10 @@ export default function MiniGame() {
                                 sideCount > 1
                                     ? (sideIndex === 1 ? -1 : 1)
                                     : (Math.random() > 0.5 ? 1 : -1);
-                            const horizontalJitter = (Math.random() - 0.5) * 1.6;
-                            const startX = centerX + laneSign * laneOffsetX + horizontalJitter;
-                            const randomSpray = (Math.random() - 0.5) * 0.1;
-                            const spread = burstSpread * 0.45 + randomSpray;
+                            const horizontalJitter = (Math.random() - 0.5) * QUAD_HORIZONTAL_JITTER;
+                            const startX = centerX + laneSign * QUAD_LANE_OFFSET_X + horizontalJitter;
+                            const randomSpray = (Math.random() - 0.5) * QUAD_RANDOM_SPRAY;
+                            const spread = burstSpread * QUAD_BURST_SPREAD_SCALE + randomSpray;
                             spawnBullet(startX, spread);
                         }
                     }
