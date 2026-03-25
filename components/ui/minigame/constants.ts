@@ -1,10 +1,10 @@
 import type { PhysicsPreset } from "./types";
 
 export const GRAVITY = 0.2;
-export const MAX_MAP_UNITS = 12;
-export const SPAWN_INTERVAL_BASE = 35;
-export const SPAWN_INTERVAL_MID = 33;
-export const SPAWN_INTERVAL_HIGH = 31;
+export const MAX_MAP_UNITS = 14;
+export const SPAWN_INTERVAL_BASE = 33; // 35 -> 33
+export const SPAWN_INTERVAL_MID = 31;  // 33 -> 31
+export const SPAWN_INTERVAL_HIGH = 29; // 31 -> 29
 export const SPAWN_SCORE_MID = 50;
 export const SPAWN_SCORE_HIGH = 150;
 export const FUSION_BONUS_HP = 2;

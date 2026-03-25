@@ -90,7 +90,7 @@ export default function MiniGame() {
 
     const getAudioContext = (): AudioContext => ensureAudioContext(audioCtxRef);
 
-    const playSound = (type: "shoot" | "hit" | "modeSwitch") => {
+    const playSound = (type: "shoot" | "hit" | "modeSwitch" | "impact") => {
         playGameSound({
             audioCtxRef,
             isMuted: isMutedRef.current,
@@ -260,7 +260,7 @@ export default function MiniGame() {
                 const baseL = start[2] + (end[2] - start[2]) * factor;
 
                 const normalizedHue = hue < 0 ? hue + 360 : hue;
-                
+
                 // Bullet color (punchy L)
                 const bColor = `hsl(${normalizedHue}, ${saturation}%, ${baseL}%)`;
                 // HUD point color (bright L for readability)
@@ -446,6 +446,7 @@ export default function MiniGame() {
                                 lifeDecayScale: 2.2
                             });
                             hitFlashes.current.push({ x: bullet.x, y: bullet.y, life: 1.0, radius: 5 });
+                            playSound("impact");
 
                             if (unit.hp <= 0) {
                                 createExplosion(particles.current, worldUnit.x, worldUnit.y, 20, bulletColor, {

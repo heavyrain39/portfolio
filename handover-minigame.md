@@ -7,7 +7,7 @@
 ---
 
 ## 1. Scope
-This document tracks the **actual current code state** of the Hero canvas minigame (`Vector Defense`) after the latest refactor/tuning pass:
+This document tracks the **actual current code state** of the Hero canvas minigame (`Sidearm`) after the latest refactor/tuning pass:
 - UI modularization (HUD + crosshair extraction)
 - Fire mode system (wheel toggle, dual/quad behavior)
 - Heat/overheat integration with fire modes

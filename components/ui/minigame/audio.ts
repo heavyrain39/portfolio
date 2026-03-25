@@ -15,7 +15,7 @@ export const ensureAudioContext = (audioCtxRef: AudioContextRefLike): AudioConte
 interface PlayGameSoundParams {
     audioCtxRef: AudioContextRefLike;
     isMuted: boolean;
-    type: "shoot" | "hit" | "modeSwitch";
+    type: "shoot" | "hit" | "modeSwitch" | "impact";
     sfxLevelScale: number;
 }
 
@@ -55,6 +55,52 @@ export const playGameSound = ({
         gain2.connect(ctx.destination);
         osc2.start(now + 0.024);
         osc2.stop(now + 0.075);
+    } else if (type === "impact") {
+        // 짧고 건조한 타격음 (탁, 타타탁)
+
+        // 1. 고주파 탭 (Metallic Tap)
+        const tapOsc = ctx.createOscillator();
+        const tapGain = ctx.createGain();
+        tapOsc.type = "triangle";
+
+        // 2500Hz ~ 4000Hz 사이의 랜덤 주파수로 금속성 충돌 느낌 부여
+        const tapFreq = 2500 + Math.random() * 1500;
+        tapOsc.frequency.setValueAtTime(tapFreq, now);
+        tapOsc.frequency.exponentialRampToValueAtTime(800, now + 0.025);
+
+        tapGain.gain.setValueAtTime(0.03 * sfxLevelScale, now);
+        tapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+        tapOsc.connect(tapGain);
+        tapGain.connect(ctx.destination);
+        tapOsc.start(now);
+        tapOsc.stop(now + 0.025);
+
+        // 2. 백색 소음 버스트 (Noise Burst)
+        const bufferSize = ctx.sampleRate * 0.03;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noiseSrc = ctx.createBufferSource();
+        noiseSrc.buffer = buffer;
+        const noiseGain = ctx.createGain();
+
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = "bandpass";
+        noiseFilter.frequency.value = 2500 + Math.random() * 1000;
+
+        noiseGain.gain.setValueAtTime(0.035 * sfxLevelScale, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+        noiseSrc.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+
+        noiseSrc.start(now);
+        noiseSrc.stop(now + 0.03);
     } else if (type === "shoot") {
         // 1. 금속성 기계 격발음 (Mechanical Metallic Click)
         // Square 파형을 고주파수(1800Hz)에서 매우 짧은 시간(0.025초) 내에 급격히 떨어뜨려 
