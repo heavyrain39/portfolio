@@ -139,23 +139,57 @@ export const playGameSound = ({
         osc.start(now);
         osc.stop(now + 0.12);
     } else {
-        const osc = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        osc.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        // 3. Heavy Mechanical Snap - V3 (Sawtooth Hybrid)
+        // 오리지널 sawtooth의 꽉 찬 바디감은 유지하되, 꼬리를 짧게 잘라 투박함을 제거하고
+        // 노이즈 버스트로 파열 트랜지언트를 더했습니다.
 
-        osc.type = "sawtooth";
-        const hitPitchScale = 1 + (Math.random() - 0.5) * 0.34; // ~+-17%
-        const hitStartFreq = Math.max(60, 150 * hitPitchScale);
-        const hitEndFreq = Math.max(24, 50 * hitPitchScale * (0.92 + Math.random() * 0.16));
-        osc.frequency.setValueAtTime(hitStartFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(hitEndFreq, now + 0.15);
+        // Layer 1: Sawtooth 바디 (묵직한 본체)
+        // 오리지널(150->50Hz, 0.15s)에서 시작 주파수를 살짝 올리고, 지속 시간을 0.09s로 줄여
+        // "퉁~" 잔향을 깔끔하게 끊으면서도 무게감은 살립니다.
+        const bodyOsc = ctx.createOscillator();
+        const bodyGain = ctx.createGain();
+        bodyOsc.type = "sawtooth";
 
-        gainNode.gain.setValueAtTime(0.08 * sfxLevelScale, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        const hitPitchScale = 1 + (Math.random() - 0.5) * 0.34;
+        const bodyStartFreq = Math.max(80, 200 * hitPitchScale);
+        const bodyEndFreq = Math.max(30, 45 * hitPitchScale);
+        bodyOsc.frequency.setValueAtTime(bodyStartFreq, now);
+        bodyOsc.frequency.exponentialRampToValueAtTime(bodyEndFreq, now + 0.09);
 
-        osc.start(now);
-        osc.stop(now + 0.15);
+        bodyGain.gain.setValueAtTime(0.09 * sfxLevelScale, now);
+        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        bodyOsc.connect(bodyGain);
+        bodyGain.connect(ctx.destination);
+        bodyOsc.start(now);
+        bodyOsc.stop(now + 0.09);
+
+        // Layer 2: 노이즈 스냅 (파열 트랜지언트)
+        // 극도로 짧은(0.02s) 백색 소음을 bandpass 필터에 통과시켜
+        // "뭔가 끊어졌다/부서졌다"는 순간적 파열감을 부여합니다.
+        const snapBufSize = Math.ceil(ctx.sampleRate * 0.02);
+        const snapBuf = ctx.createBuffer(1, snapBufSize, ctx.sampleRate);
+        const snapData = snapBuf.getChannelData(0);
+        for (let i = 0; i < snapBufSize; i++) {
+            snapData[i] = Math.random() * 2 - 1;
+        }
+
+        const snapSrc = ctx.createBufferSource();
+        snapSrc.buffer = snapBuf;
+        const snapFilter = ctx.createBiquadFilter();
+        snapFilter.type = "bandpass";
+        snapFilter.frequency.value = 1500 + Math.random() * 1000; // 1500~2500Hz
+        snapFilter.Q.value = 1.2;
+
+        const snapGain = ctx.createGain();
+        snapGain.gain.setValueAtTime(0.06 * sfxLevelScale, now);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+        snapSrc.connect(snapFilter);
+        snapFilter.connect(snapGain);
+        snapGain.connect(ctx.destination);
+        snapSrc.start(now);
+        snapSrc.stop(now + 0.02);
     }
 };
 

@@ -1,7 +1,7 @@
 # Vector Defense MiniGame Handover
 **Project**: Portfolio 2026 (Hero MiniGame)  
-**Version**: 1.1 (Luma Sync + Balance)  
-**Last Updated**: 2026-03-24 (Post-Color/Heat refactor)  
+**Version**: 1.2 (Hit SFX Redesign)  
+**Last Updated**: 2026-03-26 (Post-Hit SFX V3 refactor)  
 **Primary Entry**: `components/ui/MiniGame.tsx`
 
 ---
@@ -36,9 +36,10 @@ The minigame is no longer only a single giant component. Core loop stays in `Min
   - Gameplay and heat/fire mode constants (including new mode-related constants)
 - `components/ui/minigame/types.ts`
   - Includes new `FireMode = "dual" | "quad"`
-- `components/ui/minigame/audio.ts`
-  - `shoot`, `hit`, and new `modeSwitch` synthesized SFX
+- `audio.ts`
+  - `shoot`, `hit`, `modeSwitch`, and new `impact` synthesized SFX
   - `shoot` now supports dual-layer synthesis (Mechanical Click + Laser)
+  - `impact` uses high-frequency triangle tap + bandpassed noise burst for hit feedback
 - `components/ui/minigame/MiniGameHud.tsx`
   - Bottom-left status block (`MODE`, `HEAT`, `TARGETS TERMINATED`)
 - `components/ui/minigame/MiniGameCrosshair.tsx`
@@ -57,11 +58,11 @@ Unchanged base systems from previous version remain:
   - `EnemyGroup` (movement/formation state)
   - `EnemyUnit` (per-unit HP/spin/fusion state)
 - Unit cap:
-  - `MAX_MAP_UNITS = 12` total alive units
+  - `MAX_MAP_UNITS = 14` total alive units
 - Spawn pacing:
-  - Base `35` frames
-  - Score `> 50`: `33`
-  - Score `> 150`: `31`
+  - Base `33` frames
+  - Score `> 50`: `31`
+  - Score `> 150`: `29`
 - Spawn families:
   - `normal`, `cluster`, `caterpillar`
 - Spawn chances:
@@ -162,9 +163,18 @@ Current bullet speed:
   - **Layer 1 (Mechanical Click)**: Square osc, `1800Hz (+-150Hz) -> 150Hz` decay in `0.025s`.
   - **Layer 2 (Laser Body)**: Triangle osc, `800Hz (+-40Hz) -> 300Hz` decay in `0.12s`.
   - Randomized start pitch prevents "machine gun" ear fatigue.
-- `hit`:
-  - sawtooth with randomized pitch envelope (same as prior behavior)
-- `modeSwitch` (new):
+- `hit` **(V3 — Sawtooth Hybrid Snap)**:
+  - **Layer 1 (Sawtooth Body)**: Sawtooth osc, `200Hz (±17% rand) -> 45Hz`, decay in `0.09s`.
+    - Osc 대신 sawtooth 유지로 배음 밀도(존재감) 보존.
+    - 지속 시간 `0.15s → 0.09s`로 단축, 투박한 꼬리("퉁~") 제거.
+  - **Layer 2 (Noise Snap)**: White noise through `1500~2500Hz` bandpass filter (Q=1.2), `0.02s`.
+    - 극도로 짧은 파열 트랜지언트로 "챡!" 파괴 질감 추가.
+    - 필터 주파수도 랜덤(1500~2500Hz)으로 반복 피로도 완화.
+- `impact`:
+  - **Layer 1 (Metallic Tap)**: Triangle osc, `2500~4000Hz` randomization, very fast decay.
+  - **Layer 2 (Noise Burst)**: White noise through `2500~3500Hz` bandpass filter.
+  - Overall gain tuned to `0.065` (Tap 0.03 + Noise 0.035) for meaty feedback.
+- `modeSwitch`:
   - two-layer synthesized click (`square` + delayed `triangle`)
   - tuned for lower "click/clack" character
   - current frequencies:
@@ -240,6 +250,10 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 - `WHEEL_MODE_SWITCH_COOLDOWN_MS = 140`
 - firing cadence gate:
   - `time - lastShotTime > 40`
+- spawn interval frames:
+  - `33 / 31 / 29` (Base / Mid / High score)
+- unit cap:
+  - `14`
 - bullet speed multiplier:
   - `60` (`vx/vy`)
 
@@ -268,8 +282,8 @@ In `OperatorComments.tsx`, profile reveal was adjusted:
 
 ## 10. Regression Checklist (Updated)
 ### 10.1 Core gameplay
-- [ ] Unit cap still enforced at `12`.
-- [ ] Spawn timing/chances unchanged (`35/33/31`, `0.03/0.03`).
+- [x] Unit cap still enforced at `14`.
+- [x] Spawn timing/chances updated (`33/31/29`).
 - [ ] Fusion bonus HP cancellation on de-fusion still works.
 - [ ] Triangle connector center clutter suppression still intact.
 - [ ] Non-lethal fused hit torque/impact behavior unchanged.
