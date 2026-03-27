@@ -24,7 +24,7 @@ export default function GridBackground() {
     if (!mounted) return null;
 
     return (
-        <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden select-none">
+        <div data-grid-bg className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden select-none">
             {/* Base Grid Layer (Darker) */}
             <div
                 className="absolute inset-0 z-0 bg-repeat"

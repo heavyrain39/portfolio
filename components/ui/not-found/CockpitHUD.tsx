@@ -1,159 +1,155 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, MotionValue, useTransform } from "framer-motion";
-import { SidePanel, WaveChart, DataGauge, CoordinatesPanel } from "./SidePanel";
+import React from "react";
+import { MotionValue } from "framer-motion";
 
 interface CockpitHUDProps {
     mouseX: MotionValue<number>;
     mouseY: MotionValue<number>;
 }
 
+/* ── Curved Spherical Grid Lines ── */
+function SphericalGrid() {
+    const lines = [-4, -3, -2, -1, 1, 2, 3, 4];
+    return (
+        <g stroke="var(--foreground)" fill="none" strokeWidth="0.3">
+            {/* Horizontal curved lines (latitude) */}
+            {lines.map(i => {
+                const y = 100 + i * 15;
+                const curve = i * Math.abs(i) * 0.9;
+                return (
+                    <path
+                        key={`h${i}`}
+                        d={`M 8,${y} Q 100,${y + curve} 192,${y}`}
+                        opacity={0.04 + Math.abs(i) * 0.005}
+                    />
+                );
+            })}
+            {/* Vertical curved lines (longitude) */}
+            {lines.map(i => {
+                const x = 100 + i * 15;
+                const curve = i * Math.abs(i) * 0.9;
+                return (
+                    <path
+                        key={`v${i}`}
+                        d={`M ${x},8 Q ${x + curve},100 ${x},192`}
+                        opacity={0.04 + Math.abs(i) * 0.005}
+                    />
+                );
+            })}
+        </g>
+    );
+}
+
+/* ── Viewport Engineering SVG ── */
+function ViewportOverlay() {
+    return (
+        <svg
+            className="w-full h-full"
+            viewBox="0 0 200 200"
+            fill="none"
+        >
+            {/* Clip mask for circular viewport */}
+            <defs>
+                <clipPath id="viewport-clip">
+                    <circle cx="100" cy="100" r="98" />
+                </clipPath>
+            </defs>
+
+            {/* Curved grid clipped to circle */}
+            <g clipPath="url(#viewport-clip)">
+                <SphericalGrid />
+            </g>
+
+            <g stroke="var(--foreground)" strokeWidth="0.3">
+                {/* Crosshair center dot */}
+                <circle cx="100" cy="100" r="1.5" strokeWidth="0.5" opacity="0.7" />
+                {/* Crosshair arms */}
+                <line x1="100" y1="88" x2="100" y2="96" opacity="0.5" />
+                <line x1="100" y1="104" x2="100" y2="112" opacity="0.5" />
+                <line x1="88" y1="100" x2="96" y2="100" opacity="0.5" />
+                <line x1="104" y1="100" x2="112" y2="100" opacity="0.5" />
+
+                {/* Corner brackets */}
+                <polyline points="8,22 8,8 22,8" strokeWidth="0.5" opacity="0.2" fill="none" />
+                <polyline points="178,8 192,8 192,22" strokeWidth="0.5" opacity="0.2" fill="none" />
+                <polyline points="8,178 8,192 22,192" strokeWidth="0.5" opacity="0.2" fill="none" />
+                <polyline points="178,192 192,192 192,178" strokeWidth="0.5" opacity="0.2" fill="none" />
+
+                {/* Cardinal radial ticks */}
+                <line x1="100" y1="1" x2="100" y2="10" strokeWidth="0.5" opacity="0.15" />
+                <line x1="100" y1="190" x2="100" y2="199" strokeWidth="0.5" opacity="0.15" />
+                <line x1="1" y1="100" x2="10" y2="100" strokeWidth="0.5" opacity="0.15" />
+                <line x1="190" y1="100" x2="199" y2="100" strokeWidth="0.5" opacity="0.15" />
+
+                {/* Diagonal ticks */}
+                <line x1="16" y1="16" x2="22" y2="22" strokeWidth="0.4" opacity="0.1" />
+                <line x1="178" y1="22" x2="184" y2="16" strokeWidth="0.4" opacity="0.1" />
+                <line x1="16" y1="184" x2="22" y2="178" strokeWidth="0.4" opacity="0.1" />
+                <line x1="178" y1="178" x2="184" y2="184" strokeWidth="0.4" opacity="0.1" />
+
+                {/* Inner reference ring */}
+                <circle cx="100" cy="100" r="35" strokeWidth="0.2" opacity="0.06" strokeDasharray="1.5 3" />
+            </g>
+        </svg>
+    );
+}
+
 export default function CockpitHUD({ mouseX, mouseY }: CockpitHUDProps) {
-    const [quoteText, setQuoteText] = useState("");
     const fullQuote = `"The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man."`;
 
-    useEffect(() => {
-        let i = 0;
-        const interval = setInterval(() => {
-            setQuoteText(fullQuote.slice(0, i));
-            i++;
-            if (i > fullQuote.length) clearInterval(interval);
-        }, 40);
-        return () => clearInterval(interval);
-    }, []);
+    const cellBorder = '1px solid color-mix(in srgb, var(--foreground) 20%, transparent)';
 
     return (
-        <motion.div
-            className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-8"
-        >
-            {/* Top 404 Header inside the HUD */}
-            <div className="absolute top-12 flex flex-col items-center opacity-90 mix-blend-screen overflow-visible">
-                <div className="flex gap-4 items-center mb-1">
-                    <span className="text-[9px] tracking-[0.5em] text-[var(--foreground)] opacity-40 font-mono uppercase">
-                        System.Diagnostic.v9.4
-                    </span>
-                    <div className="h-[1px] w-12 bg-[var(--foreground)] opacity-20" />
-                    <span className="text-[9px] tracking-[0.5em] text-[var(--foreground)] opacity-40 font-mono uppercase">
-                        ID: TRACE_0x88FE2A
-                    </span>
-                </div>
-                <h1 className="text-9xl md:text-[11rem] font-serif font-bold tracking-tighter leading-none text-[var(--foreground)] drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                    404
-                </h1>
-                <div className="mt-2 px-3 py-1 border border-[var(--foreground)]/20 bg-[var(--foreground)]/5 text-[10px] font-mono tracking-[0.3em] uppercase opacity-60">
-                    Sequence Anomaly Detected
+        <div className="relative h-full pointer-events-none">
+            {/* ── Engineering Overlay (centered in FULL cell for correct alignment) ── */}
+            <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-[280px] h-[280px] md:w-[min(65vh,640px)] md:h-[min(65vh,640px)]">
+                    <ViewportOverlay />
+
+                    {/* "Sequence Anomaly Detected" — warning at top of viewport */}
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2">
+                        <div className="px-4 py-1.5 border border-[var(--foreground)]/25 bg-[var(--foreground)]/8 text-[10px] tracking-[0.3em] uppercase opacity-80 whitespace-nowrap">
+                            Sequence Anomaly Detected
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Central Round Wireframe Window */}
-            <div className="relative w-[320px] h-[320px] md:w-[600px] md:h-[600px] flex items-center justify-center pointer-events-none">
-                {/* Outer concentric hairline rings */}
-                <div className="absolute inset-[-20px] rounded-full border-[0.5px] border-[var(--foreground)] opacity-[0.05]" />
-                <div className="absolute inset-[-60px] rounded-full border-[0.5px] border-[var(--foreground)] opacity-[0.03]" />
-                <div className="absolute inset-0 rounded-full border-[1px] border-[var(--foreground)] opacity-30" />
-                
-                {/* Complex SVG HUD - Ultra Thin */}
-                <svg className="absolute inset-0 w-full h-full opacity-60 mix-blend-screen overflow-visible" viewBox="0 0 200 200">
-                    <defs>
-                        <filter id="glow">
-                            <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
-                            <feMerge>
-                                <feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                    </defs>
-                    <g stroke="var(--foreground)" fill="none" strokeWidth="0.3" filter="url(#glow)">
-                        {/* Center Firing Reference Area */}
-                        <circle cx="100" cy="100" r="2" strokeWidth="0.5" opacity="0.8" />
-                        <line x1="100" y1="85" x2="100" y2="92" />
-                        <line x1="100" y1="108" x2="100" y2="115" />
-                        <line x1="85" y1="100" x2="92" y2="100" />
-                        <line x1="108" y1="100" x2="115" y2="100" />
-                        
-                        {/* Pitch Ladder - More technical */}
-                        {[-20, -10, 10, 20].map(val => (
-                            <g key={val} opacity={0.5}>
-                                <line x1="88" y1={100 - val} x2="112" y2={100 - val} strokeDasharray="1 2" />
-                                <path d={`M 88 ${100-val} L 88 ${100-val+2}`} />
-                                <path d={`M 112 ${100-val} L 112 ${100-val+2}`} />
-                                <text x="115" y={100 - val + 1.5} fontSize="3" fill="var(--foreground)" className="font-mono opacity-60 italic">{val}</text>
-                            </g>
-                        ))}
-                        
-                        {/* Tracking Brackets with micro-ticks */}
-                        <g opacity="0.8">
-                            <path d="M 65 85 L 60 85 L 60 115 L 65 115" />
-                            <path d="M 135 85 L 140 85 L 140 115 L 135 115" />
-                            <line x1="58" y1="100" x2="62" y2="100" />
-                            <line x1="138" y1="100" x2="142" y2="100" />
-                        </g>
+            {/* ── Content Layers (z-10, opaque) ── */}
+            <div className="relative z-10 flex flex-col h-full">
+                {/* Header — clean 404 only */}
+                <div
+                    className="bg-[var(--background)] flex flex-col items-center justify-center py-5 shrink-0"
+                    style={{ borderBottom: cellBorder }}
+                >
+                    <h1 className="text-7xl md:text-9xl font-serif font-bold tracking-tighter leading-none">
+                        404
+                    </h1>
+                </div>
 
-                        {/* Compass Ticks with varied length */}
-                        {Array.from({ length: 72 }).map((_, i) => {
-                            const angle = (i * 5 * Math.PI) / 180;
-                            const r1 = 100;
-                            const isMajor = i % 18 === 0;
-                            const isMedium = i % 2 === 0;
-                            const r2 = isMajor ? 88 : isMedium ? 95 : 97;
-                            return (
-                                <line 
-                                    key={i}
-                                    x1={100 + Math.cos(angle) * r1} y1={100 + Math.sin(angle) * r1}
-                                    x2={100 + Math.cos(angle) * r2} y2={100 + Math.sin(angle) * r2}
-                                    opacity={isMajor ? 0.6 : 0.2}
-                                />
-                            );
-                        })}
-                    </g>
-                </svg>
+                {/* Spacer — transparent, lets the engineering overlay show through */}
+                <div className="flex-1 min-h-0" />
 
-                {/* Aesthetic Hairline Grids clipping into the circular view */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none">
-                    <div className="absolute top-1/2 left-0 w-full h-[0.5px] bg-[var(--foreground)]" />
-                    <div className="absolute left-1/2 top-0 h-full w-[0.5px] bg-[var(--foreground)]" />
+                {/* Quote Panel */}
+                <div
+                    className="bg-[var(--background)] py-5 px-8 shrink-0"
+                    style={{ borderTop: cellBorder }}
+                >
+                    <div className="max-w-3xl mx-auto space-y-2">
+                        <p className="text-[10px] md:text-[11px] leading-relaxed text-justify uppercase tracking-[0.04em] opacity-60">
+                            {fullQuote}
+                        </p>
+                        <div className="flex items-center justify-center gap-3">
+                            <div className="h-[1px] w-12 bg-[var(--foreground)] opacity-10" />
+                            <span className="text-[7px] opacity-25 tracking-[0.3em] uppercase whitespace-nowrap">
+                                C.G. JUNG, 1945
+                            </span>
+                            <div className="h-[1px] w-12 bg-[var(--foreground)] opacity-10" />
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            {/* Bottom Status Bar for detail */}
-            <div className="absolute bottom-4 left-0 w-full px-12 flex justify-between font-mono text-[9px] opacity-30 tracking-[0.2em] uppercase">
-                <span>Caladan.Bio-Systems.v9.2.4</span>
-                <div className="flex gap-8">
-                    <span>LAT: 35.6895° N</span>
-                    <span>LONG: 139.6917° E</span>
-                    <span>Status: [ Orphaned ]</span>
-                </div>
-            </div>
-
-            {/* Jung Quote Monitor */}
-            <div className="absolute bottom-16 max-w-2xl bg-[var(--background)]/10 backdrop-blur-sm border border-[var(--foreground)]/20 p-4 rounded-sm">
-                <p className="font-mono text-xs md:text-sm leading-relaxed text-justify break-words uppercase tracking-wide opacity-80 min-h-[80px]">
-                    {quoteText}
-                    <span className="animate-pulse">_</span>
-                </p>
-                <p className="mt-4 font-mono text-[10px] opacity-50 tracking-widest uppercase text-right w-full">
-                    — C.G. Jung, The Phenomenology of the Spirit in Fairy Tales (1945)
-                </p>
-            </div>
-
-            {/* Left Side Panel */}
-            <SidePanel side="left" mouseX={mouseX} mouseY={mouseY}>
-                <CoordinatesPanel />
-                <DataGauge label="HE TANK P" max={3480} suffix="" />
-                <DataGauge label="N2 TANK P" max={3540} suffix="" />
-                <WaveChart label="VID INPUT" height={50} />
-            </SidePanel>
-
-            {/* Right Side Panel */}
-            <SidePanel side="right" mouseX={mouseX} mouseY={mouseY}>
-                <DataGauge label="FUEL %" max={100} suffix="%" />
-                <DataGauge label="H2O %" max={100} suffix="%" />
-                <WaveChart label="SYS_TELEMETRY" height={60} />
-                <div className="flex flex-col gap-1 w-full font-mono text-xs opacity-80 uppercase tracking-widest mt-8">
-                    <div className="flex justify-between"><span>INT</span> <span>68°F 20°C</span></div>
-                    <div className="flex justify-between"><span>EXT</span> <span>-458°F -272°C</span></div>
-                </div>
-            </SidePanel>
-        </motion.div>
+        </div>
     );
 }

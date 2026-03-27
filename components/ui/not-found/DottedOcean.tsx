@@ -13,9 +13,9 @@ export function DottedOcean() {
     useEffect(() => setMounted(true), []);
 
     const { positions, colors } = useMemo(() => {
-        const SEPARATION = 50;
-        const AMOUNTX = 140;
-        const AMOUNTY = 140;
+        const SEPARATION = 150;
+        const AMOUNTX = 40;
+        const AMOUNTY = 60;
 
         const positions = new Float32Array(AMOUNTX * AMOUNTY * 3);
         const colors = new Float32Array(AMOUNTX * AMOUNTY * 3);
@@ -46,17 +46,16 @@ export function DottedOcean() {
         const positionsAttr = pointsRef.current.geometry.attributes.position;
         const array = positionsAttr.array as Float32Array;
         
-        const AMOUNTX = 140;
-        const AMOUNTY = 140;
+        const AMOUNTX = 40;
+        const AMOUNTY = 60;
         
         let i = 0;
         for (let ix = 0; ix < AMOUNTX; ix++) {
             for (let iy = 0; iy < AMOUNTY; iy++) {
-                // Complex wave math for realistic ocean rolls
+                // Original simple but bold wave math
                 array[i * 3 + 1] =
-                    Math.sin((ix + time) * 0.1) * 20 +
-                    Math.sin((iy - time * 0.8) * 0.1) * 20 +
-                    Math.sin((ix + iy + time) * 0.05) * 15;
+                    Math.sin((ix + time) * 0.3) * 50 +
+                    Math.sin((iy + time) * 0.5) * 50;
                 i++;
             }
         }

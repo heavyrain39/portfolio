@@ -11,7 +11,7 @@ import { SFX_LEVEL_SCALE } from "../minigame/constants";
 import { MotionValue } from "framer-motion";
 import { DottedOcean } from "./DottedOcean";
 
-interface CockpitSceneProps {
+interface CockpitCanvasProps {
     setShake: (val: number) => void;
     mouseX: MotionValue<number>;
     mouseY: MotionValue<number>;
@@ -40,24 +40,44 @@ function FastParticles() {
         return Array.from({ length: count }, () => ({
             x: (Math.random() - 0.5) * 400,
             y: (Math.random() - 0.5) * 400,
-            z: Math.random() * -1000 - 100, // Very far spawn
-            speed: Math.random() * 2 + 1 // speed
+            z: Math.random() * -1000 - 100,
+            speed: Math.random() * 1.5 + 0.5,
+            // Persistent velocity for true wandering
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.3,
+            // Turbulence parameters
+            turbPhase: Math.random() * Math.PI * 2,
+            turbFreq: 0.8 + Math.random() * 1.5,
+            turbAmp: 2 + Math.random() * 6,
         }));
     }, []);
 
-    useFrame(() => {
+    useFrame((state) => {
         if (!meshRef.current) return;
-        particles.forEach((p: {x: number, y: number, z: number, speed: number}, i: number) => {
-            p.z += p.speed * 4; // Fast forward
+        const t = state.clock.elapsedTime;
+        particles.forEach((p, i) => {
+            p.z += p.speed * 3;
+            // Accumulated lateral drift (wind)
+            p.x += p.vx;
+            p.y += p.vy;
+            // Randomly nudge velocity (turbulence)
+            p.vx += (Math.random() - 0.5) * 0.06;
+            p.vy += (Math.random() - 0.5) * 0.04;
+            // Dampen to prevent runaway
+            p.vx *= 0.99;
+            p.vy *= 0.99;
             if (p.z > 10) {
-                // Reset when passing camera
                 p.z = Math.random() * -500 - 500;
                 p.x = (Math.random() - 0.5) * 400;
                 p.y = (Math.random() - 0.5) * 400;
+                p.vx = (Math.random() - 0.5) * 0.4;
+                p.vy = (Math.random() - 0.5) * 0.3;
             }
-            dummy.position.set(p.x, p.y, p.z);
-            // Elongate based on speed
-            dummy.scale.set(0.1, 0.1, p.speed * 10);
+            // Add sine turbulence on top
+            const tx = Math.sin(t * p.turbFreq + p.turbPhase) * p.turbAmp;
+            const ty = Math.cos(t * p.turbFreq * 0.7 + p.turbPhase) * p.turbAmp * 0.6;
+            dummy.position.set(p.x + tx, p.y + ty, p.z);
+            dummy.scale.set(0.2, 0.2, 0.2);
             dummy.updateMatrix();
             meshRef.current!.setMatrixAt(i, dummy.matrix);
         });
@@ -72,7 +92,7 @@ function FastParticles() {
     );
 }
 
-function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitSceneProps) {
+function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasProps) {
     const { camera, scene, viewport } = useThree();
     const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -115,10 +135,13 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitScenePr
         const time = state.clock.getElapsedTime() * 1000;
         
         // 1. Parallax Camera
-        const targetX = mouseX.get() * 0.15;
-        const targetY = mouseY.get() * 0.15;
-        camera.rotation.y += (targetX - camera.rotation.y) * 0.05;
-        camera.rotation.x += (-targetY - camera.rotation.x) * 0.05;
+        // Floating/Breathing effect instead of mouse parallax
+        const driftFrequency = 0.5; // slow breathing
+        const driftAmplitude = 0.02; // subtle movement
+        
+        camera.rotation.x = Math.sin(state.clock.elapsedTime * driftFrequency) * driftAmplitude;
+        camera.position.y = Math.sin(state.clock.elapsedTime * (driftFrequency * 0.7)) * 0.1;
+        camera.rotation.y = Math.cos(state.clock.elapsedTime * (driftFrequency * 0.5)) * (driftAmplitude * 0.5);
 
         // 2. Shooting Mechanics
         if (isMouseDown && time - lastShotTime.current > 80) {
@@ -142,13 +165,13 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitScenePr
             // Halo cylinder
             const haloGeo = new THREE.CylinderGeometry(0.08, 0.08, 8, 8);
             haloGeo.rotateX(Math.PI / 2);
-            const haloMat = new THREE.MeshBasicMaterial({ color: colorStr, transparent: true, opacity: 0.8 });
+            const haloMat = new THREE.MeshBasicMaterial({ color: colorStr, transparent: true, opacity: 0.8, name: "halo" });
             const haloMesh = new THREE.Mesh(haloGeo, haloMat);
 
             // Core cylinder (white)
             const coreGeo = new THREE.CylinderGeometry(0.03, 0.03, 8, 8);
             coreGeo.rotateX(Math.PI / 2);
-            const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1 });
+            const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1, name: "core" });
             const coreMesh = new THREE.Mesh(coreGeo, coreMat);
 
             const group = new THREE.Group();
@@ -162,9 +185,11 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitScenePr
             vector.unproject(camera);
             const dir = vector.sub(camera.position).normalize();
             
-            // Target is far away along that direction
+            // Target is far away along that direction, offset to prevent crossing
             const distance = 120;
             const target = camera.position.clone().add(dir.multiplyScalar(distance));
+            target.x += isLeft ? -0.5 : 0.5; // Spread target slightly so trajectory is parallel
+
             
             // Angle the cylinder correctly right away
             group.position.copy(start);
@@ -195,6 +220,15 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitScenePr
             // Move bullet along trajectory with easing to simulate perspective punch
             const ease = 1 - Math.pow(1 - b.progress, 2);
             b.mesh.position.lerpVectors(b.start, b.target, ease);
+
+            // Fade out as it gets further away (max 20% opacity at end)
+            const fade = Math.max(0.2, 1 - b.progress);
+            b.mesh.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    const originalOpacity = child.material.name === "core" ? 1 : 0.8;
+                    child.material.opacity = originalOpacity * fade;
+                }
+            });
         }
     });
 
