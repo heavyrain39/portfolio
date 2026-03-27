@@ -1,12 +1,8 @@
 "use client";
-
-import { motion, useScroll, useTransform, useMotionValue, useMotionTemplate } from "framer-motion";
+import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export default function GridBackground() {
-    const { scrollY } = useScroll();
-    const rotate = useTransform(scrollY, [0, 1000], [0, 45]);
-    const scale = useTransform(scrollY, [0, 1000], [1, 1.2]);
     const [mounted, setMounted] = useState(false);
 
     // Mouse tracking for glow effect
@@ -15,12 +11,10 @@ export default function GridBackground() {
 
     useEffect(() => {
         setMounted(true);
-
         const handleMouseMove = (e: MouseEvent) => {
             mouseX.set(e.clientX);
             mouseY.set(e.clientY);
         };
-
         window.addEventListener("mousemove", handleMouseMove);
         return () => window.removeEventListener("mousemove", handleMouseMove);
     }, [mouseX, mouseY]);
@@ -31,80 +25,36 @@ export default function GridBackground() {
 
     return (
         <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden select-none">
-
-            {/* Base Grid (Darker) */}
+            {/* Base Grid Layer (Darker) */}
             <div
-                className="absolute inset-0 z-0 bg-repeat opacity-[0.3]"
+                className="absolute inset-0 z-0 bg-repeat"
                 style={{
                     backgroundImage: `linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)`,
                     backgroundSize: `8rem 8rem`,
-                    backgroundPosition: "center"
+                    backgroundPosition: "center",
+                    opacity: 0.3
                 }}
             />
 
-            {/* Glow Layer (Bright Grid + Circles) - Masked & Animated */}
+            {/* Glow Layer (Brighter) - Masked */}
             <motion.div
                 className="absolute inset-0 z-0"
                 style={{
                     maskImage,
                     WebkitMaskImage: maskImage,
                 }}
-                animate={{ opacity: [0.6, 1, 0.6] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
                 {/* Bright Grid */}
                 <div
-                    className="absolute inset-0 bg-repeat opacity-[0.6]"
+                    className="absolute inset-0 bg-repeat"
                     style={{
                         backgroundImage: `linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)`,
                         backgroundSize: `8rem 8rem`,
-                        backgroundPosition: "center"
+                        backgroundPosition: "center",
+                        opacity: 0.6
                     }}
                 />
-
-                {/* Bright Circles */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                    {/* Main Crosshair */}
-                    <div className="absolute w-[1px] h-full bg-border/40" />
-                    <div className="absolute w-full h-[1px] bg-border/40" />
-
-                    {/* Circles */}
-                    <motion.div
-                        style={{ rotate, scale }}
-                        className="w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] border border-border/40 rounded-full flex items-center justify-center"
-                    >
-                        <div className="w-[70%] h-[70%] border border-border/40 rounded-full flex items-center justify-center">
-                            <div className="w-[50%] h-[50%] border border-border/40 rounded-full" />
-                        </div>
-                    </motion.div>
-
-                    {/* Diagonal guides */}
-                    <div className="absolute w-[120%] h-[1px] bg-border/30 rotate-45" />
-                    <div className="absolute w-[120%] h-[1px] bg-border/30 -rotate-45" />
-                </div>
             </motion.div>
-
-            {/* Base Concentric Circles (Darker) */}
-            <div className="absolute inset-0 flex items-center justify-center">
-                {/* Main Crosshair */}
-                <div className="absolute w-[1px] h-full bg-border/20" />
-                <div className="absolute w-full h-[1px] bg-border/20" />
-
-                {/* Circles */}
-                <motion.div
-                    style={{ rotate, scale }}
-                    className="w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] border border-border/10 rounded-full flex items-center justify-center"
-                >
-                    <div className="w-[70%] h-[70%] border border-border/10 rounded-full flex items-center justify-center">
-                        <div className="w-[50%] h-[50%] border border-border/10 rounded-full" />
-                    </div>
-                </motion.div>
-
-                {/* Diagonal guides */}
-                <div className="absolute w-[120%] h-[1px] bg-border/10 rotate-45" />
-                <div className="absolute w-[120%] h-[1px] bg-border/10 -rotate-45" />
-            </div>
-
         </div>
     );
 }
