@@ -25,6 +25,8 @@ import {
     SFX_LEVEL_SCALE,
     SIDE_BALANCE_BIAS_STRENGTH,
     SIDE_BALANCE_WINDOW,
+    WHEEL_GESTURE_IDLE_RESET_MS,
+    WHEEL_MODE_SWITCH_THRESHOLD_PX,
     WHEEL_MODE_SWITCH_COOLDOWN_MS
 } from "./minigame/constants";
 import { createExplosion } from "./minigame/effects";
@@ -71,6 +73,9 @@ export default function MiniGame() {
     const isHoveredRef = useRef(false);
     const fireModeRef = useRef<FireMode>("dual");
     const lastWheelModeSwitchAt = useRef(0);
+    const wheelGestureDelta = useRef(0);
+    const wheelGestureLocked = useRef(false);
+    const wheelGestureResetTimeout = useRef<number | null>(null);
     const physicsAccumulator = useRef(0);
     const participationTimeRef = useRef(0);
     const recentSides = useRef<Array<"left" | "right">>([]);
@@ -121,6 +126,29 @@ export default function MiniGame() {
             type,
             sfxLevelScale: SFX_LEVEL_SCALE
         });
+    };
+
+    const resetWheelGesture = () => {
+        wheelGestureDelta.current = 0;
+        wheelGestureLocked.current = false;
+        if (wheelGestureResetTimeout.current !== null) {
+            window.clearTimeout(wheelGestureResetTimeout.current);
+            wheelGestureResetTimeout.current = null;
+        }
+    };
+
+    const normalizeWheelDelta = (e: WheelEvent) => {
+        const dominantDelta = Math.max(Math.abs(e.deltaX), Math.abs(e.deltaY));
+
+        if (e.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+            return dominantDelta * 16;
+        }
+
+        if (e.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+            return dominantDelta * window.innerHeight;
+        }
+
+        return dominantDelta;
     };
 
     useEffect(() => {
@@ -206,9 +234,26 @@ export default function MiniGame() {
             if (!isHoveredRef.current) return;
             e.preventDefault();
 
+            const normalizedDelta = normalizeWheelDelta(e);
+            if (normalizedDelta <= 0) return;
+
+            if (wheelGestureResetTimeout.current !== null) {
+                window.clearTimeout(wheelGestureResetTimeout.current);
+            }
+            wheelGestureResetTimeout.current = window.setTimeout(() => {
+                resetWheelGesture();
+            }, WHEEL_GESTURE_IDLE_RESET_MS);
+
+            if (wheelGestureLocked.current) return;
+
+            wheelGestureDelta.current += normalizedDelta;
+            if (wheelGestureDelta.current < WHEEL_MODE_SWITCH_THRESHOLD_PX) return;
+
             const nowMs = performance.now();
             if (nowMs - lastWheelModeSwitchAt.current < WHEEL_MODE_SWITCH_COOLDOWN_MS) return;
             lastWheelModeSwitchAt.current = nowMs;
+            wheelGestureLocked.current = true;
+            wheelGestureDelta.current = 0;
 
             const nextMode: FireMode = fireModeRef.current === "dual" ? "quad" : "dual";
             if (nextMode === fireModeRef.current) return;
@@ -853,6 +898,7 @@ export default function MiniGame() {
             container.removeEventListener("mouseenter", handleMouseEnter);
             container.removeEventListener("contextmenu", handleContextMenu);
             container.removeEventListener("wheel", handleWheel);
+            resetWheelGesture();
             themeObserver.disconnect();
 
             if (requestRef.current) {

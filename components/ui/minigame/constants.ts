@@ -49,6 +49,8 @@ export const HEAT_COOLDOWN_DURATION_MS = 1600;
 export const HEAT_COOL_PER_MS = 1 / HEAT_COOLDOWN_DURATION_MS;
 export const QUAD_MODE_HEAT_MULTIPLIER = 2.0;
 export const WHEEL_MODE_SWITCH_COOLDOWN_MS = 140;
+export const WHEEL_MODE_SWITCH_THRESHOLD_PX = 90;
+export const WHEEL_GESTURE_IDLE_RESET_MS = 220;
 
 // Fire pattern
 export const FIRE_CADENCE_MS = 40;
