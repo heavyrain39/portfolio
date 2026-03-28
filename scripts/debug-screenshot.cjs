@@ -5,7 +5,7 @@ const path = require('path');
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 2560, height: 1440 } });
   await page.goto('http://localhost:3000/not-found');
-  await page.waitForTimeout(3000); 
+  await page.waitForTimeout(5000); 
 
   // Try to find the h1 and its computed style
   const topTextVisible = await page.evaluate(() => {

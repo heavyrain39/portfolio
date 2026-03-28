@@ -6,6 +6,7 @@ import { useMotionValue } from "framer-motion";
 import CockpitCanvas from "./CockpitCanvas";
 import CockpitHUD from "./CockpitHUD";
 import RightPanelHUD from "./RightPanelHUD";
+import ReturnTicket from "./ReturnTicket";
 
 export default function NotFoundCockpit() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -84,10 +85,19 @@ export default function NotFoundCockpit() {
                 {/* ═══ RIGHT PANEL (3.5 Area) ═══ */}
                 {/* A solid border separating the left and right panels */}
                 <div 
-                    className="w-full md:w-[35%] h-[40vh] md:h-full relative shrink-0 overflow-y-auto"
+                    className="w-full md:w-[35%] h-[40vh] md:h-full relative shrink-0 overflow-y-auto z-10"
                     style={{ borderLeft: '1px solid color-mix(in srgb, var(--foreground) 20%, transparent)' }}
                 >
                     <RightPanelHUD />
+                </div>
+
+                {/* ═══ LAYER 2: GLOBAL FRONT UI (TICKET) ═══ */}
+                {/* pointer-events-none to let clicks pass through to background HUD, but auto for the ticket itself */}
+                <div className="absolute inset-0 z-[1000] pointer-events-none overflow-hidden">
+                    {/* Positioned at the bottom, sliding up via framer-motion inside ReturnTicket */}
+                    <div className="absolute bottom-0 left-[50%] md:left-[65%] -translate-x-1/2 pointer-events-auto flex items-end">
+                        <ReturnTicket />
+                    </div>
                 </div>
             </div>
         </div>
