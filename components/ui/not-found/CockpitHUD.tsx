@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import { MotionValue } from "framer-motion";
 import VerticalHUD from "./VerticalHUD";
-
-interface CockpitHUDProps {
-    mouseX: MotionValue<number>;
-    mouseY: MotionValue<number>;
-}
 
 /* ── Curved Spherical Grid Lines ── */
 function SphericalGrid() {
@@ -93,84 +87,95 @@ export default function CockpitHUD() {
     const fullQuote = `"The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man."`;
 
     return (
-        <div className="relative h-full w-full pointer-events-none flex justify-center items-center overflow-hidden">
-            
-            {/* ── Top Header (Absolute Positioning) ── */}
-            <div className="absolute top-4 md:top-8 lg:top-12 left-1/2 -translate-x-1/2 w-full max-w-[min(95vw,1000px)] flex items-end justify-between z-30 px-4 md:px-8">
-                <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 pb-[10px] md:pb-[15px]">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={`leftline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
-                    ))}
-                </div>
-                
-                <h1 
-                    className="shrink-0 font-serif font-[900] tracking-tighter mx-4 md:mx-8 text-center"
-                    style={{ fontSize: 'clamp(5rem, 10vw, 10rem)', letterSpacing: '-0.05em', lineHeight: '0.85' }}
-                >
-                    404
-                </h1>
+        <div
+            className="h-full w-full pointer-events-none overflow-hidden"
+            style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto' }}
+        >
+            {/* ═══ Row 1: Top Header (404 + Barcode Lines) ═══
+                z-30 so it paints ABOVE the viewport mask shadow */}
+            <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-4 md:px-8">
+                <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between">
+                    <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 pb-[10px] md:pb-[15px]">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={`leftline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
+                        ))}
+                    </div>
 
-                <div className="flex-1 flex items-end justify-end opacity-20 gap-2 md:gap-4 pb-[10px] md:pb-[15px]">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={`rightline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
-                    ))}
+                    <h1
+                        className="shrink-0 font-serif font-[900] tracking-tighter mx-4 md:mx-8 text-center"
+                        style={{ fontSize: 'clamp(5rem, 10vw, 10rem)', letterSpacing: '-0.05em', lineHeight: '0.85' }}
+                    >
+                        404
+                    </h1>
+
+                    <div className="flex-1 flex items-end justify-end opacity-20 gap-2 md:gap-4 pb-[10px] md:pb-[15px]">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={`rightline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            {/* ── Middle Area (Centered) ── */}
-            <div className="relative w-full max-w-[min(95vw,1000px)] flex flex-row items-stretch justify-between shrink-0 z-10 px-4 md:px-8">
-                
-                {/* Left HUD */}
-                <div className="flex-1 flex items-center justify-start z-20">
-                    <VerticalHUD side="left" />
-                </div>
+            {/* ═══ Row 2: Viewport Circle + Vertical HUDs ═══
+                1fr takes all remaining vertical space.
+                min-h-0 prevents flex overflow.
+                z-10 so the box-shadow mask sits behind Row 1 & Row 3. */}
+            <div className="relative z-10 flex items-center justify-center w-full min-h-0">
+                <div className="w-full max-w-[min(95vw,1000px)] flex flex-row items-center justify-between px-4 md:px-8">
 
-                {/* Viewport Mask and Overlay */}
-                <div className="relative z-[5] shrink-0 flex items-center justify-center w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]">
-                    
-                    {/* Mask shadow extending out */}
-                    <div className="w-full h-full rounded-full relative" style={{ boxShadow: "0 0 0 200vmax var(--background)" }}>
-                        <div className="absolute inset-0 rounded-full border border-[var(--foreground)]/25" />
+                    {/* Left HUD — explicit height matching viewport */}
+                    <div className="flex-1 flex items-center justify-start z-20 h-[300px] md:h-[min(55vh,640px)]">
+                        <VerticalHUD side="left" />
                     </div>
 
-                    <div className="absolute inset-0 z-10">
-                        <ViewportOverlay />
-                    </div>
+                    {/* Viewport Mask and Overlay */}
+                    <div className="relative z-[5] shrink-0 flex items-center justify-center w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]">
+                        {/* Mask shadow — 200vmax creates the opaque cockpit wall */}
+                        <div className="w-full h-full rounded-full relative" style={{ boxShadow: "0 0 0 200vmax var(--background)" }}>
+                            <div className="absolute inset-0 rounded-full border border-[var(--foreground)]/25" />
+                        </div>
 
-                    <div className="absolute top-[25%] left-1/2 -translate-x-1/2 z-10">
-                        <div
-                            className="px-4 py-1 bg-[var(--foreground)] text-[var(--background)] tracking-[0.3em] font-mono uppercase font-bold whitespace-nowrap"
-                            style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
-                        >
-                            〔 ANOMALY DETECTED 〕
+                        <div className="absolute inset-0 z-10">
+                            <ViewportOverlay />
+                        </div>
+
+                        <div className="absolute top-[25%] left-1/2 -translate-x-1/2 z-10">
+                            <div
+                                className="px-4 py-1 bg-[var(--foreground)] text-[var(--background)] tracking-[0.3em] font-mono uppercase font-bold whitespace-nowrap"
+                                style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
+                            >
+                                〔 ANOMALY DETECTED 〕
+                            </div>
                         </div>
                     </div>
 
-                </div>
-
-                {/* Right HUD */}
-                <div className="flex-1 flex items-center justify-end z-20">
-                    <VerticalHUD side="right" />
+                    {/* Right HUD — explicit height matching viewport */}
+                    <div className="flex-1 flex items-center justify-end z-20 h-[300px] md:h-[min(55vh,640px)]">
+                        <VerticalHUD side="right" />
+                    </div>
                 </div>
             </div>
 
-            {/* ── Bottom Quote Panel (Absolute Positioning) ── */}
-            <div className="absolute bottom-4 md:bottom-8 lg:bottom-12 left-1/2 -translate-x-1/2 w-full max-w-[85vw] md:max-w-[800px] flex flex-col justify-center z-30 px-4 md:px-12">
-                <p 
-                    className="w-full font-mono leading-relaxed text-justify uppercase tracking-[0.05em] opacity-50"
-                    style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)', textAlignLast: 'justify' }}
-                >
-                    {fullQuote}
-                </p>
-                <div className="flex items-center justify-center gap-3 mt-4 md:mt-6">
-                    <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
-                    <span 
-                        className="font-mono opacity-20 tracking-[0.3em] uppercase whitespace-nowrap"
-                        style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
+            {/* ═══ Row 3: Bottom Quote Panel ═══
+                z-30 so it paints ABOVE the viewport mask shadow */}
+            <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-12">
+                <div className="w-full max-w-[85vw] md:max-w-[800px] flex flex-col justify-center">
+                    <p
+                        className="w-full font-mono leading-relaxed text-justify uppercase tracking-[0.05em] opacity-50"
+                        style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)', textAlignLast: 'justify' }}
                     >
-                        C.G. JUNG, 1945
-                    </span>
-                    <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
+                        {fullQuote}
+                    </p>
+                    <div className="flex items-center justify-center gap-3 mt-4 md:mt-6">
+                        <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
+                        <span
+                            className="font-mono opacity-20 tracking-[0.3em] uppercase whitespace-nowrap"
+                            style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
+                        >
+                            C.G. JUNG, 1945
+                        </span>
+                        <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
+                    </div>
                 </div>
             </div>
         </div>
