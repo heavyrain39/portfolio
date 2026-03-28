@@ -176,7 +176,7 @@ function HUDCornerMarkers() {
 
 export default function CockpitHUD() {
     const [isTapped, setIsTapped] = useState(false);
-    const fullQuote = `"The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man."`;
+    const fullQuote = `「The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man.」`;
 
     const handleMouseDown = () => setIsTapped(true);
 
