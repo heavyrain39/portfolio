@@ -26,7 +26,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
     const driftValue = useMotionValue(0);
     const transformY = useTransform(driftValue, v => `${v}em`);
 
-    // Jittery Random Walk state
+    // Random Walk state
     const posRef = useRef(0);
     const velRef = useRef(0);
 
@@ -51,16 +51,16 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
     });
 
     return (
-        <div 
+        <div
             className={`flex items-center gap-2 h-full z-20 ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}
-            style={{ 
+            style={{
                 maskImage: 'linear-gradient(to bottom, transparent 10%, black 50%, transparent 90%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, transparent 10%, black 50%, transparent 90%)'
             }}
         >
             {/* Nav Triangle Indicator */}
-            <div 
-                className="text-[var(--foreground)] opacity-80 shrink-0" 
+            <div
+                className={`text-[var(--foreground)] opacity-80 shrink-0 ${isLeft ? 'translate-x-[15px]' : '-translate-x-[15px]'}`}
                 style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
             >
                 {isLeft ? '▷' : '◁'}
@@ -68,7 +68,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
 
             {/* Scrolling Numbers */}
             <div className="overflow-hidden h-[60%] flex items-center justify-center w-[4vw] min-w-[50px] shrink-0">
-                <motion.div 
+                <motion.div
                     style={{ y: transformY, fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
                     className="flex flex-col font-mono opacity-80"
                 >

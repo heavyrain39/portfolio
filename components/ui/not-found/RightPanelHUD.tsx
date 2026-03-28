@@ -76,8 +76,8 @@ export default function RightPanelHUD() {
                                 NOW PLAYING:
                             </span>
                             <span 
-                                className="opacity-80 font-bold" 
-                                style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
+                                className="opacity-50" 
+                                style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
                             >
                                 TRACK 01
                             </span>

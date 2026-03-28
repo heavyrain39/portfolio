@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { motion, Variants } from "framer-motion";
 import VerticalHUD from "./VerticalHUD";
+import HUDCrosshair from "./HUDCrosshair";
 
 /* ── Curved Spherical Grid Lines ── */
 function SphericalGrid() {
@@ -14,8 +16,8 @@ function SphericalGrid() {
                 return (
                     <path
                         key={`h${i}`}
-                        d={`M -20,${y} Q 100,${y + curve} 220,${y}`}
-                        opacity={Math.max(0, 0.05 + Math.abs(i) * 0.015)}
+                        d={`M -30,${y} Q 100,${y + curve} 230,${y}`} // Extended path
+                        opacity={Math.max(0, 0.05 + Math.abs(i) * 0.012)}
                     />
                 );
             })}
@@ -25,12 +27,38 @@ function SphericalGrid() {
                 return (
                     <path
                         key={`v${i}`}
-                        d={`M ${x},-20 Q ${x + curve},100 ${x},220`}
-                        opacity={Math.max(0, 0.05 + Math.abs(i) * 0.015)}
+                        d={`M ${x},-30 Q ${x + curve},100 ${x},230`} // Extended path
+                        opacity={Math.max(0, 0.05 + Math.abs(i) * 0.012)}
                     />
                 );
             })}
         </g>
+    );
+}
+
+/* ── HUD Brackets (Spaced outside the viewport) ── */
+function HUDBrackets() {
+    return (
+        <div
+            className="absolute z-10 pointer-events-none"
+            style={{
+                top: '-5px',
+                bottom: '-5px',
+                left: '-40px',
+                right: '-40px'
+            }}
+        >
+            {/* Expanded width to 200 + 80 = 280 */}
+            <svg className="w-full h-full" viewBox="0 0 280 210" preserveAspectRatio="none">
+                <g stroke="var(--foreground)" strokeWidth="0.5" fill="none" opacity="0.25">
+                    {/* Corners at expanded coordinates */}
+                    <polyline points="2,25 2,2 25,2" />
+                    <polyline points="255,2 278,2 278,25" />
+                    <polyline points="2,185 2,208 25,208" />
+                    <polyline points="255,208 278,208 278,185" />
+                </g>
+            </svg>
+        </div>
     );
 }
 
@@ -44,7 +72,7 @@ function ViewportOverlay() {
         >
             <defs>
                 <clipPath id="viewport-clip">
-                    <circle cx="100" cy="100" r="98" />
+                    <circle cx="100" cy="100" r="100" />
                 </clipPath>
             </defs>
 
@@ -53,44 +81,124 @@ function ViewportOverlay() {
             </g>
 
             <g stroke="var(--foreground)" strokeWidth="0.3">
-                {/* Crosshair center dot */}
-                <circle cx="100" cy="100" r="1.5" strokeWidth="0.5" opacity="0.7" />
-                {/* Crosshair arms */}
-                <line x1="100" y1="88" x2="100" y2="96" opacity="0.5" />
-                <line x1="100" y1="104" x2="100" y2="112" opacity="0.5" />
-                <line x1="88" y1="100" x2="96" y2="100" opacity="0.5" />
-                <line x1="104" y1="100" x2="112" y2="100" opacity="0.5" />
-
-                {/* Corner brackets */}
-                <polyline points="8,22 8,8 22,8" strokeWidth="0.5" opacity="0.2" fill="none" />
-                <polyline points="178,8 192,8 192,22" strokeWidth="0.5" opacity="0.2" fill="none" />
-                <polyline points="8,178 8,192 22,192" strokeWidth="0.5" opacity="0.2" fill="none" />
-                <polyline points="178,192 192,192 192,178" strokeWidth="0.5" opacity="0.2" fill="none" />
-
                 <line x1="100" y1="1" x2="100" y2="10" strokeWidth="0.5" opacity="0.15" />
                 <line x1="100" y1="190" x2="100" y2="199" strokeWidth="0.5" opacity="0.15" />
                 <line x1="1" y1="100" x2="10" y2="100" strokeWidth="0.5" opacity="0.15" />
                 <line x1="190" y1="100" x2="199" y2="100" strokeWidth="0.5" opacity="0.15" />
 
-                <line x1="16" y1="16" x2="22" y2="22" strokeWidth="0.4" opacity="0.1" />
-                <line x1="178" y1="22" x2="184" y2="16" strokeWidth="0.4" opacity="0.1" />
-                <line x1="16" y1="184" x2="22" y2="178" strokeWidth="0.4" opacity="0.1" />
-                <line x1="178" y1="178" x2="184" y2="184" strokeWidth="0.4" opacity="0.1" />
-
-                <circle cx="100" cy="100" r="35" strokeWidth="0.2" opacity="0.06" strokeDasharray="1.5 3" />
+                <circle cx="100" cy="100" r="40" strokeWidth="0.2" opacity="0.06" strokeDasharray="1.5 3" />
             </g>
         </svg>
     );
 }
 
+/* ── TV Pixel Grid Overlay ── */
+function TVOverlay() {
+    return (
+        <div
+            className="fixed inset-0 z-[999] pointer-events-none opacity-[0.35]" // Slightly lower opacity for denser grid
+            style={{
+                backgroundImage: `
+                    linear-gradient(rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 0, 0, 0.15) 1px, transparent 1px)
+                `,
+                backgroundSize: '2px 2px'
+            }}
+        />
+    );
+}
+
+/* ── Warning Message with Glitch Effect ── */
+function WarningMessage() {
+    return (
+        <motion.div
+            className="px-4 py-1 bg-[var(--foreground)] text-[var(--background)] tracking-[0.3em] font-mono uppercase font-bold whitespace-nowrap"
+            style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
+            animate={{
+                x: [0, -4, 4, -2, 0, 0, 0],
+                skewX: [0, -20, 20, -10, 0, 0, 0],
+                opacity: [1, 0.8, 1, 0.4, 1, 1, 1],
+                filter: ["blur(0px)", "blur(1px)", "blur(0px)", "blur(2px)", "blur(0px)", "blur(0px)", "blur(0px)"]
+            }}
+            transition={{
+                duration: 0.3,
+                repeat: Infinity,
+                repeatDelay: Math.random() * 5 + 3, // Each instance gets a random delay
+                ease: "linear",
+                times: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 1]
+            }}
+        >
+            〔 ANOMALY DETECTED 〕
+        </motion.div>
+    );
+}
+
+/* ── HUD Symmetrical Circles ── */
+function HUDCircles() {
+    return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
+            {/* Left Circle: 25% visible (75% outside boundary) */}
+            <div
+                className="absolute top-1/2 left-0 -translate-x-3/4 -translate-y-1/2 w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)] rounded-full border border-[var(--foreground)]/25 z-40"
+            />
+            {/* Right Circle: 25% visible (75% outside boundary) */}
+            <div
+                className="absolute top-1/2 right-0 translate-x-3/4 -translate-y-1/2 w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)] rounded-full border border-[var(--foreground)]/25 z-40"
+            />
+        </div>
+    );
+}
+
+/* ── HUD Corner Markers (+ + + +) ── */
+function HUDCornerMarkers() {
+    const spacing = "gap-4 md:gap-6";
+    const size = "clamp(1.5rem, 2.5vw, 2rem)";
+    const opacity = "opacity-20";
+    const baseClass = `absolute flex ${spacing} ${opacity} font-serif z-30`;
+
+    return (
+        <>
+            <div className={`${baseClass} top-4 left-4 md:top-8 md:left-8`} style={{ fontSize: size }}>
+                <span>+</span><span>+</span><span>+</span><span>+</span>
+            </div>
+            <div className={`${baseClass} top-4 right-4 md:top-8 md:right-8`} style={{ fontSize: size }}>
+                <span>+</span><span>+</span><span>+</span><span>+</span>
+            </div>
+            <div className={`${baseClass} bottom-4 left-4 md:bottom-8 md:left-8`} style={{ fontSize: size }}>
+                <span>+</span><span>+</span><span>+</span><span>+</span>
+            </div>
+            <div className={`${baseClass} bottom-4 right-4 md:bottom-8 md:right-8`} style={{ fontSize: size }}>
+                <span>+</span><span>+</span><span>+</span><span>+</span>
+            </div>
+        </>
+    );
+}
+
 export default function CockpitHUD() {
+    const [isTapped, setIsTapped] = useState(false);
     const fullQuote = `"The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man."`;
+
+    const handleMouseDown = () => setIsTapped(true);
+
+    useEffect(() => {
+        const handleGlobalUp = () => setIsTapped(false);
+        window.addEventListener('mouseup', handleGlobalUp);
+        window.addEventListener('touchend', handleGlobalUp);
+        return () => {
+            window.removeEventListener('mouseup', handleGlobalUp);
+            window.removeEventListener('touchend', handleGlobalUp);
+        };
+    }, []);
 
     return (
         <div
-            className="h-full w-full pointer-events-none overflow-hidden"
+            className="relative h-full w-full pointer-events-auto overflow-hidden select-none"
             style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto' }}
+            onMouseDown={handleMouseDown}
+            onDragStart={(e) => e.preventDefault()}
         >
+            <HUDCornerMarkers />
+
             {/* ═══ Row 1: Top Header (404 + Barcode Lines) ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
             <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-4 md:px-8">
@@ -120,10 +228,13 @@ export default function CockpitHUD() {
                 1fr takes all remaining vertical space.
                 min-h-0 prevents flex overflow.
                 z-10 so the box-shadow mask sits behind Row 1 & Row 3. */}
+            {/* ═══ Row 2: Viewport Circle + Vertical HUDs ═══
+                1fr takes all remaining vertical space.
+                min-h-0 prevents flex overflow.
+                z-10 so the box-shadow mask sits behind Row 1 & Row 3. */}
             <div className="relative z-10 flex items-center justify-center w-full min-h-0">
                 <div className="w-full max-w-[min(95vw,1000px)] flex flex-row items-center justify-between px-4 md:px-8">
-
-                    {/* Left HUD — explicit height matching viewport */}
+                    {/* (HUD contents...) */}
                     <div className="flex-1 flex items-center justify-start z-20 h-[300px] md:h-[min(55vh,640px)]">
                         <VerticalHUD side="left" />
                     </div>
@@ -137,15 +248,12 @@ export default function CockpitHUD() {
 
                         <div className="absolute inset-0 z-10">
                             <ViewportOverlay />
+                            <HUDCrosshair isTapped={isTapped} />
+                            <HUDBrackets />
                         </div>
 
                         <div className="absolute top-[25%] left-1/2 -translate-x-1/2 z-10">
-                            <div
-                                className="px-4 py-1 bg-[var(--foreground)] text-[var(--background)] tracking-[0.3em] font-mono uppercase font-bold whitespace-nowrap"
-                                style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
-                            >
-                                〔 ANOMALY DETECTED 〕
-                            </div>
+                            <WarningMessage />
                         </div>
                     </div>
 
@@ -179,6 +287,9 @@ export default function CockpitHUD() {
                     </div>
                 </div>
             </div>
+            {/* Final Overlay Layers */}
+            <HUDCircles />
+            <TVOverlay />
         </div>
     );
 }
