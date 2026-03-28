@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { motion, useAnimationFrame, useMotionValue, useTransform } from "framer-motion";
 
 interface VerticalHUDProps {
@@ -23,15 +23,31 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
         }
     }, [isLeft]);
 
-    // Smooth continuous drift using framer-motion's useAnimationFrame
     const driftValue = useMotionValue(0);
     const transformY = useTransform(driftValue, v => `${v}em`);
 
-    useAnimationFrame((t) => {
-        const time = t / 1000; // seconds
-        // Complex natural smooth drift using sine waves combinations
-        const drift = Math.sin(time * 0.5) * 1.2 + Math.cos(time * 0.8) * 0.8; 
-        driftValue.set(drift * 1.5); // 1 slot ≈ 1.5em
+    // Jittery Random Walk state
+    const posRef = useRef(0);
+    const velRef = useRef(0);
+
+    useAnimationFrame(() => {
+        // Subtle random drift impulse
+        const drift = (Math.random() - 0.5) * 0.01;
+        // Very weak spring force for slow center-return
+        const spring = -posRef.current * 0.01;
+        // High floatiness (low energy loss)
+        const damping = 0.98;
+
+        velRef.current = (velRef.current + drift + spring) * damping;
+        posRef.current += velRef.current;
+
+        // Hard clamp to 1.5 slots for calmness
+        if (Math.abs(posRef.current) > 1.5) {
+            posRef.current = Math.sign(posRef.current) * 1.5;
+            velRef.current *= -0.1;
+        }
+
+        driftValue.set(posRef.current * 1.5);
     });
 
     return (

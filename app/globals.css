@@ -38,6 +38,12 @@
 
     --animate-scan-horizontal: scan-horizontal 3s linear infinite;
     --animate-fade-in-up: fade-in-up 0.5s ease-out forwards;
+    --animate-blink: blink 1s step-end infinite;
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
 
     @keyframes scan-horizontal {
         0% {

@@ -95,8 +95,8 @@ export default function CockpitHUD() {
                 z-30 so it paints ABOVE the viewport mask shadow */}
             <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-4 md:px-8">
                 <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between">
-                    <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 pb-[10px] md:pb-[15px]">
-                        {Array.from({ length: 8 }).map((_, i) => (
+                    <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pl-[60px] md:pl-[84px]">
+                        {Array.from({ length: 4 }).map((_, i) => (
                             <div key={`leftline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
                         ))}
                     </div>
@@ -108,8 +108,8 @@ export default function CockpitHUD() {
                         404
                     </h1>
 
-                    <div className="flex-1 flex items-end justify-end opacity-20 gap-2 md:gap-4 pb-[10px] md:pb-[15px]">
-                        {Array.from({ length: 8 }).map((_, i) => (
+                    <div className="flex-1 flex items-end justify-end opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pr-[60px] md:pr-[84px]">
+                        {Array.from({ length: 4 }).map((_, i) => (
                             <div key={`rightline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
                         ))}
                     </div>
@@ -161,10 +161,11 @@ export default function CockpitHUD() {
             <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-12">
                 <div className="w-full max-w-[85vw] md:max-w-[800px] flex flex-col justify-center">
                     <p
-                        className="w-full font-mono leading-relaxed text-justify uppercase tracking-[0.05em] opacity-50"
-                        style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)', textAlignLast: 'justify' }}
+                        className="w-full font-mono leading-relaxed text-justify uppercase tracking-[0.05em] opacity-50 relative"
+                        style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)' }}
                     >
                         {fullQuote}
+                        <span className="inline-block w-[0.6em] h-[1em] bg-[var(--foreground)] ml-1 align-middle animate-blink" />
                     </p>
                     <div className="flex items-center justify-center gap-3 mt-4 md:mt-6">
                         <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
