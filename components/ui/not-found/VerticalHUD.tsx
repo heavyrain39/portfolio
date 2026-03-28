@@ -47,7 +47,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
             velRef.current *= -0.1;
         }
 
-        driftValue.set(posRef.current * 1.5);
+        driftValue.set(posRef.current * 2.0);
     });
 
     return (
@@ -73,7 +73,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
                     className="flex flex-col font-mono opacity-80"
                 >
                     {numbers.map((num, i) => (
-                        <div key={i} className="text-center" style={{ lineHeight: '1.5em', height: '1.5em' }}>
+                        <div key={i} className="text-center" style={{ lineHeight: '2em', height: '2em' }}>
                             {num}
                         </div>
                     ))}
