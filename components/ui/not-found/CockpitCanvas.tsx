@@ -147,6 +147,7 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
         const driftFrequency = 0.5; // slow breathing
         const driftAmplitude = 0.02; // subtle movement
         
+        // 카메라 틸트 제거 (HUD 정렬 복구)
         camera.rotation.x = Math.sin(state.clock.elapsedTime * driftFrequency) * driftAmplitude;
         camera.position.y = Math.sin(state.clock.elapsedTime * (driftFrequency * 0.7)) * 0.1;
         camera.rotation.y = Math.cos(state.clock.elapsedTime * (driftFrequency * 0.5)) * (driftAmplitude * 0.5);
@@ -245,13 +246,8 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
             {/* Environment */}
             <DottedOcean />
             
-            {/* Horizon Mask Plane to hide stars under the ocean */}
-            <mesh position={[0, -50, -100]} rotation={[-Math.PI / 2, 0, 0]}>
-                <planeGeometry args={[10000, 10000]} />
-                <meshBasicMaterial color={bgColorStr} />
-            </mesh>
-
-            <Stars radius={100} depth={50} count={2500} factor={4} saturation={0} fade speed={1.5} />
+            {/* Stars & Atmosphere - 별을 바다 마스크보다 훨씬 뒤로 밀어서 확실히 가려지게 함 (radius 10000) */}
+            <Stars radius={10000} depth={100} count={2500} factor={4} saturation={0} fade speed={1.5} />
             <Sparkles count={150} scale={50} size={2} speed={0.4} opacity={0.3} color="#ffffff" position={[0,0,-20]} />
             <FastParticles />
             
@@ -268,7 +264,7 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
 export default function CockpitCanvas({ mouseX, mouseY, setShake }: CockpitCanvasProps) {
     return (
         <div className="absolute inset-0 z-0 pointer-events-none">
-            <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 2]}>
+            <Canvas camera={{ position: [0, 0, 5], fov: 60, near: 0.1, far: 20000 }} dpr={[1, 2]}>
                 <CockpitScene mouseX={mouseX} mouseY={mouseY} setShake={setShake} />
             </Canvas>
         </div>

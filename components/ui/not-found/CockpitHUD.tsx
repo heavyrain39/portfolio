@@ -106,8 +106,6 @@ function ViewportOverlay() {
                 <line x1="100" y1="190" x2="100" y2="199" strokeWidth="0.5" opacity="0.15" />
                 <line x1="1" y1="100" x2="10" y2="100" strokeWidth="0.5" opacity="0.15" />
                 <line x1="190" y1="100" x2="199" y2="100" strokeWidth="0.5" opacity="0.15" />
-
-                <circle cx="100" cy="100" r="40" strokeWidth="0.2" opacity="0.06" strokeDasharray="1.5 3" />
             </g>
         </svg>
     );
