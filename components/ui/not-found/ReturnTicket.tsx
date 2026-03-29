@@ -6,6 +6,12 @@ import Link from "next/link";
 
 export default function ReturnTicket() {
     const [timeStr, setTimeStr] = useState("YY-MM-DD HH:MM:SS");
+    const [yTarget, setYTarget] = useState(700);
+
+    useEffect(() => {
+        const nudgeTimer = setTimeout(() => setYTarget(440), 2000);
+        return () => clearTimeout(nudgeTimer);
+    }, []);
 
     useEffect(() => {
         const updateTime = () => {
@@ -28,8 +34,8 @@ export default function ReturnTicket() {
     return (
         <motion.div
             initial={{ y: 700, rotate: 0 }}          // initially hidden completely
-            animate={{ y: 440, rotate: 0 }}          // rises up slightly, hiding the bottom content
-            whileHover={{ y: 80, rotate: -15 }}      // hovers up more fully (y:80) and tilts -15deg
+            animate={{ y: yTarget, rotate: 0 }}      // rises up slightly after 2 seconds controlled by state
+            whileHover={{ y: 80, rotate: -15 }}      // hovers up more fully (y:80) and tilts -15deg immediately
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
             className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative"
             style={{
@@ -75,7 +81,7 @@ export default function ReturnTicket() {
 
                 <div className="flex flex-col gap-2 my-4 tracking-widest text-sm font-bold xl-px-2">
                     <div className="flex justify-between"><span>STATUS:</span><span>LOST SIGNAL</span></div>
-                    <div className="flex justify-between"><span>LOCATION:</span><span>404</span></div>
+                    <div className="flex justify-between"><span>LOCATION:</span><span>****404</span></div>
                     <div className="flex justify-between"><span>TIME:</span><span>{timeStr}</span></div>
                 </div>
 
