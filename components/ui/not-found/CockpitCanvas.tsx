@@ -110,7 +110,15 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
     const [isMouseDown, setIsMouseDown] = useState(false);
 
     useEffect(() => {
-        const handleDown = (e: MouseEvent) => { if (e.button === 0) setIsMouseDown(true); ensureAudioContext(audioCtxRef); };
+        const handleDown = (e: MouseEvent) => { 
+            if (e.button !== 0) return;
+            // Ignore clicks on interactive UI elements
+            const target = e.target as HTMLElement;
+            if (target.closest('button, a, input, label, [role="button"]')) return;
+
+            setIsMouseDown(true); 
+            ensureAudioContext(audioCtxRef); 
+        };
         const handleUp = () => setIsMouseDown(false);
         window.addEventListener("mousedown", handleDown);
         window.addEventListener("mouseup", handleUp);

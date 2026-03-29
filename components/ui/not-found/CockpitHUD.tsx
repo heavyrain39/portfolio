@@ -199,13 +199,22 @@ export default function CockpitHUD() {
     const [isTapped, setIsTapped] = useState(false);
     const fullQuote = `「The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man.」`;
 
-    const handleMouseDown = () => setIsTapped(true);
+
 
     useEffect(() => {
+        const handleGlobalDown = (e: MouseEvent) => {
+            if (e.button !== 0) return;
+            const target = e.target as HTMLElement;
+            if (target.closest('button, a, input, label, [role="button"]')) return;
+            setIsTapped(true);
+        };
         const handleGlobalUp = () => setIsTapped(false);
+
+        window.addEventListener('mousedown', handleGlobalDown);
         window.addEventListener('mouseup', handleGlobalUp);
         window.addEventListener('touchend', handleGlobalUp);
         return () => {
+            window.removeEventListener('mousedown', handleGlobalDown);
             window.removeEventListener('mouseup', handleGlobalUp);
             window.removeEventListener('touchend', handleGlobalUp);
         };
@@ -215,7 +224,6 @@ export default function CockpitHUD() {
         <div
             className="relative h-full w-full pointer-events-auto overflow-hidden select-none"
             style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto' }}
-            onMouseDown={handleMouseDown}
             onDragStart={(e) => e.preventDefault()}
         >
             <HUDCornerMarkers />

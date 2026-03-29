@@ -353,6 +353,7 @@ export default function RightPanelHUD() {
 
                         {/* Flat Wireframe Volume Knob */}
                         <div 
+                            role="button"
                             className="relative flex items-center justify-center h-[80%] aspect-square shrink-0 cursor-ns-resize"
                             onWheel={handleVolumeWheel}
                         >
