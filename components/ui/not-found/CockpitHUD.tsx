@@ -5,6 +5,27 @@ import { motion, Variants } from "framer-motion";
 import VerticalHUD from "./VerticalHUD";
 import HUDCrosshair from "./HUDCrosshair";
 
+/* ── Cross Marker (1px line-drawn) ── */
+function CrossMarker() {
+    return (
+        <svg 
+            width="1em" 
+            height="1em" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            className="shrink-0"
+            style={{ 
+                strokeWidth: '1.2px', // Slightly thicker for better visibility but still feels like 1px
+                vectorEffect: 'non-scaling-stroke' 
+            }}
+        >
+            <line x1="12" y1="6" x2="12" y2="18" />
+            <line x1="6" y1="12" x2="18" y2="12" />
+        </svg>
+    );
+}
+
 /* ── Curved Spherical Grid Lines ── */
 function SphericalGrid() {
     const lines = Array.from({ length: 21 }, (_, i) => i - 10);
@@ -151,24 +172,24 @@ function HUDCircles() {
 
 /* ── HUD Corner Markers (+ + + +) ── */
 function HUDCornerMarkers() {
-    const spacing = "gap-4 md:gap-6";
-    const size = "clamp(1.5rem, 2.5vw, 2rem)";
+    const spacing = "gap-3 md:gap-5";
+    const size = "clamp(1rem, 1.8vw, 1.5rem)"; // Slightly smaller to match visual weight of lines
     const opacity = "opacity-20";
-    const baseClass = `absolute flex ${spacing} ${opacity} font-serif z-30`;
+    const baseClass = `absolute flex ${spacing} ${opacity} z-30`;
 
     return (
         <>
-            <div className={`${baseClass} top-4 left-4 md:top-8 md:left-8`} style={{ fontSize: size }}>
-                <span>+</span><span>+</span><span>+</span><span>+</span>
+            <div className={`${baseClass} top-4 left-4 md:top-8 md:left-10`} style={{ fontSize: size }}>
+                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
             </div>
-            <div className={`${baseClass} top-4 right-4 md:top-8 md:right-8`} style={{ fontSize: size }}>
-                <span>+</span><span>+</span><span>+</span><span>+</span>
+            <div className={`${baseClass} top-4 right-4 md:top-8 md:right-10`} style={{ fontSize: size }}>
+                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
             </div>
-            <div className={`${baseClass} bottom-4 left-4 md:bottom-8 md:left-8`} style={{ fontSize: size }}>
-                <span>+</span><span>+</span><span>+</span><span>+</span>
+            <div className={`${baseClass} bottom-4 left-4 md:bottom-8 md:left-10`} style={{ fontSize: size }}>
+                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
             </div>
-            <div className={`${baseClass} bottom-4 right-4 md:bottom-8 md:right-8`} style={{ fontSize: size }}>
-                <span>+</span><span>+</span><span>+</span><span>+</span>
+            <div className={`${baseClass} bottom-4 right-4 md:bottom-8 md:right-10`} style={{ fontSize: size }}>
+                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
             </div>
         </>
     );

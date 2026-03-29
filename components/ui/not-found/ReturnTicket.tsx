@@ -30,7 +30,7 @@ export default function ReturnTicket() {
             initial={{ y: 700, rotate: 0 }}          // initially hidden completely
             animate={{ y: 440, rotate: 0 }}          // rises up slightly, hiding the bottom content
             whileHover={{ y: 80, rotate: -15 }}      // hovers up more fully (y:80) and tilts -15deg
-            transition={{ type: 'spring', stiffness: 200, damping: 20, mass: 1 }}
+            transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
             className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative"
             style={{
                 transformOrigin: "center 80%", // rotate around its lower point so it stays horizontally anchored
@@ -88,7 +88,7 @@ export default function ReturnTicket() {
                 </div>
 
                 <div className="text-center mt-6 mb-2 tracking-[0.1em] font-bold">
-                    {'〔 RETURN TO SURFACE? 〕'}
+                    {'〔 RETURN TO SURFACE ? 〕'}
                 </div>
 
                 <Link
@@ -97,11 +97,37 @@ export default function ReturnTicket() {
                     className="group mx-auto focus:outline-none block w-full text-center my-3 relative z-20"
                     aria-label="Return to Surface"
                 >
-                    <div className="font-bold tracking-[0.2em] relative inline-block">
+                    <motion.div
+                        initial="initial"
+                        whileHover="hover"
+                        className="font-bold tracking-[0.2em] relative inline-block"
+                    >
                         <span className="inline-block group-hover:bg-[var(--background)] group-hover:text-[var(--foreground)] px-4 py-2 transition-colors">
-                            {('〉〉〉 EXECUTE 〈〈〈')}
+                            <motion.span
+                                variants={{
+                                    hover: {
+                                        x: [0, 8, 0],
+                                        transition: { duration: 0.6, repeat: Infinity, times: [0, 0.7, 1], ease: "easeInOut" }
+                                    }
+                                }}
+                                className="inline-block"
+                            >
+                                〉〉〉
+                            </motion.span>
+                            {' EXECUTE '}
+                            <motion.span
+                                variants={{
+                                    hover: {
+                                        x: [0, -8, 0],
+                                        transition: { duration: 0.6, repeat: Infinity, times: [0, 0.7, 1], ease: "easeInOut" }
+                                    }
+                                }}
+                                className="inline-block"
+                            >
+                                〈〈〈
+                            </motion.span>
                         </span>
-                    </div>
+                    </motion.div>
                 </Link>
 
             </div>
