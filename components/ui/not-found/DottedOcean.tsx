@@ -34,7 +34,7 @@ export function DottedOcean() {
             if (bg) bgColorStr = bg;
         }
 
-        const dotColor = new THREE.Color(fgColorStr).multiplyScalar(2.5);
+        const dotColor = new THREE.Color(fgColorStr).multiplyScalar(2.3);
         const bgColor = new THREE.Color(bgColorStr);
 
         let i = 0;
@@ -124,7 +124,7 @@ export function DottedOcean() {
                     />
                 </bufferGeometry>
                 <pointsMaterial
-                    size={8} // 사각형의 존재감을 위해 상향
+                    size={8}
                     vertexColors
                     transparent
                     opacity={0.8}

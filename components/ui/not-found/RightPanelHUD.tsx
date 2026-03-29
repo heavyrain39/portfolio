@@ -3,421 +3,572 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
 
-// Streaming Unicode Braille component
-function BrailleStream() {
-    const [stream, setStream] = useState<string>("⠷⠻⠂⠃⠄⠅⠆⠇⠈⠉");
+/**
+ * ── Blob Visualizer Engine ──
+ * Draws a symmetric "blob" waveform that floats when idle
+ * and reacts dynamically to audio data.
+ */
+/**
+ * ── Blob Visualizer Engine ──
+ * Draws a symmetric "blob" waveform that floats when idle
+ * and reacts dynamically to audio data.
+ */
+function BlobVisualizer({
+    analyzer,
+    isPlaying
+}: {
+    analyzer: AnalyserNode | null;
+    isPlaying: boolean;
+}) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const reqRef = useRef<number | null>(null);
+    const prevMagsRef = useRef<number[]>(new Array(32).fill(0));
+
+    const draw = useCallback(() => {
+        if (!canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        if (canvas.width !== Math.floor(rect.width * dpr)) {
+            canvas.width = Math.floor(rect.width * dpr);
+            canvas.height = Math.floor(rect.height * dpr);
+            ctx.scale(dpr, dpr);
+        }
+
+        const width = rect.width;
+        const height = rect.height;
+        const nBands = 32;
+        const smoothing = 0.85;
+
+        // Get FFT data or use idle floating
+        const mags = new Array(nBands).fill(0);
+        if (isPlaying && analyzer) {
+            const dataArray = new Uint8Array(analyzer.frequencyBinCount);
+            analyzer.getByteFrequencyData(dataArray);
+
+            // Map frequencies to bands (log-ish)
+            for (let i = 0; i < nBands; i++) {
+                const startBin = Math.floor(Math.pow(i / nBands, 2) * (dataArray.length * 0.5));
+                const endBin = Math.floor(Math.pow((i + 1) / nBands, 2) * (dataArray.length * 0.5));
+                let energy = 0;
+                let count = 0;
+                for (let j = startBin; j < endBin; j++) {
+                    energy += dataArray[j];
+                    count++;
+                }
+                mags[i] = count > 0 ? (energy / count) / 255 : 0;
+            }
+        } else {
+            // Idle floating logic
+            const time = Date.now() * 0.002;
+            for (let i = 0; i < nBands; i++) {
+                mags[i] = 0.15 + 0.25 * Math.sin(time + i * 0.5) + 0.05 * Math.cos(time * 0.7 - i * 0.3);
+            }
+        }
+
+        // Smooth over time
+        for (let i = 0; i < nBands; i++) {
+            mags[i] = smoothing * prevMagsRef.current[i] + (1 - smoothing) * mags[i];
+            prevMagsRef.current[i] = mags[i];
+        }
+
+        // Clear and Draw
+        ctx.clearRect(0, 0, width, height);
+
+        // Prepare coordinates for polygon
+        const pointsTop: [number, number][] = [];
+        const pointsBottom: [number, number][] = [];
+        const scale = height * 0.55; 
+        const paddingX = 0;
+        const usableWidth = width;
+
+        for (let i = 0; i < nBands; i++) {
+            const x = paddingX + (i / (nBands - 1)) * usableWidth;
+            const yOffset = (mags[i] * scale) / 2;
+            pointsTop.push([x, (height / 2) - yOffset - 1]);
+            pointsBottom.push([x, (height / 2) + yOffset + 1]);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(pointsTop[0][0], pointsTop[0][1]);
+        for (let i = 0; i < pointsTop.length - 1; i++) {
+            const xc = (pointsTop[i][0] + pointsTop[i + 1][0]) / 2;
+            const yc = (pointsTop[i][1] + pointsTop[i + 1][1]) / 2;
+            ctx.quadraticCurveTo(pointsTop[i][0], pointsTop[i][1], xc, yc);
+        }
+        ctx.lineTo(pointsTop[pointsTop.length - 1][0], pointsTop[pointsTop.length - 1][1]);
+        ctx.lineTo(pointsBottom[pointsBottom.length - 1][0], pointsBottom[pointsBottom.length - 1][1]);
+        for (let i = pointsBottom.length - 1; i > 0; i--) {
+            const xc = (pointsBottom[i][0] + pointsBottom[i - 1][0]) / 2;
+            const yc = (pointsBottom[i][1] + pointsBottom[i - 1][1]) / 2;
+            ctx.quadraticCurveTo(pointsBottom[i][0], pointsBottom[i][1], xc, yc);
+        }
+        ctx.lineTo(pointsBottom[0][0], pointsBottom[0][1]);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+        ctx.fill();
+
+        reqRef.current = requestAnimationFrame(draw);
+    }, [analyzer, isPlaying]);
 
     useEffect(() => {
-        const genBraille = () => {
-            let str = "";
-            for (let i = 0; i < 12; i++) {
-                str += String.fromCharCode(0x2800 + Math.floor(Math.random() * 256));
-            }
-            return str;
+        reqRef.current = requestAnimationFrame(draw);
+        return () => {
+            if (reqRef.current) cancelAnimationFrame(reqRef.current);
         };
-
-        const interval = setInterval(() => {
-            setStream(genBraille());
-        }, 100);
-        return () => clearInterval(interval);
-    }, []);
+    }, [draw]);
 
     return (
-        <div 
-            className="font-mono tracking-widest opacity-50 text-right truncate"
-            style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)', width: 'clamp(100px, 12vw, 150px)' }}
-        >
-            {stream}
+        <div className="w-full h-full relative overflow-hidden">
+            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        </div>
+    );
+}
+
+/**
+ * ── Waveform Visualizer Engine ──
+ * Draws a 1px smoothed sound wave using Time Domain Data.
+ */
+function WaveformVisualizer({
+    analyzer,
+    isPlaying
+}: {
+    analyzer: AnalyserNode | null;
+    isPlaying: boolean;
+}) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const reqRef = useRef<number | null>(null);
+    const prevPointsRef = useRef<number[]>(new Array(128).fill(0));
+
+    const draw = useCallback(() => {
+        if (!canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        if (canvas.width !== Math.floor(rect.width * dpr)) {
+            canvas.width = Math.floor(rect.width * dpr);
+            canvas.height = Math.floor(rect.height * dpr);
+            ctx.scale(dpr, dpr);
+        }
+
+        const width = rect.width;
+        const height = rect.height;
+        const sampleCount = 300; // 더 촘촘한 밀도를 위해 대폭 상향
+        const smoothing = 0.3; 
+
+        const data = new Array(sampleCount).fill(0);
+        if (isPlaying && analyzer) {
+            const dataArray = new Uint8Array(analyzer.fftSize);
+            analyzer.getByteTimeDomainData(dataArray);
+
+            // 전체 버퍼를 압축해서 보여줌으로써 파울링(촘촘함) 극대화
+            for (let i = 0; i < sampleCount; i++) {
+                const index = Math.floor((i / sampleCount) * dataArray.length);
+                data[i] = (dataArray[index] - 128) / 128;
+            }
+        } else {
+            const time = Date.now() * 0.001;
+            for (let i = 0; i < sampleCount; i++) {
+                // 여러 파동을 섞어 복잡한 기계 음파 느낌 연출
+                data[i] = 0.06 * Math.sin(time + i * 0.2) + 0.03 * Math.cos(time * 1.5 + i * 0.5);
+            }
+        }
+
+        // Temporal smoothing
+        for (let i = 0; i < sampleCount; i++) {
+            data[i] = smoothing * (prevPointsRef.current[i] || 0) + (1 - smoothing) * data[i];
+            prevPointsRef.current[i] = data[i];
+        }
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+
+        const scaleY = height * 0.45; // 음파 형태가 더 강조되도록 상향
+        const centerY = height / 2;
+        const step = width / (sampleCount - 1);
+
+        ctx.moveTo(0, centerY + data[0] * scaleY);
+        for (let i = 0; i < sampleCount - 1; i++) {
+            const x1 = i * step;
+            const y1 = centerY + data[i] * scaleY;
+            const x2 = (i + 1) * step;
+            const y2 = centerY + data[i + 1] * scaleY;
+            
+            const xc = (x1 + x2) / 2;
+            const yc = (y1 + y2) / 2;
+            ctx.quadraticCurveTo(x1, y1, xc, yc);
+        }
+        
+        ctx.stroke();
+
+        reqRef.current = requestAnimationFrame(draw);
+    }, [analyzer, isPlaying]);
+
+    useEffect(() => {
+        reqRef.current = requestAnimationFrame(draw);
+        return () => {
+            if (reqRef.current) cancelAnimationFrame(reqRef.current);
+        };
+    }, [draw]);
+
+    return (
+        <div className="w-full h-full relative overflow-hidden">
+            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
         </div>
     );
 }
 
 export default function RightPanelHUD() {
     const borderColor = 'color-mix(in srgb, var(--foreground) 20%, transparent)';
-    
+
     // Core Audio State
     const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [volume, setVolume] = useState(60); // 0-100 (Default 60)
+    const [volume, setVolume] = useState(60);
+    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
     const [audioError, setAudioError] = useState<string | null>(null);
-    const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
-    
-    // Web Audio Canvas & Nodes
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
+    const tracks = [
+        { title: "TRACK01.FLAC", url: "/portfolio/audio/track01.m4a" },
+        { title: "TRACK02.FLAC", url: "/portfolio/audio/track02.m4a" }
+    ];
+
+    // Web Audio Refs
     const audioCtxRef = useRef<AudioContext | null>(null);
     const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
     const gainNodeRef = useRef<GainNode | null>(null);
     const analyzerRef = useRef<AnalyserNode | null>(null);
-    const dataArrayRef = useRef<Uint8Array | null>(null);
-    const reqRef = useRef<number | null>(null);
+    const audioBuffersRef = useRef<(AudioBuffer | null)[]>([]);
 
-    // Playback state trackers
     const startTimeRef = useRef<number>(0);
     const pauseTimeRef = useRef<number>(0);
+    const progressIntervalRef = useRef<number | null>(null);
 
-    // Volume Wheel Handler
-    const handleVolumeWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-        const delta = Math.sign(e.deltaY);
-        const newVol = Math.max(0, Math.min(100, volume - (delta * 5)));
-        setVolume(newVol);
-        
-        if (gainNodeRef.current && audioCtxRef.current) {
-            gainNodeRef.current.gain.setValueAtTime(newVol / 100, audioCtxRef.current.currentTime);
+    // Initial AudioContext Setup
+    const ensureContext = useCallback(() => {
+        if (!audioCtxRef.current) {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AudioContext();
+            const analyzer = ctx.createAnalyser();
+            analyzer.fftSize = 2048; // 데이터 해상도 대폭 상향
+            const gain = ctx.createGain();
+            gain.gain.value = volume / 100;
+
+            analyzer.connect(gain);
+            gain.connect(ctx.destination);
+
+            audioCtxRef.current = ctx;
+            analyzerRef.current = analyzer;
+            gainNodeRef.current = gain;
         }
-    };
+        return audioCtxRef.current;
+    }, [volume]);
 
-    // Canvas visualization loop
-    const drawWaveform = useCallback(() => {
-        if (!canvasRef.current || !analyzerRef.current || !dataArrayRef.current) return;
-        
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d", { alpha: true });
-        if (!ctx) return;
-        
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        
-        if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
-            canvas.width = Math.floor(rect.width * dpr);
-            canvas.height = Math.floor(rect.height * dpr);
-            ctx.scale(dpr, dpr);
-        }
-        
-        const width = rect.width;
-        const height = rect.height;
-        
-        reqRef.current = requestAnimationFrame(drawWaveform);
-        
-        analyzerRef.current.getByteFrequencyData(dataArrayRef.current as any);
-        
-        ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        
-        const barWidth = 2; // Slightly thicker for better visibility
-        const gap = 2;
-        const numBars = Math.floor(width / (barWidth + gap));
-        
-        // 음악의 실질적 에너지가 집중된 주파수 대역(약 5kHz 이하)만을 추출
-        // fftSize=256일 때 총 128개의 빈(Bin)으로 나뉘며, 각 빈은 약 172Hz 담당
-        // 172Hz * 30 빈 = 약 5160Hz. 드럼, 베이스, 보컬 등 음악의 핵심 대역
-        const maxBinsToRead = 30; 
-        
-        for (let i = 0; i < numBars; i++) {
-            // 전체 캔버스 픽셀 너비를 오직 음악의 하이라이트 30개의 빈에만 매핑
-            const dataIndex = Math.floor((i / numBars) * maxBinsToRead);
-            const value = dataArrayRef.current[dataIndex] || 0;
-            
-            // Baseline 10% height when silent to look like active wireframe
-            const percent = Math.max(0.1, value / 255);
-            // 시각적 쾌감을 위해 진폭 스케일을 약간 증폭시킴
-            const visualHeight = height * Math.pow(percent, 1.1);
-            
-            ctx.fillRect(i * (barWidth + gap), height - visualHeight, barWidth, visualHeight);
-        }
-    }, []);
+    // Fetch and Decode
+    const loadTrack = async (index: number) => {
+        if (audioBuffersRef.current[index]) return audioBuffersRef.current[index];
 
-    useEffect(() => {
-        return () => {
-            if (reqRef.current) {
-                cancelAnimationFrame(reqRef.current);
-                reqRef.current = null;
-            }
-            if (sourceNodeRef.current) {
-                try { sourceNodeRef.current.stop(); } catch(e) {}
-            }
-        };
-    }, []);
-
-    const fetchAndDecodeAudio = async () => {
         setIsLoading(true);
         setAudioError(null);
         try {
-            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-            const ctx = new AudioContext();
-            audioCtxRef.current = ctx;
-            
-            const analyzer = ctx.createAnalyser();
-            analyzer.fftSize = 256; // gives 128 frequency bins for better fullscreen resolution
-            analyzerRef.current = analyzer;
-            dataArrayRef.current = new Uint8Array(analyzer.frequencyBinCount);
-            
-            const gain = ctx.createGain();
-            gain.gain.value = volume / 100;
-            gainNodeRef.current = gain;
-            
-            // Connect processing chain
-            analyzer.connect(gain);
-            gain.connect(ctx.destination);
-            
-            const res = await fetch("/portfolio/audio/track01.m4a");
-            if (!res.ok) throw new Error("404 HTTP Fetch Failed");
-            
+            const ctx = ensureContext()!;
+            const res = await fetch(tracks[index].url);
+            if (!res.ok) throw new Error("FETCH_FAIL");
             const arrayBuffer = await res.arrayBuffer();
             const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
-            
-            setAudioBuffer(decodedBuffer);
+            audioBuffersRef.current[index] = decodedBuffer;
             setIsLoading(false);
             return decodedBuffer;
-        } catch (error: any) {
-            console.error("Audio Load/Decode Error:", error);
-            setAudioError("DECODE_FAIL");
+        } catch (e) {
+            console.error(e);
+            setAudioError("DECODE_ERR");
             setIsLoading(false);
             return null;
         }
     };
 
-    const playBuffer = (offset: number, buffer: AudioBuffer) => {
-        if (!audioCtxRef.current || !analyzerRef.current) return;
-        
-        try {
-            const source = audioCtxRef.current.createBufferSource();
-            source.buffer = buffer;
-            source.connect(analyzerRef.current);
-            
-            source.onended = () => {
-                // If the track finishes naturally
-                // Checking state to prevent false triggering from STOP() calls
-                setIsPlaying(prev => {
-                    if (prev && audioCtxRef.current && (audioCtxRef.current.currentTime - startTimeRef.current) >= buffer.duration * 0.95) {
-                        pauseTimeRef.current = 0;
-                        return false;
-                    }
-                    return prev;
-                });
-            };
-            
-            source.start(0, offset);
-            sourceNodeRef.current = source;
-            startTimeRef.current = audioCtxRef.current.currentTime - offset;
-            
-            setIsPlaying(true);
-            
-            // HMR 환경에서 죽은 ID가 남는 것을 방지하기 위해 강제로 초기화 후 재실행
-            if (reqRef.current) cancelAnimationFrame(reqRef.current);
-            reqRef.current = requestAnimationFrame(drawWaveform);
-        } catch(e) {
-            console.error("PlayBuffer Error", e);
+    // Playback control
+    const stopAudio = useCallback(() => {
+        if (sourceNodeRef.current) {
+            try { sourceNodeRef.current.stop(); } catch (e) { }
         }
-    };
+        sourceNodeRef.current = null;
+        setIsPlaying(false);
+        pauseTimeRef.current = 0;
+        setCurrentTime(0);
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    }, []);
+
+    const playAudio = useCallback((offset: number, buffer: AudioBuffer) => {
+        const ctx = ensureContext()!;
+        if (ctx.state === 'suspended') ctx.resume();
+
+        stopAudio();
+
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(analyzerRef.current!);
+
+        source.onended = () => {
+            setIsPlaying(prev => {
+                if (prev && (ctx.currentTime - startTimeRef.current) >= buffer.duration * 0.98) {
+                    pauseTimeRef.current = 0;
+                    setCurrentTime(0);
+                    return false;
+                }
+                return prev;
+            });
+        };
+
+        source.start(0, offset);
+        sourceNodeRef.current = source;
+        startTimeRef.current = ctx.currentTime - offset;
+        setDuration(buffer.duration);
+        setIsPlaying(true);
+
+        progressIntervalRef.current = window.setInterval(() => {
+            const current = ctx.currentTime - startTimeRef.current;
+            setCurrentTime(current);
+        }, 100);
+    }, [ensureContext, stopAudio]);
 
     const togglePlay = async () => {
         if (isLoading) return;
-        setAudioError(null);
-        
-        let targetBuffer = audioBuffer;
-        if (!targetBuffer) {
-            // First time play
-            const buf = await fetchAndDecodeAudio();
-            if (!buf) return;
-            targetBuffer = buf;
-        }
-
-        if (audioCtxRef.current?.state === 'suspended') {
-            audioCtxRef.current.resume();
-        }
+        const buffer = await loadTrack(currentTrackIndex);
+        if (!buffer) return;
 
         if (isPlaying) {
-            // Pause logic
-            if (audioCtxRef.current) {
-                pauseTimeRef.current = audioCtxRef.current.currentTime - startTimeRef.current;
-            }
-            if (sourceNodeRef.current) {
-                try { sourceNodeRef.current.stop(); } catch(e){}
-            }
+            pauseTimeRef.current = audioCtxRef.current!.currentTime - startTimeRef.current;
+            stopAudio();
             setIsPlaying(false);
         } else {
-            // Resume logic
-            // Make sure we loop around if it hit the end previously
-            if (pauseTimeRef.current >= targetBuffer.duration) {
-                pauseTimeRef.current = 0;
-            }
-            playBuffer(pauseTimeRef.current, targetBuffer);
+            if (pauseTimeRef.current >= buffer.duration) pauseTimeRef.current = 0;
+            playAudio(pauseTimeRef.current, buffer);
         }
     };
 
-    const stopAudio = () => {
-        if (!audioBuffer) return;
-        if (sourceNodeRef.current) {
-            try { sourceNodeRef.current.stop(); } catch(e){}
+    const nextTrack = async () => {
+        const nextIndex = (currentTrackIndex + 1) % tracks.length;
+        setCurrentTrackIndex(nextIndex);
+        stopAudio();
+        const buffer = await loadTrack(nextIndex);
+        if (buffer) playAudio(0, buffer);
+    };
+
+    // Interactive seeks
+    const handleProgressScrub = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!duration || isLoading) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        const newTime = pct * duration;
+
+        pauseTimeRef.current = newTime;
+        const buffer = audioBuffersRef.current[currentTrackIndex];
+        if (buffer && isPlaying) {
+            playAudio(newTime, buffer);
+        } else {
+            setCurrentTime(newTime);
         }
-        pauseTimeRef.current = 0;
-        setIsPlaying(false);
-        if (reqRef.current) {
-            cancelAnimationFrame(reqRef.current);
-            reqRef.current = null;
-        }
-        
-        // Clear canvas
-        if (canvasRef.current) {
-            const ctx = canvasRef.current.getContext("2d");
-            if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        }
+    };
+
+    // Volume Knob Logic
+    const handleVolumeWheel = (e: React.WheelEvent) => {
+        const delta = -Math.sign(e.deltaY) * 5;
+        const next = Math.max(0, Math.min(100, volume + delta));
+        setVolume(next);
+        if (gainNodeRef.current) gainNodeRef.current.gain.value = next / 100;
+    };
+
+    useEffect(() => {
+        if (gainNodeRef.current) gainNodeRef.current.gain.value = volume / 100;
+    }, [volume]);
+
+    // Format time
+    const formatTime = (s: number) => {
+        const m = Math.floor(s / 60);
+        const sc = Math.floor(s % 60);
+        return `${m.toString().padStart(2, '0')}:${sc.toString().padStart(2, '0')}`;
     };
 
     return (
-        <div className="flex flex-col h-[100%] w-full bg-[var(--background)] pointer-events-none relative">
+        <div className="flex flex-col h-[100%] w-full bg-[var(--background)] pointer-events-none relative overflow-hidden">
             <style>{`
                 @keyframes gridSlideHUD {
                     from { background-position: 0 0px, 0 0px; }
-                    to { background-position: -30px 0px, -30px 0px; }
+                    to { background-position: -40px 0px, -40px 0px; }
                 }
                 .player-grid-bg {
                     background-image:
-                        linear-gradient(color-mix(in srgb, var(--foreground) 7%, transparent) 1px, transparent 1px),
-                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 7%, transparent) 1px, transparent 1px);
-                    background-size: 30px 30px;
+                        linear-gradient(color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
+                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px);
+                    background-size: 40px 40px;
                     background-position: 0 0, 0 0;
                     animation: gridSlideHUD 3.75s linear infinite;
                 }
+                :root {
+                    --knob-h: 2.8rem;
+                    --knob-w: calc(2.8rem * 80 / 65);
+                }
+                @media (min-width: 768px) {
+                    :root {
+                        --knob-h: 3.8vw;
+                        --knob-w: calc(3.8vw * 80 / 65);
+                    }
+                }
             `}</style>
-            
-            {/* Top Bar with player */}
-            <div className="player-grid-bg flex flex-col p-4 md:p-[2vw] gap-2 md:gap-[1.5vw] relative" style={{ borderBottom: `1px solid ${borderColor}` }}>
-                
-                <div className="flex flex-col w-full relative z-10 pointer-events-auto">
-                    
-                    {/* Now Playing Header & Braille */}
-                    <div className="flex items-start justify-between w-full h-[1.5rem] overflow-hidden">
-                        <div className="flex items-center font-mono uppercase tracking-widest gap-3">
-                            <span 
-                                className="opacity-50" 
-                                style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
-                            >
-                                NOW PLAYING:
-                            </span>
-                            {isLoading ? (
-                                <span className="opacity-90 animate-pulse font-bold text-[#ffd700]" style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}>
-                                    FETCHING SRC...
-                                </span>
-                            ) : audioError ? (
-                                <span className="text-red-500 opacity-90 flex items-center gap-1" style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}>
-                                    <AlertTriangle className="w-3 h-3" /> [ ERR: {audioError} ]
-                                </span>
-                            ) : (
-                                <span 
-                                    className="opacity-50 font-bold" 
-                                    style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
-                                >
-                                    TRACK 01
-                                </span>
-                            )}
+
+            <div className="player-grid-bg flex flex-col p-4 md:p-[2vw] gap-3 relative" style={{ borderBottom: `1px solid ${borderColor}` }}>
+
+                {/* TIER 1: Fixed Header Layer */}
+                <div className="h-[1.2rem] md:h-[1.5vw] flex items-center justify-between w-full pointer-events-auto font-mono text-[9px] md:text-[0.6vw] pb-1">
+                    <div className="flex items-center uppercase tracking-widest gap-4">
+                        <span className="opacity-50">NOW PLAYING:</span>
+                        {isLoading ? (
+                            <span className="opacity-50 animate-pulse">FETCHING...</span>
+                        ) : (
+                            <span className="opacity-50">{tracks[currentTrackIndex].title}</span>
+                        )}
+                    </div>
+                    <div className="hidden md:block opacity-50 uppercase tracking-widest">
+                        BITRATE: 1411 KBPS
+                    </div>
+                </div>
+
+                {/* TIER 2 & 3: Unified Grid Structure for Precise Alignment */}
+                <div className="grid grid-cols-[var(--knob-w)_1fr] gap-8 md:gap-[3vw]">
+
+                    {/* Column 1: Knob & Volume Labels */}
+                    <div className="flex flex-col items-center gap-3.5">
+                        {/* Knob Row */}
+                        <div
+                            id="vol-knob"
+                            data-hud-interactive="true"
+                            className="h-[var(--knob-h)] w-[var(--knob-w)] flex items-center justify-center cursor-ns-resize rounded-none relative overflow-visible pointer-events-auto"
+                            onWheel={handleVolumeWheel}
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
+                                <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                                <g transform={`rotate(${-180 + (volume / 100) * 180})`}>
+                                    <line x1="0" y1="-33" x2="0" y2="-43" stroke="currentColor" strokeWidth="1" opacity="0.8" strokeLinecap="butt" />
+                                </g>
+                            </svg>
                         </div>
-                        <BrailleStream />
+                        {/* VOL Label (Centered under Knob) */}
+                        <div className="w-full text-center font-mono text-[9px] md:text-[0.6vw] opacity-50 uppercase tracking-widest leading-none">
+                            VOL. {volume}%
+                        </div>
                     </div>
 
-                    {/* Audio Controls & Waveform Area */}
-                    <div className="flex items-center gap-4 md:gap-[1.5vw] mt-2 h-[3.5rem] md:h-[4.5vw]">
-                        
-                        {/* Hardware Buttons Container - Perfect square blocks */}
-                        <div className="flex items-center gap-2 h-full shrink-0 pointer-events-auto">
-                            {/* Play/Pause Button */}
-                            <button 
-                                onClick={togglePlay}
-                                disabled={isLoading}
-                                className="h-full aspect-square border border-[var(--foreground)] opacity-80 flex items-center justify-center cursor-pointer hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors relative disabled:opacity-20 disabled:cursor-not-allowed"
-                            >
-                                {/* Decorative Top-Left screw marker target */}
-                                <div className="absolute top-[2px] left-[2px] w-[2px] h-[2px] bg-[var(--foreground)] opacity-40"></div>
+                    {/* Column 2: Controls, Visualizer, Progress, and Timer */}
+                <div className="grid grid-cols-[0.6fr_0.40fr] gap-4 md:gap-[2.5vw] items-stretch">
+
+                    {/* Column 2-A: Controls (Buttons, Progress, Timer) */}
+                    <div className="flex flex-col gap-2">
+                        {/* Upper Row: Buttons */}
+                        <div className="flex items-center gap-2 h-[var(--knob-h)] pointer-events-auto">
+                            <button onClick={stopAudio} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%]"><rect x="6" y="6" width="12" height="12" /></svg>
+                            </button>
+                            <button onClick={togglePlay} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
                                 {isPlaying ? (
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
-                                        <rect x="6" y="4" width="4" height="16" />
-                                        <rect x="14" y="4" width="4" height="16" />
+                                        <rect x="6" y="5" width="4" height="14" />
+                                        <rect x="14" y="5" width="4" height="14" />
                                     </svg>
                                 ) : (
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
-                                        <polygon points="6,4 20,12 6,20" />
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]"><polygon points="7,5 19,12 7,19" /></svg>
                                 )}
                             </button>
-                            
-                            {/* Stop Button */}
-                            <button 
-                                onClick={stopAudio}
-                                disabled={isLoading}
-                                className="h-full aspect-square border border-[var(--foreground)] opacity-80 flex items-center justify-center cursor-pointer hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors relative disabled:opacity-20 disabled:cursor-not-allowed"
-                            >
-                                <div className="absolute top-[2px] left-[2px] w-[2px] h-[2px] bg-[var(--foreground)] opacity-40"></div>
-                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[35%] h-[35%]">
-                                    <rect x="5" y="5" width="14" height="14" />
+                            <button onClick={nextTrack} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
+                                    <polygon points="5,5 15,12 5,19" />
+                                    <rect x="17" y="5" width="2" height="14" />
                                 </svg>
                             </button>
                         </div>
 
-                        {/* Real Waveform Canvas Wrapper */}
-                        <div className="flex-1 relative overflow-hidden h-[80%] border-l border-r border-[#2b2d35]">
-                            <canvas 
-                                ref={canvasRef} 
-                                className="absolute inset-x-0 bottom-0 w-full h-full pointer-events-none"
-                            />
-                        </div>
-
-                        {/* Flat Wireframe Volume Knob */}
-                        <div 
-                            role="button"
-                            className="relative flex items-center justify-center h-[80%] aspect-square shrink-0 cursor-ns-resize"
-                            onWheel={handleVolumeWheel}
-                        >
-                            <svg viewBox="-50 -50 100 100" className="w-[85%] h-[85%] text-[var(--foreground)] opacity-80" stroke="currentColor" strokeWidth="2" fill="none">
-                                {/* Outer Ring */}
-                                <circle cx="0" cy="0" r="46" />
-                                
-                                {/* Single Indicator Line (Mapped to 0~100 -> -135deg~135deg) */}
-                                <g transform={`rotate(${-135 + (volume / 100) * 270})`}>
-                                    <line x1="0" y1="-30" x2="0" y2="-46" strokeWidth="3" />
-                                </g>
-                            </svg>
+                        {/* Lower Row: Progress Bar + Timer (Strictly 60% with buttons) */}
+                        <div className="flex items-center h-[1rem] md:h-[0.8vw] pointer-events-auto mt-auto">
+                            <div className="flex-1 flex items-center pr-4">
+                                <div 
+                                    data-hud-interactive="true"
+                                    className="flex-1 h-[6px] md:h-[8px] bg-[var(--background)] border border-[var(--foreground)]/50 relative cursor-pointer" 
+                                    onClick={handleProgressScrub}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                >
+                                    <div
+                                        className="h-full bg-[var(--foreground)] opacity-50 pointer-events-none"
+                                        style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="shrink-0 flex items-center justify-end">
+                                <div className="font-mono text-[9px] md:text-[0.6vw] opacity-50 tracking-widest leading-none w-10 text-right">
+                                    {formatTime(currentTime)}
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Column 2-B: Dual Visualizers (Vertical Stack for Strict Alignment) */}
+                    <div className="flex flex-col gap-2 h-full">
+                        {/* Upper Visualizer (Aligned with Buttons) */}
+                        <div className="h-[var(--knob-h)] overflow-hidden opacity-50">
+                            <BlobVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                        </div>
+                        {/* Lower Visualizer (Aligned with Progress/Timer) */}
+                        <div className="h-[1rem] md:h-[0.8vw] mt-auto overflow-hidden opacity-50">
+                            <WaveformVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                        </div>
+                    </div>
+                </div>
                 </div>
             </div>
 
-            {/* Middle technobabble panel */}
-            <div className="flex-1 p-4 md:p-[2vw] relative flex flex-col gap-4 md:gap-[2vw] overflow-hidden">
-                <div className="flex justify-between font-mono tracking-widest">
+            {/* Technobabble Panel (Maintained with proper spacing) */}
+            <div className="flex-1 p-4 md:p-[2vw] relative flex flex-col gap-4 overflow-hidden select-none border-t border-[var(--foreground)]/5">
+                <div className="flex justify-between font-mono tracking-widest uppercase text-[9px] md:text-[0.6vw]">
                     <div className="flex flex-col gap-1">
-                        <span 
-                            className="opacity-50" 
-                            style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
-                        >
-                            EARTH TIME:
-                        </span>
-                        <span 
-                            className="opacity-80 font-bold" 
-                            style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
-                        >
-                            17:37:51:71
-                        </span>
+                        <span className="opacity-50">EARTH TIME:</span>
+                        <span className="opacity-50">17:37:51:71</span>
                     </div>
                 </div>
 
-                <div 
-                    className="flex gap-4 md:gap-[2vw] font-mono tracking-widest mt-2 md:mt-[1vw]"
-                    style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
-                >
+                <div className="flex gap-4 font-mono tracking-widest uppercase text-[9px] md:text-[0.6vw] mt-2">
                     <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-20">
                         <span>INT</span>
                         <span>EXT</span>
                     </div>
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-50">
+                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-40">
                         <span>68°F</span>
                         <span>-458°F</span>
                     </div>
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-50">
+                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-40">
                         <span>20°C</span>
                         <span>-272°C</span>
                     </div>
                 </div>
-                
-                {/* Visual Placeholder for ASCII / Modules */}
-                <div 
-                    className="absolute right-[2vw] top-1/2 -translate-y-1/2 opacity-20 border border-dashed border-[var(--foreground)] p-4 font-mono text-center leading-tight w-[10vw] min-w-[120px] h-[15vw] min-h-[160px] flex items-center justify-center pointer-events-auto" 
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 100% 90%, 90% 100%, 0 100%)', fontSize: 'clamp(0.6rem, 0.8vw, 1rem)' }}
+
+                <div
+                    className="absolute right-[2vw] top-1/2 -translate-y-1/2 opacity-25 border border-dashed border-[var(--foreground)] p-4 font-mono text-center leading-tight w-[10vw] min-w-[120px] h-[15vw] min-h-[160px] flex items-center justify-center"
+                    style={{ clipPath: 'polygon(0 0, 100% 0, 100% 90%, 90% 100%, 0 100%)', fontSize: '9px' }}
                 >
-                    [ SYSTEM TBD ]<br/>
+                    [ SYSTEM TBD ]<br />
                     WAITING FOR INPUT
                 </div>
             </div>
-
         </div>
     );
 }

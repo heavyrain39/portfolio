@@ -203,7 +203,7 @@ export default function CockpitHUD() {
         const handleGlobalDown = (e: MouseEvent) => {
             if (e.button !== 0) return;
             const target = e.target as HTMLElement;
-            if (target.closest('button, a, input, label, [role="button"]')) return;
+            if (target.closest('button, a, input, label, [role="button"], [data-hud-interactive="true"]')) return;
             setIsTapped(true);
         };
         const handleGlobalUp = () => setIsTapped(false);
@@ -220,7 +220,7 @@ export default function CockpitHUD() {
 
     return (
         <div
-            className="relative h-full w-full pointer-events-auto overflow-hidden select-none"
+            className="relative h-full w-full pointer-events-auto overflow-hidden select-none gap-4 md:gap-8"
             style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto' }}
             onDragStart={(e) => e.preventDefault()}
         >
@@ -229,7 +229,7 @@ export default function CockpitHUD() {
             {/* ═══ Row 1: Top Header (404 + Barcode Lines) ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
             <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-4 md:px-8">
-                <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between">
+                <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between relative">
                     <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pl-[60px] md:pl-[84px]">
                         {Array.from({ length: 4 }).map((_, i) => (
                             <div key={`leftline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
@@ -255,12 +255,8 @@ export default function CockpitHUD() {
                 1fr takes all remaining vertical space.
                 min-h-0 prevents flex overflow.
                 z-10 so the box-shadow mask sits behind Row 1 & Row 3. */}
-            {/* ═══ Row 2: Viewport Circle + Vertical HUDs ═══
-                1fr takes all remaining vertical space.
-                min-h-0 prevents flex overflow.
-                z-10 so the box-shadow mask sits behind Row 1 & Row 3. */}
             <div className="relative z-10 flex items-center justify-center w-full min-h-0">
-                <div className="w-full max-w-[min(95vw,1000px)] flex flex-row items-center justify-between px-4 md:px-8">
+                <div className="w-full max-w-[min(95vw,1000px)] flex flex-row items-center justify-between px-4 md:px-8 py-4 md:py-8 relative">
                     {/* (HUD contents...) */}
                     <div className="flex-1 flex items-center justify-start z-20 h-[300px] md:h-[min(55vh,640px)]">
                         <VerticalHUD side="left" />

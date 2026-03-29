@@ -72,7 +72,7 @@ export default function ReturnTicket() {
                 {/* Header Row */}
                 <div className="flex justify-between items-center whitespace-pre relative mb-3">
                     <span className="text-xl leading-none">⠾⠆⠍⠻⠟⠆</span>
-                    <span className="tracking-tighter text-3xl scale-y-125 inline-block origin-top">𝄃𝄃𝄂𝄂𝄀𝄁𝄃⠂𝄃⠂</span>
+                    <span className="tracking-tighter text-3xl scale-y-125 inline-block origin-top">𝄃𝄃𝄂𝄂𝄃𝄀𝄁𝄃𝄃</span>
                 </div>
 
                 <div className="text-center font-bold tracking-widest text-lg my-1">
