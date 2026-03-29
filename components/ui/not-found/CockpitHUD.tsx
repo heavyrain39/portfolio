@@ -8,16 +8,16 @@ import HUDCrosshair from "./HUDCrosshair";
 /* ── Cross Marker (1px line-drawn) ── */
 function CrossMarker() {
     return (
-        <svg 
-            width="1em" 
-            height="1em" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+        <svg
+            width="1em"
+            height="1em"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             className="shrink-0"
-            style={{ 
+            style={{
                 strokeWidth: '1.2px', // Slightly thicker for better visibility but still feels like 1px
-                vectorEffect: 'non-scaling-stroke' 
+                vectorEffect: 'non-scaling-stroke'
             }}
         >
             <line x1="12" y1="6" x2="12" y2="18" />
@@ -270,7 +270,12 @@ export default function CockpitHUD() {
                     <div className="relative z-[5] shrink-0 flex items-center justify-center w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]">
                         {/* Mask shadow — 200vmax creates the opaque cockpit wall */}
                         <div className="w-full h-full rounded-full relative" style={{ boxShadow: "0 0 0 200vmax var(--background)" }}>
-                            <div className="absolute inset-0 rounded-full border border-[var(--foreground)]/25" />
+                            {/* Monitor backlight glow from bottom */}
+                            <div
+                                className="absolute inset-0 rounded-full pointer-events-none opacity-[0.02] z-0"
+                                style={{ background: 'linear-gradient(to top, var(--foreground) 0%, transparent 40%)' }}
+                            />
+                            <div className="absolute inset-0 rounded-full border border-[var(--foreground)]/25 z-10" />
                         </div>
 
                         <div className="absolute inset-0 z-10">

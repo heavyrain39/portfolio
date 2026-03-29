@@ -24,7 +24,8 @@ export function DottedOcean() {
 
         const isDarkTheme = theme === 'dark' || (typeof document !== 'undefined' && document.documentElement.getAttribute("data-theme") === "dark");
 
-        let fgColorStr = isDarkTheme ? "#c8c8c8" : "#000000";
+        // 광원 효과를 위해 휘도를 1.2배 상향 (HDR 느낌 유도)
+        let fgColorStr = isDarkTheme ? "#f0f0f0" : "#222222";
         let bgColorStr = isDarkTheme ? "#0a0a0a" : "#f5f5f0";
 
         if (typeof document !== "undefined") {
@@ -33,7 +34,7 @@ export function DottedOcean() {
             if (bg) bgColorStr = bg;
         }
 
-        const dotColor = new THREE.Color(fgColorStr);
+        const dotColor = new THREE.Color(fgColorStr).multiplyScalar(2.5);
         const bgColor = new THREE.Color(bgColorStr);
 
         let i = 0;
@@ -47,8 +48,7 @@ export function DottedOcean() {
                 positions[i * 3 + 2] = -TOTAL_Z / 2 + TOTAL_Z * Math.pow(normalizedIY, 1.2);
 
                 // 색상 보간(Lerp)을 통해 먼 곳의 점들이 배경색으로 서서히 스며들도록 함 (커튼 현상 방지)
-                // normalizedIY = 0(수평선)일 때 배경색(투명해 보임), 1(근경)일 때 전경색
-                const fadeFactor = Math.pow(normalizedIY, 1.5); // 수평선 부근 대기 원근감(Aerial Perspective) 모사
+                const fadeFactor = Math.pow(normalizedIY, 1.5); // 수평선 부근 대기 원근감 모사
 
                 colors[i * 3] = dotColor.r * fadeFactor + bgColor.r * (1 - fadeFactor);
                 colors[i * 3 + 1] = dotColor.g * fadeFactor + bgColor.g * (1 - fadeFactor);
@@ -68,10 +68,10 @@ export function DottedOcean() {
         if (!context) return null;
 
         const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-        // 코어 부분을 더 넓고 선명하게 유지 (0.0~0.4까지 흰색 유지)
+        // 광원 질감: 중심은 아주 밝고 선명하게(1.0-0.2 구간), 주변으로 은은하게 퍼짐
         gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.8)');
-        gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.9)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
         context.fillStyle = gradient;
@@ -83,7 +83,7 @@ export function DottedOcean() {
 
     useFrame(({ clock }) => {
         if (!pointsRef.current) return;
-        const count = clock.getElapsedTime() * 2.0; // 속도를 크게 줄여 편안한 울렁임 복구
+        const count = clock.getElapsedTime() * 1.7; // 속도를 크게 줄여 편안한 울렁임 복구
         const positionsAttr = pointsRef.current.geometry.attributes.position;
         const array = positionsAttr.array as Float32Array;
 
@@ -124,13 +124,13 @@ export function DottedOcean() {
                     />
                 </bufferGeometry>
                 <pointsMaterial
-                    size={8} // 사용자 설정 유지
+                    size={8} // 사각형의 존재감을 위해 상향
                     vertexColors
                     transparent
-                    opacity={0.8} // 선명한 기본 사각형 도트
+                    opacity={0.8}
                     sizeAttenuation={true}
-                    blending={THREE.NormalBlending} // glow 제거
-                    depthWrite={true}
+                    blending={THREE.AdditiveBlending} // 가산 혼합을 통한 발광 유지
+                    depthWrite={false} // 빛의 중첩을 위해 비활성화
                 />
             </points>
         </group>

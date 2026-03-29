@@ -6,10 +6,10 @@ import Link from "next/link";
 
 export default function ReturnTicket() {
     const [timeStr, setTimeStr] = useState("YY-MM-DD HH:MM:SS");
-    const [yTarget, setYTarget] = useState(700);
+    const [yTarget, setYTarget] = useState("110%");
 
     useEffect(() => {
-        const nudgeTimer = setTimeout(() => setYTarget(440), 2000);
+        const nudgeTimer = setTimeout(() => setYTarget("65%"), 2000);
         return () => clearTimeout(nudgeTimer);
     }, []);
 
@@ -33,11 +33,11 @@ export default function ReturnTicket() {
     // Animate Y pushes it downwards by pixel offsets.
     return (
         <motion.div
-            initial={{ y: 700, rotate: 0 }}          // initially hidden completely
+            initial={{ y: "110%", rotate: 0 }}          // initially hidden completely
             animate={{ y: yTarget, rotate: 0 }}      // rises up slightly after 2 seconds controlled by state
-            whileHover={{ y: 80, rotate: -15 }}      // hovers up more fully (y:80) and tilts -15deg immediately
+            whileHover={{ y: "10%", rotate: -15 }}      // hovers up more fully and tilts
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
-            className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative"
+            className="w-[clamp(240px,28vw,320px)] h-[clamp(450px,58vh,650px)] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative"
             style={{
                 transformOrigin: "center 80%", // rotate around its lower point so it stays horizontally anchored
                 /* Perforated holes mask using multiple gradients combined natively */
@@ -71,15 +71,31 @@ export default function ReturnTicket() {
 
                 {/* Header Row */}
                 <div className="flex justify-between items-center whitespace-pre relative mb-3">
-                    <span className="text-xl leading-none">⠾⠆⠍⠻⠟⠆</span>
-                    <span className="tracking-tighter text-3xl scale-y-125 inline-block origin-top">𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄃𝄂</span>
+                    <span 
+                        style={{ fontSize: 'clamp(1rem, 1.5vw, 1.4rem)' }}
+                        className="leading-none"
+                    >
+                        ⠾⠆⠍⠻⠟⠆
+                    </span>
+                    <span 
+                        style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.5rem)' }}
+                        className="tracking-tighter scale-y-125 inline-block origin-top"
+                    >
+                        𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄃𝄂
+                    </span>
                 </div>
 
-                <div className="text-center font-bold tracking-widest text-lg my-1">
+                <div 
+                    style={{ fontSize: 'clamp(0.9rem, 1.2vw, 1.25rem)' }}
+                    className="text-center font-bold tracking-widest my-1"
+                >
                     RECOVERY AUTHORIZATION
                 </div>
 
-                <div className="flex flex-col gap-2 my-4 tracking-widest text-sm font-bold xl-px-2">
+                <div 
+                    style={{ fontSize: 'clamp(0.7rem, 0.9vw, 0.85rem)' }}
+                    className="flex flex-col gap-2 my-4 tracking-widest font-bold"
+                >
                     <div className="flex justify-between"><span>STATUS:</span><span>LOST SIGNAL</span></div>
                     <div className="flex justify-between"><span>LOCATION:</span><span>****404</span></div>
                     <div className="flex justify-between"><span>TIME:</span><span>{timeStr}</span></div>
