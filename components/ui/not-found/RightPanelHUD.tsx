@@ -8,11 +8,6 @@ import { AlertTriangle } from "lucide-react";
  * Draws a symmetric "blob" waveform that floats when idle
  * and reacts dynamically to audio data.
  */
-/**
- * ── Blob Visualizer Engine ──
- * Draws a symmetric "blob" waveform that floats when idle
- * and reacts dynamically to audio data.
- */
 function BlobVisualizer({
     analyzer,
     isPlaying
@@ -41,53 +36,82 @@ function BlobVisualizer({
         const width = rect.width;
         const height = rect.height;
         const nBands = 32;
-        const smoothing = 0.85;
+        const fftSize = analyzer?.fftSize || 2048;
+        const sampleRate = 44100;
+        const maxBin = fftSize / 2;
 
-        // Get FFT data or use idle floating
-        const mags = new Array(nBands).fill(0);
-        if (isPlaying && analyzer) {
-            const dataArray = new Uint8Array(analyzer.frequencyBinCount);
-            analyzer.getByteFrequencyData(dataArray);
+        const dataArray = (isPlaying && analyzer) ? new Uint8Array(analyzer.frequencyBinCount) : null;
+        const mags = new Float32Array(nBands);
+        const smoothingTime = 0.40 // 반응 속도 상향 (0.65 -> 0.40)
 
-            // Map frequencies to bands (log-ish)
-            for (let i = 0; i < nBands; i++) {
-                const startBin = Math.floor(Math.pow(i / nBands, 2) * (dataArray.length * 0.5));
-                const endBin = Math.floor(Math.pow((i + 1) / nBands, 2) * (dataArray.length * 0.5));
-                let energy = 0;
-                let count = 0;
-                for (let j = startBin; j < endBin; j++) {
-                    energy += dataArray[j];
-                    count++;
+        if (isPlaying) {
+            if (analyzer && dataArray) {
+                analyzer.getByteFrequencyData(dataArray);
+
+                for (let i = 0; i < nBands; i++) {
+                    // Logarithmic mapping
+                    const startBin = Math.floor(Math.pow(10, Math.log10(1) + (i / nBands) * (Math.log10(maxBin) - Math.log10(1))));
+                    const endBin = Math.floor(Math.pow(10, Math.log10(1) + ((i + 1) / nBands) * (Math.log10(maxBin) - Math.log10(1))));
+
+                    let energy = 0;
+                    let count = 0;
+                    for (let j = startBin; j < Math.max(startBin + 1, endBin); j++) {
+                        energy += dataArray[j] || 0;
+                        count++;
+                    }
+
+                    let rawMag = count > 0 ? (energy / count) / 255 : 0;
+                    // 1. Contrast Adjustment - 저역 펀치력을 위해 대비 소폭 완화 (1.25 -> 1.15)
+                    rawMag = Math.pow(rawMag, 1.15);
+
+                    // 2. Linear High-Frequency Boost (Low=1.0, High=1.35)
+                    // 저역을 보호하고 고역으로 갈수록 서서히 보정하는 선형 모델 적용
+                    const weight = 1.0 + (i / nBands) * 0.35;
+
+                    mags[i] = rawMag * weight;
                 }
-                mags[i] = count > 0 ? (energy / count) / 255 : 0;
+
+                // 3. Frequency Smoothing (Neighbor Blend - 예민하게 0.15)
+                const smoothed = new Float32Array(nBands);
+                for (let i = 0; i < nBands; i++) {
+                    let val = mags[i];
+                    let neighbors = 1;
+                    if (i > 0) { val += mags[i - 1] * 0.08; neighbors += 0.08; }
+                    if (i < nBands - 1) { val += mags[i + 1] * 0.08; neighbors += 0.08; }
+                    smoothed[i] = val / neighbors;
+                }
+
+                // 4. Time Smoothing & Tanh Clipping
+                for (let i = 0; i < nBands; i++) {
+                    const targetMag = smoothingTime * (prevMagsRef.current[i] || 0) + (1 - smoothingTime) * smoothed[i];
+                    prevMagsRef.current[i] = Math.tanh(targetMag * 1.0); // 포화 방지를 위해 가중치 하향 (1.3 -> 1.0)
+                }
+            } else {
+                // isPlaying is true but data not ready - quick fade to zero
+                for (let i = 0; i < nBands; i++) {
+                    prevMagsRef.current[i] *= 0.8;
+                }
             }
         } else {
-            // Idle floating logic
+            // Idle floating logic - ONLY when NOT isPlaying
             const time = Date.now() * 0.002;
             for (let i = 0; i < nBands; i++) {
-                mags[i] = 0.15 + 0.25 * Math.sin(time + i * 0.5) + 0.05 * Math.cos(time * 0.7 - i * 0.3);
+                const idleMag = 0.15 + 0.25 * Math.sin(time + i * 0.5) + 0.05 * Math.cos(time * 0.7 - i * 0.3);
+                prevMagsRef.current[i] = 0.8 * prevMagsRef.current[i] + 0.2 * idleMag;
             }
         }
 
-        // Smooth over time
-        for (let i = 0; i < nBands; i++) {
-            mags[i] = smoothing * prevMagsRef.current[i] + (1 - smoothing) * mags[i];
-            prevMagsRef.current[i] = mags[i];
-        }
-
-        // Clear and Draw
+        const currentMags = prevMagsRef.current;
         ctx.clearRect(0, 0, width, height);
 
-        // Prepare coordinates for polygon
         const pointsTop: [number, number][] = [];
         const pointsBottom: [number, number][] = [];
-        const scale = height * 0.55; 
-        const paddingX = 0;
+        const scale = height * 0.6;
         const usableWidth = width;
 
         for (let i = 0; i < nBands; i++) {
-            const x = paddingX + (i / (nBands - 1)) * usableWidth;
-            const yOffset = (mags[i] * scale) / 2;
+            const x = (i / (nBands - 1)) * usableWidth;
+            const yOffset = (currentMags[i] * scale) / 2;
             pointsTop.push([x, (height / 2) - yOffset - 1]);
             pointsBottom.push([x, (height / 2) + yOffset + 1]);
         }
@@ -111,13 +135,18 @@ function BlobVisualizer({
 
         ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
         ctx.fill();
-
-        reqRef.current = requestAnimationFrame(draw);
     }, [analyzer, isPlaying]);
 
     useEffect(() => {
-        reqRef.current = requestAnimationFrame(draw);
+        let isCancelled = false;
+        const loop = () => {
+            if (isCancelled) return;
+            draw();
+            reqRef.current = requestAnimationFrame(loop);
+        };
+        reqRef.current = requestAnimationFrame(loop);
         return () => {
+            isCancelled = true;
             if (reqRef.current) cancelAnimationFrame(reqRef.current);
         };
     }, [draw]);
@@ -161,23 +190,28 @@ function WaveformVisualizer({
         const width = rect.width;
         const height = rect.height;
         const sampleCount = 300; // 더 촘촘한 밀도를 위해 대폭 상향
-        const smoothing = 0.3; 
+        const smoothing = 0.3;
 
         const data = new Array(sampleCount).fill(0);
-        if (isPlaying && analyzer) {
-            const dataArray = new Uint8Array(analyzer.fftSize);
-            analyzer.getByteTimeDomainData(dataArray);
+        if (isPlaying) {
+            if (analyzer) {
+                const dataArray = new Uint8Array(analyzer.fftSize);
+                analyzer.getByteTimeDomainData(dataArray);
 
-            // 전체 버퍼를 압축해서 보여줌으로써 파울링(촘촘함) 극대화
-            for (let i = 0; i < sampleCount; i++) {
-                const index = Math.floor((i / sampleCount) * dataArray.length);
-                data[i] = (dataArray[index] - 128) / 128;
+                // 전체 버퍼를 압축해서 보여줌으로써 파울링(촘촘함) 극대화
+                for (let i = 0; i < sampleCount; i++) {
+                    const index = Math.floor((i / sampleCount) * dataArray.length);
+                    data[i] = (dataArray[index] - 128) / 128;
+                }
+            } else {
+                // isPlaying is true but analyzer not ready
+                // do nothing, data stays zero
             }
         } else {
-            const time = Date.now() * 0.001;
+            // Idle floating logic - ONLY when NOT isPlaying
+            const time = Date.now() * 0.003;
             for (let i = 0; i < sampleCount; i++) {
-                // 여러 파동을 섞어 복잡한 기계 음파 느낌 연출
-                data[i] = 0.06 * Math.sin(time + i * 0.2) + 0.03 * Math.cos(time * 1.5 + i * 0.5);
+                data[i] = 0.1 * Math.sin(time + i * 0.15) + 0.05 * Math.cos(time * 2.2 + i * 0.4);
             }
         }
 
@@ -202,20 +236,25 @@ function WaveformVisualizer({
             const y1 = centerY + data[i] * scaleY;
             const x2 = (i + 1) * step;
             const y2 = centerY + data[i + 1] * scaleY;
-            
+
             const xc = (x1 + x2) / 2;
             const yc = (y1 + y2) / 2;
             ctx.quadraticCurveTo(x1, y1, xc, yc);
         }
-        
-        ctx.stroke();
 
-        reqRef.current = requestAnimationFrame(draw);
+        ctx.stroke();
     }, [analyzer, isPlaying]);
 
     useEffect(() => {
-        reqRef.current = requestAnimationFrame(draw);
+        let isCancelled = false;
+        const loop = () => {
+            if (isCancelled) return;
+            draw();
+            reqRef.current = requestAnimationFrame(loop);
+        };
+        reqRef.current = requestAnimationFrame(loop);
         return () => {
+            isCancelled = true;
             if (reqRef.current) cancelAnimationFrame(reqRef.current);
         };
     }, [draw]);
@@ -321,14 +360,9 @@ export default function RightPanelHUD() {
         source.connect(analyzerRef.current!);
 
         source.onended = () => {
-            setIsPlaying(prev => {
-                if (prev && (ctx.currentTime - startTimeRef.current) >= buffer.duration * 0.98) {
-                    pauseTimeRef.current = 0;
-                    setCurrentTime(0);
-                    return false;
-                }
-                return prev;
-            });
+            if ((ctx.currentTime - startTimeRef.current) >= buffer.duration * 0.98) {
+                nextTrack();
+            }
         };
 
         source.start(0, offset);
@@ -339,7 +373,7 @@ export default function RightPanelHUD() {
 
         progressIntervalRef.current = window.setInterval(() => {
             const current = ctx.currentTime - startTimeRef.current;
-            setCurrentTime(current);
+            setCurrentTime(Math.min(buffer.duration, current));
         }, 100);
     }, [ensureContext, stopAudio]);
 
@@ -460,7 +494,7 @@ export default function RightPanelHUD() {
                         >
                             <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
                                 <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
-                                <g transform={`rotate(${-180 + (volume / 100) * 180})`}>
+                                <g transform={`rotate(${-90 + (volume / 100) * 180})`}>
                                     <line x1="0" y1="-33" x2="0" y2="-43" stroke="currentColor" strokeWidth="1" opacity="0.8" strokeLinecap="butt" />
                                 </g>
                             </svg>
@@ -472,68 +506,68 @@ export default function RightPanelHUD() {
                     </div>
 
                     {/* Column 2: Controls, Visualizer, Progress, and Timer */}
-                <div className="grid grid-cols-[0.6fr_0.40fr] gap-4 md:gap-[2.5vw] items-stretch">
+                    <div className="grid grid-cols-[0.6fr_0.40fr] gap-4 md:gap-[2.5vw] items-stretch">
 
-                    {/* Column 2-A: Controls (Buttons, Progress, Timer) */}
-                    <div className="flex flex-col gap-2">
-                        {/* Upper Row: Buttons */}
-                        <div className="flex items-center gap-2 h-[var(--knob-h)] pointer-events-auto">
-                            <button onClick={stopAudio} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
-                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%]"><rect x="6" y="6" width="12" height="12" /></svg>
-                            </button>
-                            <button onClick={togglePlay} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
-                                {isPlaying ? (
+                        {/* Column 2-A: Controls (Buttons, Progress, Timer) */}
+                        <div className="flex flex-col gap-2">
+                            {/* Upper Row: Buttons */}
+                            <div className="flex items-center gap-2 h-[var(--knob-h)] pointer-events-auto">
+                                <button onClick={stopAudio} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%]"><rect x="6" y="6" width="12" height="12" /></svg>
+                                </button>
+                                <button onClick={togglePlay} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
+                                    {isPlaying ? (
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
+                                            <rect x="6" y="5" width="4" height="14" />
+                                            <rect x="14" y="5" width="4" height="14" />
+                                        </svg>
+                                    ) : (
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]"><polygon points="7,5 19,12 7,19" /></svg>
+                                    )}
+                                </button>
+                                <button onClick={nextTrack} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
-                                        <rect x="6" y="5" width="4" height="14" />
-                                        <rect x="14" y="5" width="4" height="14" />
+                                        <polygon points="5,5 15,12 5,19" />
+                                        <rect x="17" y="5" width="2" height="14" />
                                     </svg>
-                                ) : (
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]"><polygon points="7,5 19,12 7,19" /></svg>
-                                )}
-                            </button>
-                            <button onClick={nextTrack} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
-                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
-                                    <polygon points="5,5 15,12 5,19" />
-                                    <rect x="17" y="5" width="2" height="14" />
-                                </svg>
-                            </button>
-                        </div>
+                                </button>
+                            </div>
 
-                        {/* Lower Row: Progress Bar + Timer (Strictly 60% with buttons) */}
-                        <div className="flex items-center h-[1rem] md:h-[0.8vw] pointer-events-auto mt-auto">
-                            <div className="flex-1 flex items-center pr-4">
-                                <div 
-                                    data-hud-interactive="true"
-                                    className="flex-1 h-[6px] md:h-[8px] bg-[var(--background)] border border-[var(--foreground)]/50 relative cursor-pointer" 
-                                    onClick={handleProgressScrub}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                >
+                            {/* Lower Row: Progress Bar + Timer (Strictly 60% with buttons) */}
+                            <div className="flex items-center h-[1rem] md:h-[0.8vw] pointer-events-auto mt-auto">
+                                <div className="flex-1 flex items-center pr-4">
                                     <div
-                                        className="h-full bg-[var(--foreground)] opacity-50 pointer-events-none"
-                                        style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                                    />
+                                        data-hud-interactive="true"
+                                        className="flex-1 h-[6px] md:h-[8px] bg-[var(--background)] border border-[var(--foreground)]/50 relative cursor-pointer"
+                                        onClick={handleProgressScrub}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                    >
+                                        <div
+                                            className="h-full bg-[var(--foreground)] opacity-50 pointer-events-none"
+                                            style={{ width: `${duration ? Math.min(100, (currentTime / duration) * 100) : 0}%` }}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="shrink-0 flex items-center justify-end">
-                                <div className="font-mono text-[9px] md:text-[0.6vw] opacity-50 tracking-widest leading-none w-10 text-right">
-                                    {formatTime(currentTime)}
+                                <div className="shrink-0 flex items-center justify-end">
+                                    <div className="font-mono text-[9px] md:text-[0.6vw] opacity-50 tracking-widest leading-none w-10 text-right">
+                                        {formatTime(currentTime)}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Column 2-B: Dual Visualizers (Vertical Stack for Strict Alignment) */}
-                    <div className="flex flex-col gap-2 h-full">
-                        {/* Upper Visualizer (Aligned with Buttons) */}
-                        <div className="h-[var(--knob-h)] overflow-hidden opacity-50">
-                            <BlobVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
-                        </div>
-                        {/* Lower Visualizer (Aligned with Progress/Timer) */}
-                        <div className="h-[1rem] md:h-[0.8vw] mt-auto overflow-hidden opacity-50">
-                            <WaveformVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                        {/* Column 2-B: Dual Visualizers (Vertical Stack for Strict Alignment) */}
+                        <div className="flex flex-col gap-2 h-full">
+                            {/* Upper Visualizer (Aligned with Buttons) */}
+                            <div className="h-[var(--knob-h)] overflow-hidden opacity-50">
+                                <BlobVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                            </div>
+                            {/* Lower Visualizer (Aligned with Progress/Timer) */}
+                            <div className="h-[1rem] md:h-[0.8vw] mt-auto overflow-hidden opacity-50">
+                                <WaveformVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                            </div>
                         </div>
                     </div>
-                </div>
                 </div>
             </div>
 
