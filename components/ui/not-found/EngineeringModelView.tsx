@@ -125,6 +125,27 @@ function DynamicViewportScene() {
 
 // 3. Main Viewport Component
 export default function EngineeringModelView() {
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+
+  // 1초마다 시간 업데이트
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 시간 포맷팅 함수 (YYYY-MM-DD HH:mm:ss)
+  const formatDateTime = (date: Date, yearOffset = 0) => {
+    const y = date.getUTCFullYear() + yearOffset;
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
+    const hh = String(date.getUTCHours()).padStart(2, '0');
+    const mm = String(date.getUTCMinutes()).padStart(2, '0');
+    const ss = String(date.getUTCSeconds()).padStart(2, '0');
+    return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+  };
+
   return (
     <div className="w-full h-full relative overflow-hidden" style={{ background: 'transparent' }}>
       {/* 3D Viewport Layer - Z-Index 0 */}
@@ -136,8 +157,16 @@ export default function EngineeringModelView() {
         </Canvas>
       </div>
 
-      {/* Technobabble Overlay (Bottom-Left) - Background removed as requested */}
+      {/* Technobabble Overlay (Bottom-Left) */}
       <div className="absolute bottom-4 left-4 font-mono text-[9px] md:text-[0.55vw] leading-relaxed select-none pointer-events-none flex flex-col gap-3 z-10">
+        {/* 1. Git-style System Logs (Darkest) */}
+        <div className="flex flex-col opacity-15 leading-tight">
+          <div>Delta compression using up to 99 threads</div>
+          <div>Compressing objects: 100% (6/6), done.</div>
+          <div>Writing objects: 100% (6/6), 955.42 PB | 3.14 EB/s, done.</div>
+        </div>
+
+        {/* 2. Session & Environment Status (Medium) */}
         <div className="opacity-50 flex flex-col gap-3">
           <div>SESSION RESTORED · GOOD DAY, USER ****</div>
 
@@ -145,20 +174,15 @@ export default function EngineeringModelView() {
             <div>ETHER FIELD STATUS: EXTREME GREEN</div>
             <div>GRAVITY FIELD A STATUS: PERFECT</div>
             <div>GRAVITY FIELD B STATUS: OPTIMAL</div>
-            <div>EARTH TIME: 2026-03-31 03:55:00 UTC</div>
-            <div>YOUR TIME: 4026-03-31 03:55:00 SPC</div>
+            <div>EARTH TIME: {formatDateTime(currentTime)} UTC</div>
+            <div>YOUR TIME: {formatDateTime(currentTime, 2000)} SPC</div>
             <div>SPATIAL DISTORTION: 1.004 % (NO WORRIES!)</div>
           </div>
         </div>
 
+        {/* 3. Warnings (Brightest) */}
         <div className="opacity-80 text-[var(--foreground)] animate-pulse">
           〔 WARN: TEMPORAL ANOMALY DETECTED 〕
-        </div>
-
-        <div className="flex flex-col opacity-15 leading-tight">
-          <div>Delta compression using up to 99 threads</div>
-          <div>Compressing objects: 100% (6/6), done.</div>
-          <div>Writing objects: 100% (6/6), 955.42 PB | 3.14 EB/s, done.</div>
         </div>
       </div>
     </div>

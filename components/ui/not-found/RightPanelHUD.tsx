@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
 import { BlobVisualizer, WaveformVisualizer } from "./HUDVisualizers";
 import EngineeringModelView from "./EngineeringModelView";
+import WeaponSystem from "./WeaponSystem";
 
 const DIGIT_BITMAPS: Record<string, number[][]> = {
     '0': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
@@ -389,9 +390,9 @@ export default function RightPanelHUD() {
                     </div>
                 </div>
 
-                {/* Lower 50%: Planned for further Technobabble */}
-                <div className="flex-[5] relative overflow-hidden flex flex-col p-4">
-                    {/* Placeholder for future content as per user request */}
+                {/* Lower 50%: Weapon System 및 테크노배블 영역 */}
+                <div className="flex-[5] relative overflow-hidden flex flex-col items-center justify-center border-t border-[var(--foreground)]/5 bg-gradient-to-b from-transparent to-[var(--foreground)]/[0.02]">
+                    <WeaponSystem />
                 </div>
             </div>
         </div>
