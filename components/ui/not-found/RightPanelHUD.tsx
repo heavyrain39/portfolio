@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
 import { BlobVisualizer, WaveformVisualizer } from "./HUDVisualizers";
+import EngineeringModelView from "./EngineeringModelView";
 
 const DIGIT_BITMAPS: Record<string, number[][]> = {
     '0': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
@@ -239,8 +240,8 @@ export default function RightPanelHUD() {
                 }
                 .player-grid-bg {
                     background-image:
-                        linear-gradient(color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
-                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px);
+                        linear-gradient(color-mix(in srgb, var(--foreground) 6%, transparent) 1px, transparent 1px),
+                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 6%, transparent) 1px, transparent 1px);
                     background-size: 40px 40px;
                     background-position: 0 -20px, 0 -20px;
                     animation: gridSlideHUD 3.75s linear infinite;
@@ -277,12 +278,12 @@ export default function RightPanelHUD() {
             `}</style>
 
 
-            {/* Music Player Control Box (Compartmentalized Wireframe) */}
-            <div className="player-grid-bg flex flex-col p-4 md:p-[2vw] relative">
+            {/* Music Player Control Box (Compacted with Grid Background) */}
+            <div className="player-grid-bg flex flex-col p-2 md:p-[1vw] relative border-b border-[var(--foreground)]/10">
                 <div className="border border-[var(--foreground)]/25 flex flex-col w-full bg-[var(--background)]">
 
-                    {/* TIER 1: Header (Now Playing & Bitrate) */}
-                    <div className="flex justify-between items-center px-3 py-1 md:py-[0.3vw] border-b border-[var(--foreground)]/25 text-[9px] md:text-[0.65vw] font-mono tracking-widest uppercase">
+                    {/* TIER 1: Header (Now Playing & Bitrate) - More Compact */}
+                    <div className="flex justify-between items-center px-2 py-0.5 md:py-[0.2vw] border-b border-[var(--foreground)]/25 text-[8px] md:text-[0.55vw] font-mono tracking-widest uppercase">
                         <div className="flex gap-4">
                             <span className="opacity-50">□□□ NOW PLAYING:</span>
                             {isLoading ? (
@@ -294,18 +295,15 @@ export default function RightPanelHUD() {
                         <div className="opacity-50 hidden sm:block">BITRATE: 1411 KBPS</div>
                     </div>
 
-                    {/* TIER 2: Main Body (Knob, Controls, Visualizers) */}
-                    <div className="flex h-[4.2rem] md:h-[6vw] items-stretch">
-
-                        {/* 1. Volume Section (Adjust 'gap' here for distance between knob and text) */}
-                        <div className="w-[var(--knob-w)] md:w-[6vw] flex flex-col items-center justify-center border-r border-[var(--foreground)]/25 px-1 pt-1 gap-1">
+                    {/* TIER 2: Main Body (Compacted) */}
+                    <div className="flex h-[3.8rem] md:h-[5vw] items-stretch">
+                        <div className="w-[var(--knob-w)] md:w-[4.5vw] flex flex-col items-center justify-center border-r border-[var(--foreground)]/25 px-1 pt-0.5 gap-0.5">
                             <div
                                 id="vol-knob"
                                 data-hud-interactive="true"
-                                className="h-[2rem] md:h-[3vw] w-full flex items-center justify-center cursor-ns-resize relative overflow-visible pointer-events-auto"
+                                className="h-[1.8rem] md:h-[2.2vw] w-full flex items-center justify-center cursor-ns-resize relative overflow-visible pointer-events-auto"
                                 onWheel={handleVolumeWheel}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                title="Scroll to adjust volume"
                             >
                                 <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
                                     <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -314,25 +312,22 @@ export default function RightPanelHUD() {
                                     </g>
                                 </svg>
                             </div>
-                            <div className="font-mono text-[8px] md:text-[0.55vw] opacity-50 uppercase tracking-tighter mb-1">
+                            <div className="font-mono text-[7px] md:text-[0.45vw] opacity-50 uppercase tracking-tighter mb-0.5">
                                 VOL.{volume}%
                             </div>
                         </div>
 
-                        {/* 2. Controls Section (Clean Background) */}
-                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-4 md:p-[1vw] min-w-0 justify-center gap-2 md:gap-[0.6vw]">
-
-                            {/* Upper Row: Buttons + Timer */}
-                            <div className="flex items-center gap-1 h-[1.4rem] md:h-[1.8vw] pointer-events-auto">
+                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-2 md:p-[0.8vw] min-w-0 justify-center gap-1.5 md:gap-[0.4vw]">
+                            <div className="flex items-center gap-1 h-[1.2rem] md:h-[1.4vw] pointer-events-auto">
                                 <button
                                     onClick={stopAudio}
-                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
+                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[35%] h-[35%] opacity-80"><rect x="6" y="6" width="12" height="12" /></svg>
                                 </button>
                                 <button
                                     onClick={togglePlay}
-                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
+                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     {isPlaying ? (
                                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80">
@@ -345,22 +340,18 @@ export default function RightPanelHUD() {
                                 </button>
                                 <button
                                     onClick={nextTrack}
-                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
+                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80"><polygon points="5,5 15,12 5,19" /><rect x="17" y="5" width="2" height="14" /></svg>
                                 </button>
-
-                                {/* Timer (Dot Matrix) - Aligned exactly with progress bar edge */}
                                 <div className="ml-auto flex items-center">
                                     <DotMatrixTimer seconds={currentTime} opacity={0.8} />
                                 </div>
                             </div>
-
-                            {/* Lower Row: Progress Bar */}
-                            <div className="w-full flex items-center h-[8px] md:h-[0.6vw] pointer-events-auto">
+                            <div className="w-full flex items-center h-[6px] md:h-[0.4vw] pointer-events-auto">
                                 <div
                                     data-hud-interactive="true"
-                                    className="w-full h-[6px] md:h-[8px] bg-block border border-[var(--foreground)]/25 relative cursor-pointer"
+                                    className="w-full h-[4px] md:h-[6px] bg-block border border-[var(--foreground)]/20 relative cursor-pointer"
                                     onClick={handleProgressScrub}
                                     onMouseDown={(e) => e.stopPropagation()}
                                 >
@@ -372,7 +363,6 @@ export default function RightPanelHUD() {
                             </div>
                         </div>
 
-                        {/* 3. Visualizers Section */}
                         <div className="w-[28%] md:w-[32%] flex flex-col overflow-hidden">
                             <div className="flex-1 border-b border-[var(--foreground)]/25 relative">
                                 <div className="absolute inset-0 opacity-25">
@@ -389,36 +379,18 @@ export default function RightPanelHUD() {
                 </div>
             </div>
 
-            {/* Technobabble Panel (Maintained with proper spacing) */}
-            <div className="flex-1 p-4 md:p-[2vw] relative flex flex-col gap-4 overflow-hidden select-none border-t border-[var(--foreground)]/5">
-                <div className="flex justify-between font-mono tracking-widest uppercase text-[9px] md:text-[0.6vw]">
-                    <div className="flex flex-col gap-1">
-                        <span className="opacity-30">EARTH TIME:</span>
-                        <span className="opacity-40">17:37:51:71</span>
+            {/* Technobabble & 3D Model Area (5:5 Split) */}
+            <div className="flex-1 flex flex-col min-h-0 relative">
+                {/* Upper 50%: 3D Model Viewport (Locked to 5:3, Aligned to bottom) */}
+                <div className="flex-[5] relative border-b border-[var(--foreground)]/10 overflow-hidden flex flex-col justify-end">
+                    <div className="w-full aspect-[5/3] max-h-full relative overflow-hidden">
+                         <EngineeringModelView />
                     </div>
                 </div>
 
-                <div className="flex gap-4 font-mono tracking-widest uppercase text-[9px] md:text-[0.6vw] mt-2">
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-10">
-                        <span>INT</span>
-                        <span>EXT</span>
-                    </div>
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-25">
-                        <span>68°F</span>
-                        <span>-458°F</span>
-                    </div>
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-25">
-                        <span>20°C</span>
-                        <span>-272°C</span>
-                    </div>
-                </div>
-
-                <div
-                    className="absolute right-[2vw] top-1/2 -translate-y-1/2 opacity-25 border border-dashed border-[var(--foreground)] p-4 font-mono text-center leading-tight w-[10vw] min-w-[120px] h-[15vw] min-h-[160px] flex items-center justify-center"
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 100% 90%, 90% 100%, 0 100%)', fontSize: '9px' }}
-                >
-                    [ SYSTEM TBD ]<br />
-                    WAITING FOR INPUT
+                {/* Lower 50%: Planned for further Technobabble */}
+                <div className="flex-[5] relative overflow-hidden flex flex-col p-4">
+                    {/* Placeholder for future content as per user request */}
                 </div>
             </div>
         </div>
