@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, Suspense, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, PerspectiveCamera, Center } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -64,47 +64,74 @@ function WireframeModel({
   );
 }
 
-// 2. Main Viewport Component
+// 2. 동적 뷰포트 씬 컴포넌트 (화면 크기에 따라 모델 위치/크기 자동 조절)
+function DynamicViewportScene() {
+  const { viewport } = useThree();
+
+  // [스케일 기준값] FOV 40, Z 16일 때의 기본 뷰포트 높이(~11.6)를 기준으로 비율 계산
+  const scaleFactor = viewport.height / 11.6;
+
+  // 메인 카시니 모델 위치 설정 (우하단 배치)
+  // x: viewport.width / 2 (우측 끝)에서 일정 거리 안쪽으로
+  // y: -viewport.height / 2 (하단 끝)에서 일정 거리 위쪽으로
+  const cassiniPos: [number, number, number] = [
+    viewport.width / 2 - -5.2 * scaleFactor,
+    -viewport.height / 2 + 1.2 * scaleFactor,
+    0
+  ];
+
+  // 생명 표시(슈트) 그룹 위치 설정 (좌상단 배치)
+  // x: -viewport.width / 2 (좌측 끝)에서 일정 거리 안쪽으로
+  // y: viewport.height / 2 (상단 끝)에서 일정 거리 아래쪽으로
+  const suitGroupPos: [number, number, number] = [
+    -viewport.width / 2 + -0.8 * scaleFactor,
+    viewport.height / 2 - 1.5 * scaleFactor,
+    0
+  ];
+
+  return (
+    <>
+      <ambientLight intensity={0.5} />
+
+      {/* 
+        메인 카시니(Cassini) 모델 
+        - position: 위에서 계산한 우하단 좌표 적용
+        - scale: 화면 높이에 비례하여 크기 조절 (기본 0.45)
+      */}
+      <Center position={cassiniPos}>
+        <WireframeModel
+          url="/portfolio/models/cassini.glb"
+          scale={0.45 * scaleFactor}
+          rotation={[0.5, 0, 0]}
+          autoRotate={true}
+          rotationType="oscillate"
+        />
+      </Center>
+
+      {/* 
+        상단 생명 표시(슈트) 모델 그룹
+        - position: 위에서 계산한 좌상단 좌표 적용
+        - scale: 개별 모델 크기 (기본 0.4)
+        - 개별 position: 모델 간의 간격도 화면 크기에 비례하도록 설정
+      */}
+      <group position={suitGroupPos}>
+        <WireframeModel url="/portfolio/models/spacesuit.glb" scale={0.4 * scaleFactor} position={[0, 0, 0]} rotation={[0, 0.5, 0]} />
+        <WireframeModel url="/portfolio/models/spacesuit.glb" scale={0.4 * scaleFactor} position={[0.7 * scaleFactor, 0, 0]} rotation={[0, 0.5, 0]} />
+        <WireframeModel url="/portfolio/models/spacesuit.glb" scale={0.4 * scaleFactor} position={[1.4 * scaleFactor, 0, 0]} rotation={[0, 0.5, 0]} />
+      </group>
+    </>
+  );
+}
+
+// 3. Main Viewport Component
 export default function EngineeringModelView() {
   return (
-    <div className="w-full h-full relative" style={{ background: 'transparent' }}>
-      {/* 
-          [조정 가이드]
-          1. position: [X, Y, Z] -> 카메라 위치 (Z가 커질수록 멀어짐)
-          2. fov: 시야각 (작을수록 망원, 클수록 광각)
-      */}
+    <div className="w-full h-full relative overflow-hidden" style={{ background: 'transparent' }}>
       {/* 3D Viewport Layer - Z-Index 0 */}
       <div className="absolute inset-0 z-0">
         <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 16], fov: 40 }}>
           <Suspense fallback={null}>
-            <ambientLight intensity={0.5} />
-
-            {/* 
-              메인 카시니 모델 배치 
-              - position: [좌우, 상하, 앞뒤] 오프셋 (Y값 -0.8을 조정해 높이 변경)
-              - scale: 모델 크기
-            */}
-            <Center position={[13.5, -4.0, 0]}>
-              <WireframeModel
-                url="/portfolio/models/cassini.glb"
-                scale={0.45}
-                rotation={[0.5, 0, 0]}
-                autoRotate={true}
-                rotationType="oscillate"
-              />
-            </Center>
-
-            {/* 
-              상단 생명 표시(슈트) 배치 
-              - group position: 전체적인 위치 [-왼쪽, +위쪽, 앞뒤]
-              - scale: 슈트 개별 크기
-              - 개별 position: 슈트 간의 간격 조정 [X, Y, Z]
-          */}
-            <group position={[-11.0, 4.3, 0]}>
-              <WireframeModel url="/portfolio/models/spacesuit.glb" scale={0.4} position={[0, 0, 0]} rotation={[0, 0.5, 0]} />
-              <WireframeModel url="/portfolio/models/spacesuit.glb" scale={0.4} position={[0.7, 0, 0]} rotation={[0, 0.5, 0]} />
-              <WireframeModel url="/portfolio/models/spacesuit.glb" scale={0.4} position={[1.4, 0, 0]} rotation={[0, 0.5, 0]} />
-            </group>
+            <DynamicViewportScene />
           </Suspense>
         </Canvas>
       </div>

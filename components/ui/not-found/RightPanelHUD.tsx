@@ -381,9 +381,10 @@ export default function RightPanelHUD() {
 
             {/* Technobabble & 3D Model Area (5:5 Split) */}
             <div className="flex-1 flex flex-col min-h-0 relative">
-                {/* Upper 50%: 3D Model Viewport (Locked to 5:3, Aligned to bottom) */}
-                <div className="flex-[5] relative border-b border-[var(--foreground)]/10 overflow-hidden flex flex-col justify-end">
-                    <div className="w-full aspect-[5/3] max-h-full relative overflow-hidden">
+                {/* Upper 50%: 3D Model Viewport (Pinned to bottom-right of this section) */}
+                <div className="flex-[5] relative border-b border-[var(--foreground)]/10 overflow-hidden flex items-end justify-end">
+                    {/* The "Engineering Screen" box - now expanding to fill space without forced padding */}
+                    <div className="relative w-full h-full aspect-[5/3]">
                          <EngineeringModelView />
                     </div>
                 </div>
