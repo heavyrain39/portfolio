@@ -382,16 +382,16 @@ export default function RightPanelHUD() {
 
             {/* Technobabble & 3D Model Area (5:5 Split) */}
             <div className="flex-1 flex flex-col min-h-0 relative">
-                {/* Upper 50%: 3D Model Viewport (Pinned to bottom-right of this section) */}
-                <div className="flex-[5] relative border-b border-[var(--foreground)]/10 overflow-hidden flex items-end justify-end">
+                {/* Upper Section: 3D Model Viewport (공간을 최대한 채우도록 flex-1 적용) */}
+                <div className="flex-1 relative border-b border-[var(--foreground)]/10 overflow-hidden flex items-end justify-end">
                     {/* The "Engineering Screen" box - now expanding to fill space without forced padding */}
                     <div className="relative w-full h-full aspect-[5/3]">
                          <EngineeringModelView />
                     </div>
                 </div>
 
-                {/* Lower 50%: Weapon System 및 테크노배블 영역 */}
-                <div className="flex-[5] relative overflow-hidden flex flex-col items-center justify-center border-t border-[var(--foreground)]/5 bg-gradient-to-b from-transparent to-[var(--foreground)]/[0.02]">
+                {/* Lower Section: Weapon System 및 테크노배블 영역 (콘텐츠 높이만큼만 차지) */}
+                <div className="flex-none relative overflow-hidden flex flex-col items-center justify-center border-t border-[var(--foreground)]/5 bg-gradient-to-b from-transparent to-[var(--foreground)]/[0.02]">
                     <WeaponSystem />
                 </div>
             </div>
