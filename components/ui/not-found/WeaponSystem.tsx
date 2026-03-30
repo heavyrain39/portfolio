@@ -175,18 +175,242 @@ function WeaponSystemBundle({ id, index }: { id: string; index: number }) {
   );
 }
 
-export default function WeaponSystem() {
+/**
+ * TelemetryPanel: 시스템 원격측정 데이터를 막대 게이지와 헥스 데이터 테이블로 시각화하는 하단 패널.
+ * 텍스트를 최소화하고 시각 요소 중심으로 구성합니다.
+ */
+function TelemetryPanel() {
+  const METER_DEFS = [
+    { id: 'PWR',  label: 'POWER',   base: 87, tag: 'ACT' },
+    { id: 'SIG',  label: 'SIGNAL',  base: 74, tag: 'OK'  },
+    { id: 'THM',  label: 'THERMAL', base: 31, tag: 'LOW' },
+    { id: 'TGT',  label: 'TARGET',  base: 92, tag: 'LCK' },
+    { id: 'AMO',  label: 'AMMO',    base: 53, tag: 'STB' },
+  ];
+
+  // 좌측 헥스+점자 데이터 테이블
+  const DATA_TABLE = [
+    { idx: '00', addr: '0xFF2A', chk: 'OK ',  payload: '⠿⠟⠯⠷⠾' },
+    { idx: '01', addr: '0x3BC1', chk: 'ERR',  payload: '⠾⠽⠝⠷⠶' },
+    { idx: '02', addr: '0x91E4', chk: 'OK ',  payload: '⠿⠻⠯⠿⠟' },
+    { idx: '03', addr: '0xA042', chk: 'OK ',  payload: '⠷⠿⠻⠯⠶' },
+    { idx: '04', addr: '0x7F0E', chk: 'IDL',  payload: '⠶⠵⠿⠾⠽' },
+  ] as const;
+
+  // 우측 헥스+점자 데이터 테이블 (동일 포맷, 다른 내용)
+  const DATA_TABLE_2 = [
+    { idx: '05', addr: '0xC4B3', chk: 'OK ',  payload: '⠿⠯⠷⠾⠟' },
+    { idx: '06', addr: '0x8A20', chk: 'OK ',  payload: '⠽⠝⠷⠶⠵' },
+    { idx: '07', addr: '0xE19D', chk: 'ERR',  payload: '⠯⠿⠻⠟⠾' },
+    { idx: '08', addr: '0x5F42', chk: 'IDL',  payload: '⠶⠿⠯⠷⠽' },
+    { idx: '09', addr: '0xB6C8', chk: 'OK ',  payload: '⠟⠯⠾⠿⠵' },
+  ] as const;
+
+  // FREQ ANAL: 기본 높이를 useMemo로 고정 후 미세 진동만 허용
+  const BAR_COUNT = 22;
+  const BASE_BARS = React.useMemo(() =>
+    Array.from({ length: BAR_COUNT }, (_, i) => {
+      const mid = BAR_COUNT / 2;
+      const dist = Math.abs(i - mid) / mid;
+      return (1 - dist * 0.5) * 60 + 20; // 중앙 집중형 종 모양 분포
+    }), []
+  );
+
+  const [meters, setMeters] = useState(
+    METER_DEFS.map(m => ({ ...m, value: m.base as number }))
+  );
+  const [freqBars, setFreqBars] = useState<number[]>(BASE_BARS);
+
+  // 게이지: 800ms마다 ±2 소폭 드리프트 → 숫자 표시값과 바가 같은 state를 공유해 연동
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setMeters(prev =>
+        prev.map(m => {
+          const drift = (Math.random() - 0.5) * 4;
+          const next = Math.max(m.base - 10, Math.min(m.base + 10, m.value + drift));
+          return { ...m, value: next };
+        })
+      );
+    }, 800);
+    return () => clearInterval(tick);
+  }, []);
+
+  // FREQ ANAL: 2.5초마다 기본 높이 기준 ±6 이내 미세 진동
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setFreqBars(
+        BASE_BARS.map(base => Math.max(12, Math.min(85, base + (Math.random() - 0.5) * 12)))
+      );
+    }, 2500);
+    return () => clearInterval(tick);
+  }, [BASE_BARS]);
+
+  // 막대 위치 기반 3위계 opacity (핸드오버 위계 적용: 80%/50%/25%)
+  function barOpacity(i: number): number {
+    const mid = BAR_COUNT / 2;
+    const dist = Math.abs(i - mid) / mid;
+    if (dist < 0.3) return 0.80;  // High: 중앙 핵심 대역
+    if (dist < 0.65) return 0.50; // Medium: 중간 대역
+    return 0.25;                   // Low: 외곽
+  }
+
   return (
-    <div className="w-full h-full flex flex-col items-center justify-start gap-3 px-4 py-4 pointer-events-none">
-      {/* 가로로 나열된 3개의 웨폰 시스템 - 수직 정렬을 상단(justify-start)으로, 간격을 절반으로 축소 */}
-      <div className="w-full flex flex-row items-start justify-center gap-2 md:gap-[1vw] translate-y-[10px]">
-        <WeaponSystemBundle id="WPN-01" />
-        <WeaponSystemBundle id="WPN-02" />
-        <WeaponSystemBundle id="WPN-03" />
+    <div className="w-full flex-1 min-h-0 flex gap-0 mt-[10px]">
+      {/* ── 좌측: SYS TELEMETRY 게이지 바 ── */}
+      <div className="flex-[6] flex flex-col border border-[var(--foreground)]/25 relative overflow-hidden">
+        {/* 배경 그리드 - 플레이어 영역과 동일한 40px 피치 */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              'linear-gradient(color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+        {/* 섹션 헤더 */}
+        <div className="flex justify-between items-center px-4 py-1 shrink-0">
+          <span className="font-mono text-[6px] md:text-[0.42vw] opacity-50 tracking-[0.3em] uppercase">
+            SYS TELEMETRY
+          </span>
+          <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 tracking-widest">
+            LIVE
+          </span>
+        </div>
+        {/* 게이지 바 목록 - 플레이어 진행바와 동일한 스타일 */}
+        <div className="flex flex-col flex-1 px-4 pb-3 gap-0 justify-around">
+          {meters.map(m => (
+            <div key={m.id} className="flex items-center gap-2">
+              {/* 레이블: Medium(50%) */}
+              <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[34px] shrink-0">
+                {m.label}
+              </span>
+              {/* 트랙: 플레이어 진행바와 동일 — bg-background + border /20 */}
+              <div
+                className="flex-[0_1_55%] h-[4px] md:h-[5px] bg-[var(--background)] border border-[var(--foreground)]/20 relative overflow-hidden"
+              >
+                <motion.div
+                  className="absolute left-0 top-0 h-full bg-[var(--foreground)] opacity-80"
+                  animate={{ width: `${m.value}%` }}
+                  transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                />
+              </div>
+              {/* 수치: Medium(50%) */}
+              <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[20px] text-right shrink-0">
+                {Math.round(m.value)}%
+              </span>
+              {/* 태그: Low(25%) */}
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 tracking-widest w-[22px] shrink-0">
+                [{m.tag}]
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* 하단 통합 정보 바 - 장식선(border-t)을 제거하여 미니멀한 느낌 강조 */}
-      <div className="w-full max-w-[800px] mt-2 flex justify-between items-center font-mono text-[7px] md:text-[0.55vw] opacity-40 uppercase tracking-widest">
+      {/* ── 우측: 헥스+점자 테이블 두 개 + FREQ ANAL ── */}
+      <div className="flex-[4] flex flex-col border border-l-0 border-[var(--foreground)]/25">
+
+        {/* 상단: 두 개의 데이터 테이블 나란히 */}
+        <div className="flex-[5] flex border-b border-[var(--foreground)]/25 overflow-hidden">
+
+          {/* 좌측 테이블 */}
+          <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25">
+            {/* 컬럼 헤더 */}
+            <div className="flex items-center gap-1.5 px-2 py-1 shrink-0 border-b border-[var(--foreground)]/25">
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[12px]">IX</span>
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[32px]">ADDR</span>
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[14px]">CHK</span>
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25">PAYLOAD</span>
+            </div>
+            <div className="flex flex-col flex-1 justify-around px-2 py-1">
+              {DATA_TABLE.map(row => (
+                <div key={row.idx} className="flex items-center gap-1.5">
+                  <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[12px] shrink-0">{row.idx}</span>
+                  <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[32px] shrink-0">{row.addr}</span>
+                  <span
+                    className="font-mono text-[6px] md:text-[0.42vw] w-[14px] shrink-0"
+                    style={{ opacity: row.chk.trim() === 'ERR' ? 0.8 : 0.25 }}
+                  >
+                    {row.chk}
+                  </span>
+                  <span className="font-mono text-[7px] md:text-[0.5vw] opacity-25 tracking-[0.05em]">{row.payload}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 우측 테이블 (동일 포맷, 다른 내용) */}
+          <div className="flex-1 flex flex-col">
+            {/* 컬럼 헤더 */}
+            <div className="flex items-center gap-1.5 px-2 py-1 shrink-0 border-b border-[var(--foreground)]/25">
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[12px]">IX</span>
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[32px]">ADDR</span>
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[14px]">CHK</span>
+              <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25">PAYLOAD</span>
+            </div>
+            <div className="flex flex-col flex-1 justify-around px-2 py-1">
+              {DATA_TABLE_2.map(row => (
+                <div key={row.idx} className="flex items-center gap-1.5">
+                  <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[12px] shrink-0">{row.idx}</span>
+                  <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[32px] shrink-0">{row.addr}</span>
+                  <span
+                    className="font-mono text-[6px] md:text-[0.42vw] w-[14px] shrink-0"
+                    style={{ opacity: row.chk.trim() === 'ERR' ? 0.8 : 0.25 }}
+                  >
+                    {row.chk}
+                  </span>
+                  <span className="font-mono text-[7px] md:text-[0.5vw] opacity-25 tracking-[0.05em]">{row.payload}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 하단: FREQ ANAL — 22개 가는 막대, 3위계 opacity(80/50/25%), 미세 진동 */}
+        <div className="flex-[3] flex flex-col overflow-hidden">
+          <div className="px-2 pt-1 shrink-0">
+            <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 tracking-[0.25em] uppercase">
+              FREQ ANAL
+            </span>
+          </div>
+          <div className="flex-1 px-2 pb-1.5 flex items-end justify-between min-h-0">
+            {freqBars.map((h, i) => (
+              <motion.div
+                key={i}
+                className="bg-[var(--foreground)]"
+                animate={{ scaleY: h / 100 }}
+                style={{
+                  originY: 1,
+                  opacity: barOpacity(i),
+                  height: '100%',
+                  width: '2px',
+                  flexShrink: 0,
+                }}
+                transition={{ duration: 1.4, ease: 'easeInOut' }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function WeaponSystem() {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-start gap-2 px-4 pt-4 pb-2 pointer-events-none">
+      {/* 가로로 나열된 3개의 웨폰 시스템 */}
+      <div className="w-full flex flex-row items-start justify-center gap-2 md:gap-[1vw] translate-y-[10px] shrink-0">
+        <WeaponSystemBundle id="WPN-01" index={0} />
+        <WeaponSystemBundle id="WPN-02" index={1} />
+        <WeaponSystemBundle id="WPN-03" index={2} />
+      </div>
+
+      {/* 텔레메트리 패널 - 카드와 하단 바 사이 남은 공간 전부 채움 */}
+      <TelemetryPanel />
+
+      {/* 하단 통합 정보 바 - 원문 복원 */}
+      <div className="w-full flex justify-between items-center font-mono text-[7px] md:text-[0.55vw] opacity-40 uppercase tracking-widest shrink-0">
         <div className="flex gap-4">
           <span>• A LINK STABLE</span>
           <span>• B LINK STABLE</span>
