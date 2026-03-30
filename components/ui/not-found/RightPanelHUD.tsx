@@ -21,13 +21,14 @@ const DIGIT_BITMAPS: Record<string, number[][]> = {
 function DotMatrixDigit({ char, opacity }: { char: string; opacity: number }) {
     const bitmap = DIGIT_BITMAPS[char] || DIGIT_BITMAPS['0'];
     return (
-        <div className="flex gap-[1px]" style={{ opacity }}>
+        <div className="flex" style={{ opacity, gap: 'var(--pixel-gap)' }}>
             {bitmap[0].map((_, colIndex) => (
-                <div key={colIndex} className="flex flex-col gap-[1px]">
+                <div key={colIndex} className="flex flex-col" style={{ gap: 'var(--pixel-gap)' }}>
                     {bitmap.map((row, rowIndex) => (
                         <div
                             key={rowIndex}
-                            className={`w-[3px] h-[3px] ${row[colIndex] ? 'dot-on-pixel' : 'bg-transparent'}`}
+                            style={{ width: 'var(--pixel-size)', height: 'var(--pixel-size)' }}
+                            className={`${row[colIndex] ? 'dot-on-pixel' : 'bg-transparent'}`}
                         />
                     ))}
                 </div>
@@ -233,22 +234,27 @@ export default function RightPanelHUD() {
         <div className="flex flex-col h-[100%] w-full bg-[var(--background)] pointer-events-none relative overflow-hidden">
             <style>{`
                 @keyframes gridSlideHUD {
-                    from { background-position: 0 0px, 0 0px; }
-                    to { background-position: -40px 0px, -40px 0px; }
+                    from { background-position: 0 -20px, 0 -20px; }
+                    to { background-position: -40px -20px, -40px -20px; }
                 }
                 .player-grid-bg {
                     background-image:
                         linear-gradient(color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
                         linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px);
                     background-size: 40px 40px;
-                    background-position: 0 0, 0 0;
+                    background-position: 0 -20px, 0 -20px;
                     animation: gridSlideHUD 3.75s linear infinite;
+                }
+                :root {
+                    --pixel-size: clamp(2px, 0.22vw, 3.2px);
+                    --pixel-gap: clamp(1px, 0.07vw, 1.2px);
+                    --pixel-total: calc(var(--pixel-size) + var(--pixel-gap));
                 }
                 .controls-pixel-bg {
                     background-image: 
-                        linear-gradient(color-mix(in srgb, var(--foreground) 2%, transparent) 3px, transparent 3px),
-                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 2%, transparent) 3px, transparent 3px);
-                    background-size: 4px 4px;
+                        linear-gradient(color-mix(in srgb, var(--foreground) 2%, transparent) var(--pixel-size), transparent var(--pixel-size)),
+                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 2%, transparent) var(--pixel-size), transparent var(--pixel-size));
+                    background-size: var(--pixel-total) var(--pixel-total);
                     background-position: 0px 0px;
                 }
                 .dot-on-pixel {
@@ -304,7 +310,7 @@ export default function RightPanelHUD() {
                                 <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
                                     <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
                                     <g transform={`rotate(${-90 + (volume / 100) * 180})`}>
-                                        <line x1="0" y1="-33" x2="0" y2="-43" stroke="currentColor" strokeWidth="2.5" opacity="1" strokeLinecap="butt" />
+                                        <line x1="0" y1="-34" x2="0" y2="-40" stroke="currentColor" strokeWidth="2.5" opacity="1" strokeLinecap="butt" />
                                     </g>
                                 </svg>
                             </div>
@@ -313,11 +319,11 @@ export default function RightPanelHUD() {
                             </div>
                         </div>
 
-                        {/* 2. Controls Section (Square Pixel Grid) */}
-                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-4 md:p-[1vw] min-w-0 justify-center gap-2 md:gap-[0.6vw] controls-pixel-bg">
+                        {/* 2. Controls Section (Clean Background) */}
+                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-4 md:p-[1vw] min-w-0 justify-center gap-2 md:gap-[0.6vw]">
 
                             {/* Upper Row: Buttons + Timer */}
-                            <div className="flex items-center gap-2 h-[1.6rem] md:h-[2.2vw] pointer-events-auto">
+                            <div className="flex items-center gap-1 h-[1.4rem] md:h-[1.8vw] pointer-events-auto">
                                 <button
                                     onClick={stopAudio}
                                     className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
@@ -344,8 +350,8 @@ export default function RightPanelHUD() {
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80"><polygon points="5,5 15,12 5,19" /><rect x="17" y="5" width="2" height="14" /></svg>
                                 </button>
 
-                                {/* Timer (Dot Matrix) - Padded to snap to 4px grid */}
-                                <div className="ml-auto flex items-center pr-1">
+                                {/* Timer (Dot Matrix) - Aligned exactly with progress bar edge */}
+                                <div className="ml-auto flex items-center">
                                     <DotMatrixTimer seconds={currentTime} opacity={0.8} />
                                 </div>
                             </div>
