@@ -285,9 +285,10 @@ export default function RightPanelHUD() {
 
     // Web Audio Refs
     const audioCtxRef = useRef<AudioContext | null>(null);
+    const analyzerRef = useRef<AnalyserNode | null>(null);
+    const [analyzer, setAnalyzer] = useState<AnalyserNode | null>(null);
     const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
     const gainNodeRef = useRef<GainNode | null>(null);
-    const analyzerRef = useRef<AnalyserNode | null>(null);
     const audioBuffersRef = useRef<(AudioBuffer | null)[]>([]);
 
     const startTimeRef = useRef<number>(0);
@@ -299,16 +300,17 @@ export default function RightPanelHUD() {
         if (!audioCtxRef.current) {
             const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
             const ctx = new AudioContext();
-            const analyzer = ctx.createAnalyser();
-            analyzer.fftSize = 2048; // 데이터 해상도 대폭 상향
+            const analyzerNode = ctx.createAnalyser();
+            analyzerNode.fftSize = 2048;
             const gain = ctx.createGain();
             gain.gain.value = volume / 100;
 
-            analyzer.connect(gain);
+            analyzerNode.connect(gain);
             gain.connect(ctx.destination);
 
             audioCtxRef.current = ctx;
-            analyzerRef.current = analyzer;
+            analyzerRef.current = analyzerNode;
+            setAnalyzer(analyzerNode);
             gainNodeRef.current = gain;
         }
         return audioCtxRef.current;
@@ -357,7 +359,11 @@ export default function RightPanelHUD() {
 
         const source = ctx.createBufferSource();
         source.buffer = buffer;
-        source.connect(analyzerRef.current!);
+        
+        // Use Ref for immediate connection to avoid State async lag
+        if (analyzerRef.current) {
+            source.connect(analyzerRef.current);
+        }
 
         source.onended = () => {
             if ((ctx.currentTime - startTimeRef.current) >= buffer.duration * 0.98) {
@@ -462,109 +468,113 @@ export default function RightPanelHUD() {
                 }
             `}</style>
 
-            <div className="player-grid-bg flex flex-col p-4 md:p-[2vw] gap-3 relative" style={{ borderBottom: `1px solid ${borderColor}` }}>
 
-                {/* TIER 1: Fixed Header Layer */}
-                <div className="h-[1.2rem] md:h-[1.5vw] flex items-center justify-between w-full pointer-events-auto font-mono text-[9px] md:text-[0.6vw] pb-1">
-                    <div className="flex items-center uppercase tracking-widest gap-4">
-                        <span className="opacity-50">NOW PLAYING:</span>
-                        {isLoading ? (
-                            <span className="opacity-50 animate-pulse">FETCHING...</span>
-                        ) : (
-                            <span className="opacity-50">{tracks[currentTrackIndex].title}</span>
-                        )}
-                    </div>
-                    <div className="hidden md:block opacity-50 uppercase tracking-widest">
-                        BITRATE: 1411 KBPS
-                    </div>
-                </div>
-
-                {/* TIER 2 & 3: Unified Grid Structure for Precise Alignment */}
-                <div className="grid grid-cols-[var(--knob-w)_1fr] gap-8 md:gap-[3vw]">
-
-                    {/* Column 1: Knob & Volume Labels */}
-                    <div className="flex flex-col items-center gap-3.5">
-                        {/* Knob Row */}
-                        <div
-                            id="vol-knob"
-                            data-hud-interactive="true"
-                            className="h-[var(--knob-h)] w-[var(--knob-w)] flex items-center justify-center cursor-ns-resize rounded-none relative overflow-visible pointer-events-auto"
-                            onWheel={handleVolumeWheel}
-                            onMouseDown={(e) => e.stopPropagation()}
-                        >
-                            <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
-                                <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
-                                <g transform={`rotate(${-90 + (volume / 100) * 180})`}>
-                                    <line x1="0" y1="-33" x2="0" y2="-43" stroke="currentColor" strokeWidth="1" opacity="0.8" strokeLinecap="butt" />
-                                </g>
-                            </svg>
+            {/* Music Player Control Box (Compartmentalized Wireframe) */}
+            <div className="player-grid-bg flex flex-col p-4 md:p-[2vw] relative">
+                <div className="border border-[var(--foreground)]/25 flex flex-col w-full bg-[var(--background)]/40 backdrop-blur-[2px]">
+                    
+                    {/* TIER 1: Header (Now Playing & Bitrate) */}
+                    <div className="flex justify-between items-center px-3 py-1.5 md:py-[0.6vw] border-b border-[var(--foreground)]/25 text-[9px] md:text-[0.65vw] font-mono tracking-widest uppercase">
+                        <div className="flex gap-4">
+                            <span className="opacity-50">NOW PLAYING:</span>
+                            {isLoading ? (
+                                <span className="opacity-50 animate-pulse">FETCHING...</span>
+                            ) : (
+                                <span className="opacity-80">{tracks[currentTrackIndex].title}</span>
+                            )}
                         </div>
-                        {/* VOL Label (Centered under Knob) */}
-                        <div className="w-full text-center font-mono text-[9px] md:text-[0.6vw] opacity-50 uppercase tracking-widest leading-none">
-                            VOL. {volume}%
-                        </div>
+                        <div className="opacity-50 hidden sm:block">BITRATE: 1411 KBPS</div>
                     </div>
 
-                    {/* Column 2: Controls, Visualizer, Progress, and Timer */}
-                    <div className="grid grid-cols-[0.6fr_0.40fr] gap-4 md:gap-[2.5vw] items-stretch">
+                    {/* TIER 2: Main Body (Knob, Controls, Visualizers) */}
+                    <div className="flex h-[4.2rem] md:h-[6vw] items-stretch">
+                        
+                        {/* 1. Volume Section (Adjust 'gap' here for distance between knob and text) */}
+                        <div className="w-[var(--knob-w)] md:w-[6vw] flex flex-col items-center justify-center border-r border-[var(--foreground)]/25 px-1 pt-1 gap-1">
+                            <div
+                                id="vol-knob"
+                                data-hud-interactive="true"
+                                className="h-[2rem] md:h-[3vw] w-full flex items-center justify-center cursor-ns-resize relative overflow-visible pointer-events-auto"
+                                onWheel={handleVolumeWheel}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                title="Scroll to adjust volume"
+                            >
+                                <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
+                                    <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                                    <g transform={`rotate(${-90 + (volume / 100) * 180})`}>
+                                        <line x1="0" y1="-33" x2="0" y2="-43" stroke="currentColor" strokeWidth="2.5" opacity="1" strokeLinecap="butt" />
+                                    </g>
+                                </svg>
+                            </div>
+                            <div className="font-mono text-[8px] md:text-[0.55vw] opacity-50 uppercase tracking-tighter mb-1">
+                                VOL.{volume}%
+                            </div>
+                        </div>
 
-                        {/* Column 2-A: Controls (Buttons, Progress, Timer) */}
-                        <div className="flex flex-col gap-2">
-                            {/* Upper Row: Buttons */}
-                            <div className="flex items-center gap-2 h-[var(--knob-h)] pointer-events-auto">
-                                <button onClick={stopAudio} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%]"><rect x="6" y="6" width="12" height="12" /></svg>
+                        {/* 2. Controls Section (Adjust 'gap' here for distance between buttons and progress bar) */}
+                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-2 md:p-[0.8vw] min-w-0 justify-center gap-2 md:gap-[0.6vw]">
+                            
+                            {/* Upper Row: Buttons + Timer */}
+                            <div className="flex items-center gap-1.5 h-[1.6rem] md:h-[2.2vw] pointer-events-auto">
+                                <button 
+                                    onClick={stopAudio} 
+                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-transparent rounded-none transition-all active:scale-[0.98] active:invert"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[35%] h-[35%] opacity-80"><rect x="6" y="6" width="12" height="12" /></svg>
                                 </button>
-                                <button onClick={togglePlay} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
+                                <button 
+                                    onClick={togglePlay} 
+                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-transparent rounded-none transition-all active:scale-[0.98] active:invert"
+                                >
                                     {isPlaying ? (
-                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80">
                                             <rect x="6" y="5" width="4" height="14" />
                                             <rect x="14" y="5" width="4" height="14" />
                                         </svg>
                                     ) : (
-                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]"><polygon points="7,5 19,12 7,19" /></svg>
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80 pl-0.5"><polygon points="7,5 19,12 7,19" /></svg>
                                     )}
                                 </button>
-                                <button onClick={nextTrack} className="h-full aspect-square border border-[var(--foreground)] opacity-50 flex items-center justify-center bg-transparent rounded-none">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[45%] h-[45%]">
-                                        <polygon points="5,5 15,12 5,19" />
-                                        <rect x="17" y="5" width="2" height="14" />
-                                    </svg>
+                                <button 
+                                    onClick={nextTrack} 
+                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-transparent rounded-none transition-all active:scale-[0.98] active:invert"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80"><polygon points="5,5 15,12 5,19" /><rect x="17" y="5" width="2" height="14" /></svg>
                                 </button>
+                                
+                                {/* Timer */}
+                                <div className="ml-auto font-mono text-[9px] md:text-[0.65vw] opacity-80 tracking-[0.2em] leading-none pt-0.5 pr-0.5">
+                                    {formatTime(currentTime)}
+                                </div>
                             </div>
 
-                            {/* Lower Row: Progress Bar + Timer (Strictly 60% with buttons) */}
-                            <div className="flex items-center h-[1rem] md:h-[0.8vw] pointer-events-auto mt-auto">
-                                <div className="flex-1 flex items-center pr-4">
+                            {/* Lower Row: Progress Bar */}
+                            <div className="w-full flex items-center h-[8px] md:h-[0.6vw] pointer-events-auto">
+                                <div
+                                    data-hud-interactive="true"
+                                    className="w-full h-[3px] md:h-[4px] bg-[var(--foreground)]/5 border border-[var(--foreground)]/25 relative cursor-pointer"
+                                    onClick={handleProgressScrub}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                >
                                     <div
-                                        data-hud-interactive="true"
-                                        className="flex-1 h-[6px] md:h-[8px] bg-[var(--background)] border border-[var(--foreground)]/50 relative cursor-pointer"
-                                        onClick={handleProgressScrub}
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                    >
-                                        <div
-                                            className="h-full bg-[var(--foreground)] opacity-50 pointer-events-none"
-                                            style={{ width: `${duration ? Math.min(100, (currentTime / duration) * 100) : 0}%` }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="shrink-0 flex items-center justify-end">
-                                    <div className="font-mono text-[9px] md:text-[0.6vw] opacity-50 tracking-widest leading-none w-10 text-right">
-                                        {formatTime(currentTime)}
-                                    </div>
+                                        className="h-full bg-[var(--foreground)] opacity-80 pointer-events-none"
+                                        style={{ width: `${duration ? Math.min(100, (currentTime / duration) * 100) : 0}%` }}
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Column 2-B: Dual Visualizers (Vertical Stack for Strict Alignment) */}
-                        <div className="flex flex-col gap-2 h-full">
-                            {/* Upper Visualizer (Aligned with Buttons) */}
-                            <div className="h-[var(--knob-h)] overflow-hidden opacity-50">
-                                <BlobVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                        {/* 3. Visualizers Section */}
+                        <div className="w-[28%] md:w-[32%] flex flex-col overflow-hidden">
+                            <div className="flex-1 border-b border-[var(--foreground)]/25 relative">
+                                <div className="absolute inset-0 opacity-25">
+                                    <BlobVisualizer analyzer={analyzer} isPlaying={isPlaying} />
+                                </div>
                             </div>
-                            {/* Lower Visualizer (Aligned with Progress/Timer) */}
-                            <div className="h-[1rem] md:h-[0.8vw] mt-auto overflow-hidden opacity-50">
-                                <WaveformVisualizer analyzer={analyzerRef.current} isPlaying={isPlaying} />
+                            <div className="flex-1 relative">
+                                <div className="absolute inset-0 opacity-25">
+                                    <WaveformVisualizer analyzer={analyzer} isPlaying={isPlaying} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -575,21 +585,21 @@ export default function RightPanelHUD() {
             <div className="flex-1 p-4 md:p-[2vw] relative flex flex-col gap-4 overflow-hidden select-none border-t border-[var(--foreground)]/5">
                 <div className="flex justify-between font-mono tracking-widest uppercase text-[9px] md:text-[0.6vw]">
                     <div className="flex flex-col gap-1">
-                        <span className="opacity-50">EARTH TIME:</span>
-                        <span className="opacity-50">17:37:51:71</span>
+                        <span className="opacity-30">EARTH TIME:</span>
+                        <span className="opacity-40">17:37:51:71</span>
                     </div>
                 </div>
 
                 <div className="flex gap-4 font-mono tracking-widest uppercase text-[9px] md:text-[0.6vw] mt-2">
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-20">
+                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-10">
                         <span>INT</span>
                         <span>EXT</span>
                     </div>
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-40">
+                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-25">
                         <span>68°F</span>
                         <span>-458°F</span>
                     </div>
-                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-40">
+                    <div className="flex flex-col text-right w-[4vw] min-w-[30px] opacity-25">
                         <span>20°C</span>
                         <span>-272°C</span>
                     </div>
