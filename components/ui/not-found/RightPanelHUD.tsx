@@ -4,6 +4,55 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
 import { BlobVisualizer, WaveformVisualizer } from "./HUDVisualizers";
 
+const DIGIT_BITMAPS: Record<string, number[][]> = {
+    '0': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
+    '1': [[0, 0, 1, 0, 0], [0, 1, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0]],
+    '2': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 0, 1, 1, 0], [0, 1, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 1]],
+    '3': [[1, 1, 1, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 1, 1, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [1, 1, 1, 1, 0]],
+    '4': [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0]],
+    '5': [[1, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 1, 1, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
+    '6': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
+    '7': [[1, 1, 1, 1, 1], [0, 0, 0, 0, 1], [0, 0, 0, 1, 0], [0, 0, 1, 0, 0], [0, 1, 0, 0, 0], [0, 1, 0, 0, 0], [0, 1, 0, 0, 0]],
+    '8': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
+    '9': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 1], [0, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
+    ':': [[0], [1], [0], [0], [0], [1], [0]],
+};
+
+function DotMatrixDigit({ char, opacity }: { char: string; opacity: number }) {
+    const bitmap = DIGIT_BITMAPS[char] || DIGIT_BITMAPS['0'];
+    return (
+        <div className="flex gap-[1px]" style={{ opacity }}>
+            {bitmap[0].map((_, colIndex) => (
+                <div key={colIndex} className="flex flex-col gap-[1px]">
+                    {bitmap.map((row, rowIndex) => (
+                        <div
+                            key={rowIndex}
+                            className={`w-[3px] h-[3px] ${row[colIndex] ? 'dot-on-pixel' : 'bg-transparent'}`}
+                        />
+                    ))}
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function DotMatrixTimer({ seconds, opacity }: { seconds: number; opacity: number }) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    const mStr = m.toString().padStart(2, '0');
+    const sStr = s.toString().padStart(2, '0');
+
+    return (
+        <div className="flex items-center gap-[6px]">
+            <DotMatrixDigit char={mStr[0]} opacity={opacity} />
+            <DotMatrixDigit char={mStr[1]} opacity={opacity} />
+            <DotMatrixDigit char=":" opacity={opacity} />
+            <DotMatrixDigit char={sStr[0]} opacity={opacity} />
+            <DotMatrixDigit char={sStr[1]} opacity={opacity} />
+        </div>
+    );
+}
+
 
 export default function RightPanelHUD() {
     const borderColor = 'color-mix(in srgb, var(--foreground) 20%, transparent)';
@@ -98,7 +147,7 @@ export default function RightPanelHUD() {
 
         const source = ctx.createBufferSource();
         source.buffer = buffer;
-        
+
         // Use Ref for immediate connection to avoid State async lag
         if (analyzerRef.current) {
             source.connect(analyzerRef.current);
@@ -195,6 +244,20 @@ export default function RightPanelHUD() {
                     background-position: 0 0, 0 0;
                     animation: gridSlideHUD 3.75s linear infinite;
                 }
+                .controls-pixel-bg {
+                    background-image: 
+                        linear-gradient(color-mix(in srgb, var(--foreground) 2%, transparent) 3px, transparent 3px),
+                        linear-gradient(90deg, color-mix(in srgb, var(--foreground) 2%, transparent) 3px, transparent 3px);
+                    background-size: 4px 4px;
+                    background-position: 0px 0px;
+                }
+                .dot-on-pixel {
+                    background-color: var(--foreground);
+                    box-shadow: 0 0 6px color-mix(in srgb, var(--foreground) 50%, transparent);
+                }
+                .bg-block {
+                    background-color: var(--background);
+                }
                 :root {
                     --knob-h: 2.8rem;
                     --knob-w: calc(2.8rem * 80 / 65);
@@ -210,12 +273,12 @@ export default function RightPanelHUD() {
 
             {/* Music Player Control Box (Compartmentalized Wireframe) */}
             <div className="player-grid-bg flex flex-col p-4 md:p-[2vw] relative">
-                <div className="border border-[var(--foreground)]/25 flex flex-col w-full bg-[var(--background)]/40 backdrop-blur-[2px]">
-                    
+                <div className="border border-[var(--foreground)]/25 flex flex-col w-full bg-[var(--background)]">
+
                     {/* TIER 1: Header (Now Playing & Bitrate) */}
-                    <div className="flex justify-between items-center px-3 py-1.5 md:py-[0.6vw] border-b border-[var(--foreground)]/25 text-[9px] md:text-[0.65vw] font-mono tracking-widest uppercase">
+                    <div className="flex justify-between items-center px-3 py-1 md:py-[0.3vw] border-b border-[var(--foreground)]/25 text-[9px] md:text-[0.65vw] font-mono tracking-widest uppercase">
                         <div className="flex gap-4">
-                            <span className="opacity-50">NOW PLAYING:</span>
+                            <span className="opacity-50">□□□ NOW PLAYING:</span>
                             {isLoading ? (
                                 <span className="opacity-50 animate-pulse">FETCHING...</span>
                             ) : (
@@ -227,7 +290,7 @@ export default function RightPanelHUD() {
 
                     {/* TIER 2: Main Body (Knob, Controls, Visualizers) */}
                     <div className="flex h-[4.2rem] md:h-[6vw] items-stretch">
-                        
+
                         {/* 1. Volume Section (Adjust 'gap' here for distance between knob and text) */}
                         <div className="w-[var(--knob-w)] md:w-[6vw] flex flex-col items-center justify-center border-r border-[var(--foreground)]/25 px-1 pt-1 gap-1">
                             <div
@@ -250,20 +313,20 @@ export default function RightPanelHUD() {
                             </div>
                         </div>
 
-                        {/* 2. Controls Section (Adjust 'gap' here for distance between buttons and progress bar) */}
-                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-2 md:p-[0.8vw] min-w-0 justify-center gap-2 md:gap-[0.6vw]">
-                            
+                        {/* 2. Controls Section (Square Pixel Grid) */}
+                        <div className="flex-1 flex flex-col border-r border-[var(--foreground)]/25 p-4 md:p-[1vw] min-w-0 justify-center gap-2 md:gap-[0.6vw] controls-pixel-bg">
+
                             {/* Upper Row: Buttons + Timer */}
-                            <div className="flex items-center gap-1.5 h-[1.6rem] md:h-[2.2vw] pointer-events-auto">
-                                <button 
-                                    onClick={stopAudio} 
-                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-transparent rounded-none transition-all active:scale-[0.98] active:invert"
+                            <div className="flex items-center gap-2 h-[1.6rem] md:h-[2.2vw] pointer-events-auto">
+                                <button
+                                    onClick={stopAudio}
+                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[35%] h-[35%] opacity-80"><rect x="6" y="6" width="12" height="12" /></svg>
                                 </button>
-                                <button 
-                                    onClick={togglePlay} 
-                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-transparent rounded-none transition-all active:scale-[0.98] active:invert"
+                                <button
+                                    onClick={togglePlay}
+                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     {isPlaying ? (
                                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80">
@@ -274,16 +337,16 @@ export default function RightPanelHUD() {
                                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80 pl-0.5"><polygon points="7,5 19,12 7,19" /></svg>
                                     )}
                                 </button>
-                                <button 
-                                    onClick={nextTrack} 
-                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-transparent rounded-none transition-all active:scale-[0.98] active:invert"
+                                <button
+                                    onClick={nextTrack}
+                                    className="h-full aspect-square border border-[var(--foreground)]/50 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80"><polygon points="5,5 15,12 5,19" /><rect x="17" y="5" width="2" height="14" /></svg>
                                 </button>
-                                
-                                {/* Timer */}
-                                <div className="ml-auto font-mono text-[9px] md:text-[0.65vw] opacity-80 tracking-[0.2em] leading-none pt-0.5 pr-0.5">
-                                    {formatTime(currentTime)}
+
+                                {/* Timer (Dot Matrix) - Padded to snap to 4px grid */}
+                                <div className="ml-auto flex items-center pr-1">
+                                    <DotMatrixTimer seconds={currentTime} opacity={0.8} />
                                 </div>
                             </div>
 
@@ -291,7 +354,7 @@ export default function RightPanelHUD() {
                             <div className="w-full flex items-center h-[8px] md:h-[0.6vw] pointer-events-auto">
                                 <div
                                     data-hud-interactive="true"
-                                    className="w-full h-[3px] md:h-[4px] bg-[var(--foreground)]/5 border border-[var(--foreground)]/25 relative cursor-pointer"
+                                    className="w-full h-[6px] md:h-[8px] bg-block border border-[var(--foreground)]/25 relative cursor-pointer"
                                     onClick={handleProgressScrub}
                                     onMouseDown={(e) => e.stopPropagation()}
                                 >

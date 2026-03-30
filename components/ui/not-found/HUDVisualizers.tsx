@@ -83,13 +83,22 @@ export function BlobVisualizer({
                 }
             }
         } else {
-            // Idle floating logic - Languid Fluid
-            const time = Date.now() * 0.001;
-            const baseBreathing = 0.15 + 0.05 * Math.sin(time * 0.8);
+            // Idle floating logic - Complex Resonance (복합 공명)
+            const time = Date.now() * 0.0012; // 속도 소폭 상향
+            
+            // 1. Fundamental Breathing (전체 호흡)
+            const breathing = 0.15 + 0.04 * Math.sin(time * 0.8);
+            
             for (let i = 0; i < nBands; i++) {
-                const swell = 0.1 * Math.sin(time * 1.5 + i * 0.12);
-                const idleMag = baseBreathing + swell;
-                prevMagsRef.current[i] = 0.95 * prevMagsRef.current[i] + 0.05 * idleMag;
+                // 2. Primary Wave (우측 이동)
+                const wave1 = 0.1 * Math.sin(time * 1.6 + i * 0.15);
+                // 3. Counter Ripple (좌측 이동, 다른 주파수와 위상)
+                const wave2 = 0.05 * Math.cos(time * 2.8 - i * 0.4);
+                
+                const idleMag = breathing + wave1 + wave2;
+                
+                // 보간을 조금 더 민첩하게 변경 (0.95 -> 0.9)
+                prevMagsRef.current[i] = 0.9 * prevMagsRef.current[i] + 0.1 * idleMag;
             }
         }
 
