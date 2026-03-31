@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 /**
@@ -179,14 +179,168 @@ function WeaponSystemBundle({ id, index }: { id: string; index: number }) {
  * TelemetryPanel: 시스템 원격측정 데이터를 막대 게이지와 헥스 데이터 테이블로 시각화하는 하단 패널.
  * 텍스트를 최소화하고 시각 요소 중심으로 구성합니다.
  */
+/**
+ * SignalTraceCanvas: 두 개의 선형 곡선이 서로 다른 속도로 유동적으로 움직이는 시그널 트레이스.
+ * 메인 시그널(느린 사인파) + 노이즈 필드(중간 속도 퍼렐린 유사 파동)로 구성.
+ */
+function SignalTraceCanvas() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const animationRef = useRef<number | null>(null);
+  const timeRef = useRef(0);
+  const [pathData, setPathData] = useState({ main: '', noise: '' });
+
+  // 컨테이너 크기 감지
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setDimensions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
+      }
+    });
+    
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  // 두 곡선의 path 생성
+  const generatePaths = useCallback((width: number, height: number, t: number) => {
+    const SEGMENTS = 120; 
+    const padding = 8;
+    const drawHeight = height - padding * 2;
+    
+    // 1. 숨쉬기 효과
+    const breath = Math.sin(t * 0.4) * 0.1;
+    
+    // 2. 무한 좌우 흐름 효과: phaseOffset으로 파동이 좌→우로 흘러가는 시뮬레이션
+    // 화면 왼쪽에서 들어와 오른쪽으로 나가는 느낌
+    const mainFlowOffset = t * 0.8; // 시간에 따라 파동 위상이 좌→우 이동
+    const noiseFlowOffset = t * 1.6; // 노이즈는 더 빠르게
+    
+    // midY는 고정 (위아래 흔들림 없이)
+    const midY = height / 2;
+    
+    // [MAIN SIGNAL] 심해의 흐름처럼 묵직하게 좌→우 흐름
+    const mainSpeed = 1.4;
+    const mainAmp = drawHeight * (0.28 + breath);
+    
+    // [NOISE FIELD] 양자 요동처럼 빠르게 좌→우 흐름
+    const noiseSpeed = 2.2;
+    const noiseAmp = drawHeight * 0.15;
+    
+    // 영역 경계
+    const minY = padding;
+    const maxY = height - padding;
+    
+    let mainPath = '';
+    let noisePath = '';
+    
+    for (let i = 0; i <= SEGMENTS; i++) {
+      const x = padding + (width - padding * 2) * (i / SEGMENTS);
+      const normalizedX = i / SEGMENTS;
+      
+      // 메인 시그널: phaseOffset 추가로 파동이 좌→우로 흘러보임
+      // (normalizedX * freq + t * speed + flowOffset) → flowOffset이 클수록 빠른 좌→우 흐름
+      const mainY = midY + 
+        Math.sin(normalizedX * 2.8 * Math.PI + t * mainSpeed + mainFlowOffset) * mainAmp +
+        Math.sin(normalizedX * 5.1 * Math.PI - t * mainSpeed * 0.7 + mainFlowOffset * 1.3) * mainAmp * 0.4 +
+        Math.cos(normalizedX * 1.3 * Math.PI + t * mainSpeed * 0.3 + mainFlowOffset * 0.7) * mainAmp * 0.2;
+      
+      // 노이즈 필드: 더 빠른 좌→우 흐름
+      const rawNoiseY = midY + 
+        Math.sin(normalizedX * 8.5 * Math.PI + t * noiseSpeed + noiseFlowOffset) * noiseAmp * 0.5 +
+        Math.cos(normalizedX * 13.2 * Math.PI - t * noiseSpeed * 1.3 + noiseFlowOffset * 1.8) * noiseAmp * 0.3 +
+        Math.sin(normalizedX * 21.7 * Math.PI + t * noiseSpeed * 2.1 + noiseFlowOffset * 2.5) * noiseAmp * 0.2;
+      
+      // 노이즈 Y값 영역 경계 내 제한
+      const noiseY = Math.max(minY, Math.min(maxY, rawNoiseY));
+      
+      if (i === 0) {
+        mainPath = `M ${x} ${mainY}`;
+        noisePath = `M ${x} ${noiseY}`;
+      } else {
+        mainPath += ` L ${x} ${mainY}`;
+        noisePath += ` L ${x} ${noiseY}`;
+      }
+    }
+    
+    return { main: mainPath, noise: noisePath };
+  }, []);
+
+  // 애니메이션 루프
+  useEffect(() => {
+    if (dimensions.width === 0) return;
+    
+    let lastTime = performance.now();
+    
+    const animate = (currentTime: number) => {
+      const deltaTime = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+      
+      // 시간 누적 (부드러운 움직임을 위해 deltaTime 사용)
+      timeRef.current += deltaTime;
+      
+      const paths = generatePaths(dimensions.width, dimensions.height, timeRef.current);
+      setPathData(paths);
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [dimensions, generatePaths]);
+
+  return (
+    <div ref={containerRef} className="flex-1 px-2 pb-1.5 relative min-h-0">
+      <svg
+        width="100%"
+        height="100%"
+        preserveAspectRatio="none"
+        className="absolute inset-0"
+      >
+        {/* 노이즈 필드 (배경 선, 더 투명) - 먼저 렌더링 */}
+        <path
+          d={pathData.noise}
+          stroke="var(--foreground)"
+          strokeWidth="1"
+          strokeOpacity="0.20"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* 메인 시그널 (전경 선, 덜 투명) */}
+        <path
+          d={pathData.main}
+          stroke="var(--foreground)"
+          strokeWidth="1"
+          strokeOpacity="0.50"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
 function TelemetryPanel() {
   const METER_DEFS = [
-    { id: 'PWR',  label: 'POWER',   base: 87, tag: 'ACT' },
-    { id: 'SIG',  label: 'SIGNAL',  base: 74, tag: 'OK'  },
-    { id: 'THM',  label: 'THERMAL', base: 31, tag: 'LOW' },
-    { id: 'TGT',  label: 'TARGET',  base: 92, tag: 'LCK' },
-    { id: 'FLW',  label: 'FLOW',    base: 64, tag: 'STB' },
-    { id: 'SYN',  label: 'SYNC',    base: 41, tag: 'IDL' },
+    { id: 'O2',  label: 'O\u2082 PP',      base: 87, tag: 'ACT' },
+    { id: 'OXY', label: 'R. OXYGEN',       base: 74, tag: 'OK'  },
+    { id: 'MET', label: 'METHANE',         base: 31, tag: 'LOW' },
+    { id: 'XEN', label: 'XENON-133',       base: 92, tag: 'LCK' },
+    { id: 'INS', label: 'T. INSTBLTY',     base: 64, tag: 'STB' },
+    { id: 'ACC', label: 'ENT. ACCN',       base: 41, tag: 'IDL' },
   ];
 
   // 좌측 헥스+점자 데이터 테이블
@@ -211,20 +365,9 @@ function TelemetryPanel() {
     { idx: '13', addr: '0xF92E', chk: 'ERR',  payload: '⠯⠿⠻⠶⠵' },
   ] as const;
 
-  // FREQ ANAL: 기본 높이를 useMemo로 고정 후 미세 진동만 허용
-  const BAR_COUNT = 22;
-  const BASE_BARS = React.useMemo(() =>
-    Array.from({ length: BAR_COUNT }, (_, i) => {
-      const mid = BAR_COUNT / 2;
-      const dist = Math.abs(i - mid) / mid;
-      return (1 - dist * 0.5) * 60 + 20; // 중앙 집중형 종 모양 분포
-    }), []
-  );
-
   const [meters, setMeters] = useState(
     METER_DEFS.map(m => ({ ...m, value: m.base as number }))
   );
-  const [freqBars, setFreqBars] = useState<number[]>(BASE_BARS);
 
   // 게이지: 800ms마다 ±2 소폭 드리프트 → 숫자 표시값과 바가 같은 state를 공유해 연동
   useEffect(() => {
@@ -239,25 +382,6 @@ function TelemetryPanel() {
     }, 800);
     return () => clearInterval(tick);
   }, []);
-
-  // FREQ ANAL: 2.5초마다 기본 높이 기준 ±6 이내 미세 진동
-  useEffect(() => {
-    const tick = setInterval(() => {
-      setFreqBars(
-        BASE_BARS.map(base => Math.max(12, Math.min(85, base + (Math.random() - 0.5) * 12)))
-      );
-    }, 2500);
-    return () => clearInterval(tick);
-  }, [BASE_BARS]);
-
-  // 막대 위치 기반 3위계 opacity (핸드오버 위계 적용: 80%/50%/25%)
-  function barOpacity(i: number): number {
-    const mid = BAR_COUNT / 2;
-    const dist = Math.abs(i - mid) / mid;
-    if (dist < 0.3) return 0.80;  // High: 중앙 핵심 대역
-    if (dist < 0.65) return 0.50; // Medium: 중간 대역
-    return 0.25;                   // Low: 외곽
-  }
 
   return (
     <div className="w-full flex-[0_1_220px] min-h-0 flex gap-0 mt-4 mb-2">
@@ -278,40 +402,40 @@ function TelemetryPanel() {
             {/* 상단 그룹 (1-4) 컴팩트하게 정렬 */}
             {meters.slice(0, 4).map(m => (
               <div key={m.id} className="flex items-center gap-3 w-full h-[1.4em]">
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[40px] shrink-0">
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[75px] shrink-0">
                   {m.label}
                 </span>
                 <div className="flex-1 h-[4px] md:h-[5px] bg-[var(--background)] border border-[var(--foreground)]/20 relative overflow-hidden">
                   <motion.div
                     className="absolute left-0 top-0 h-full bg-[var(--foreground)] opacity-80"
                     animate={{ width: `${m.value}%` }}
-                    transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                    transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[24px] text-right shrink-0 tabular-nums">
-                  {Math.round(m.value)}%
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[28px] text-right shrink-0 tabular-nums">
+                  {m.value.toFixed(2)}%
                 </span>
               </div>
             ))}
 
             {/* 그룹 간 여백 (장식선 금지) */}
-            <div className="h-[12px] md:h-[0.8vw]" />
+            <div className="h-[8px] md:h-[0.5vw]" />
 
             {/* 하단 그룹 (5-6) */}
             {meters.slice(4, 6).map(m => (
               <div key={m.id} className="flex items-center gap-3 w-full h-[1.4em]">
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[40px] shrink-0">
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[75px] shrink-0">
                   {m.label}
                 </span>
                 <div className="flex-1 h-[4px] md:h-[5px] bg-[var(--background)] border border-[var(--foreground)]/20 relative overflow-hidden">
                   <motion.div
                     className="absolute left-0 top-0 h-full bg-[var(--foreground)] opacity-80"
                     animate={{ width: `${m.value}%` }}
-                    transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                    transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[24px] text-right shrink-0 tabular-nums">
-                  {Math.round(m.value)}%
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[28px] text-right shrink-0 tabular-nums">
+                  {m.value.toFixed(2)}%
                 </span>
               </div>
             ))}
@@ -362,29 +486,17 @@ function TelemetryPanel() {
           ))}
         </div>
 
-        {/* 하단: SIGNAL TRACE — 22개 가는 막대, 단색, 미세 진동 */}
-        <div className="flex-[3] flex flex-col overflow-hidden">
-          <div className="px-2 pt-1 shrink-0">
-            <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 tracking-[0.25em] uppercase">
+        {/* 하단: SIGNAL TRACE — 2개의 선형 곡선, 서로 다른 속도로 유동적 움직임 */}
+        <div className="flex-[3] flex flex-col border-t border-[var(--foreground)]/25 overflow-hidden">
+          <div className="flex justify-between items-center px-4 py-1 shrink-0">
+            <span className="font-mono text-[6px] md:text-[0.42vw] opacity-50 tracking-[0.3em] uppercase">
               SIGNAL TRACE
             </span>
+            <span className="font-mono text-[6px] md:text-[0.42vw] opacity-0 tracking-widest">
+              LIVE
+            </span>
           </div>
-          <div className="flex-1 px-2 pb-1.5 flex items-end justify-between min-h-0">
-            {freqBars.map((h, i) => (
-              <motion.div
-                key={i}
-                className="bg-[var(--foreground)] opacity-50"
-                animate={{ scaleY: h / 100 }}
-                style={{
-                  originY: 1,
-                  height: '100%',
-                  width: '4px',
-                  flexShrink: 0,
-                }}
-                transition={{ duration: 1.4, ease: 'easeInOut' }}
-              />
-            ))}
-          </div>
+          <SignalTraceCanvas />
         </div>
       </div>
     </div>
