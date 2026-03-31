@@ -397,7 +397,7 @@ function TelemetryPanel() {
           </span>
         </div>
         {/* 게이지 바 목록 - 4개씩 두 그룹으로 분할하여 여백으로 구분 */}
-        <div className="flex flex-col flex-1 px-4 pb-3 justify-center items-center">
+        <div className="flex flex-col flex-1 px-4 justify-center items-center">
           <div className="w-full max-w-[90%] flex flex-col gap-[3px] md:gap-[0.2vw]">
             {/* 상단 그룹 (1-4) 컴팩트하게 정렬 */}
             {meters.slice(0, 4).map(m => (

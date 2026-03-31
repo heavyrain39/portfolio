@@ -324,26 +324,26 @@ export default function RightPanelHUD() {
                                     onClick={stopAudio}
                                     className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[35%] h-[35%] opacity-80"><rect x="6" y="6" width="12" height="12" /></svg>
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80"><rect x="5.5" y="5.5" width="13" height="13" /></svg>
                                 </button>
                                 <button
                                     onClick={togglePlay}
                                     className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
                                     {isPlaying ? (
-                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80">
-                                            <rect x="6" y="5" width="4" height="14" />
-                                            <rect x="14" y="5" width="4" height="14" />
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80">
+                                            <rect x="6" y="4.5" width="4" height="15" />
+                                            <rect x="14" y="4.5" width="4" height="15" />
                                         </svg>
                                     ) : (
-                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80 pl-0.5"><polygon points="7,5 19,12 7,19" /></svg>
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80"><polygon points="6.5,4.5 17.5,12 6.5,19.5" /></svg>
                                     )}
                                 </button>
                                 <button
                                     onClick={nextTrack}
                                     className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
                                 >
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[40%] h-[40%] opacity-80"><polygon points="5,5 15,12 5,19" /><rect x="17" y="5" width="2" height="14" /></svg>
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80"><polygon points="4.5,4.5 15.5,12 4.5,19.5" /><rect x="17.5" y="4.5" width="2" height="15" /></svg>
                                 </button>
                                 <div className="ml-auto flex items-center">
                                     <DotMatrixTimer seconds={currentTime} opacity={0.8} />
