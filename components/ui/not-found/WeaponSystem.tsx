@@ -335,12 +335,12 @@ function SignalTraceCanvas() {
 
 function TelemetryPanel() {
   const METER_DEFS = [
-    { id: 'O2',  label: 'O\u2082 PP',      base: 87, tag: 'ACT' },
-    { id: 'OXY', label: 'R. OXYGEN',       base: 74, tag: 'OK'  },
+    { id: 'O2',  label: 'O\u2082PP',      base: 87, tag: 'ACT' },
+    { id: 'OXY', label: 'R.OXYGEN',       base: 74, tag: 'OK'  },
     { id: 'MET', label: 'METHANE',         base: 31, tag: 'LOW' },
     { id: 'XEN', label: 'XENON-133',       base: 92, tag: 'LCK' },
-    { id: 'INS', label: 'T. INSTBLTY',     base: 64, tag: 'STB' },
-    { id: 'ACC', label: 'ENT. ACCN',       base: 41, tag: 'IDL' },
+    { id: 'INS', label: 'T.INSTBLTY',     base: 64, tag: 'STB' },
+    { id: 'ACC', label: 'ENT.ACCN',       base: 41, tag: 'IDL' },
   ];
 
   // 좌측 헥스+점자 데이터 테이블
