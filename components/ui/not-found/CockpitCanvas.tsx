@@ -110,8 +110,9 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
     const [isMouseDown, setIsMouseDown] = useState(false);
 
     useEffect(() => {
-        const handleDown = (e: MouseEvent) => { 
-            if (e.button !== 0) return;
+        const handleDown = (e: MouseEvent | TouchEvent) => { 
+            // 마우스 이벤트의 경우 좌클릭만 허용
+            if (e instanceof MouseEvent && e.button !== 0) return;
             // Ignore clicks on interactive UI elements
             const target = e.target as HTMLElement;
             if (target.closest('button, a, input, label, [role="button"]')) return;
@@ -122,9 +123,13 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
         const handleUp = () => setIsMouseDown(false);
         window.addEventListener("mousedown", handleDown);
         window.addEventListener("mouseup", handleUp);
+        window.addEventListener("touchstart", handleDown, { passive: false });
+        window.addEventListener("touchend", handleUp);
         return () => {
             window.removeEventListener("mousedown", handleDown);
             window.removeEventListener("mouseup", handleUp);
+            window.removeEventListener("touchstart", handleDown);
+            window.removeEventListener("touchend", handleUp);
             closeAudioContext(audioCtxRef);
             // Clean up meshes
             bulletsRef.current.forEach(b => {

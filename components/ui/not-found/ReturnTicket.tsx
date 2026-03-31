@@ -7,11 +7,21 @@ import Link from "next/link";
 export default function ReturnTicket() {
     const [timeStr, setTimeStr] = useState("YY-MM-DD HH:MM:SS");
     const [yTarget, setYTarget] = useState(700);
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         const nudgeTimer = setTimeout(() => setYTarget(440), 2000);
         return () => clearTimeout(nudgeTimer);
     }, []);
+
+    // 호버 시작: 위로 솟아오름
+    const handleMouseEnter = () => setIsHovered(true);
+
+    // 호버 끝: 아래로 내려가서 5%만 보임
+    const handleMouseLeave = () => {
+        setIsHovered(false);
+        setYTarget(560); // 5%만 보이도록 (적당히 아래로)
+    };
 
     useEffect(() => {
         const updateTime = () => {
@@ -34,8 +44,9 @@ export default function ReturnTicket() {
     return (
         <motion.div
             initial={{ y: 700, rotate: 0 }}          // initially hidden completely
-            animate={{ y: yTarget, rotate: 0 }}      // rises up slightly after 2 seconds controlled by state
-            whileHover={{ y: 80, rotate: -15 }}      // hovers up more fully (y:80) and tilts -15deg immediately
+            animate={isHovered ? { y: 80, rotate: -15 } : { y: yTarget, rotate: 0 }}      // hover: rise + tilt, non-hover: 5% visible
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
             className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative"
             style={{
