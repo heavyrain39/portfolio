@@ -402,7 +402,7 @@ function TelemetryPanel() {
             {/* 상단 그룹 (1-4) 컴팩트하게 정렬 */}
             {meters.slice(0, 4).map(m => (
               <div key={m.id} className="flex items-center gap-3 w-full h-[1.4em]">
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[75px] shrink-0">
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[66px] shrink-0">
                   {m.label}
                 </span>
                 <div className="flex-1 h-[4px] md:h-[5px] bg-[var(--background)] border border-[var(--foreground)]/20 relative overflow-hidden">
@@ -424,7 +424,7 @@ function TelemetryPanel() {
             {/* 하단 그룹 (5-6) */}
             {meters.slice(4, 6).map(m => (
               <div key={m.id} className="flex items-center gap-3 w-full h-[1.4em]">
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[75px] shrink-0">
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 tracking-[0.08em] w-[66px] shrink-0">
                   {m.label}
                 </span>
                 <div className="flex-1 h-[4px] md:h-[5px] bg-[var(--background)] border border-[var(--foreground)]/20 relative overflow-hidden">
