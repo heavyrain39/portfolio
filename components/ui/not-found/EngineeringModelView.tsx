@@ -32,7 +32,7 @@ function WireframeModel({
           color: wireColor,
           wireframe: true,
           transparent: true,
-          opacity: 0.15,
+          opacity: 0.2,
         });
       }
     });
