@@ -211,8 +211,8 @@ function SignalTraceCanvas() {
   // 두 곡선의 path 생성
   const generatePaths = useCallback((width: number, height: number, t: number) => {
     const SEGMENTS = 120; 
-    const padding = 8;
-    const drawHeight = height - padding * 2;
+    const padding = 0; // 패널 여백(px-2.5)에 맞추기 위해 내부 패딩 제거
+    const drawHeight = height - 16; // 상하 여백은 유지
     
     // 1. 숨쉬기 효과
     const breath = Math.sin(t * 0.4) * 0.1;
@@ -301,7 +301,7 @@ function SignalTraceCanvas() {
   }, [dimensions, generatePaths]);
 
   return (
-    <div ref={containerRef} className="flex-1 px-2 pb-1.5 relative min-h-0">
+    <div ref={containerRef} className="flex-1 pb-1.5 relative min-h-0">
       <svg
         width="100%"
         height="100%"
@@ -388,7 +388,7 @@ function TelemetryPanel() {
       {/* ── 좌측: SYS TELEMETRY 게이지 바 ── */}
       <div className="flex-[6] flex flex-col border border-[var(--foreground)]/25 relative overflow-hidden">
         {/* 섹션 헤더 */}
-        <div className="flex justify-between items-center px-4 py-1 shrink-0">
+        <div className="flex justify-between items-center px-2.5 py-1 shrink-0">
           <span className="font-mono text-[6px] md:text-[0.42vw] opacity-50 tracking-[0.3em] uppercase">
             SYS TELEMETRY
           </span>
@@ -397,8 +397,8 @@ function TelemetryPanel() {
           </span>
         </div>
         {/* 게이지 바 목록 - 4개씩 두 그룹으로 분할하여 여백으로 구분 */}
-        <div className="flex flex-col flex-1 px-4 justify-center items-center">
-          <div className="w-full max-w-[90%] flex flex-col gap-[3px] md:gap-[0.2vw]">
+        <div className="flex flex-col flex-1 px-2.5 justify-center items-center">
+          <div className="w-full max-w-full flex flex-col gap-[3px] md:gap-[0.2vw]">
             {/* 상단 그룹 (1-4) 컴팩트하게 정렬 */}
             {meters.slice(0, 4).map(m => (
               <div key={m.id} className="flex items-center gap-3 w-full h-[1.4em]">
@@ -412,8 +412,19 @@ function TelemetryPanel() {
                     transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[28px] text-right shrink-0 tabular-nums">
-                  {m.value.toFixed(2)}%
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[66px] text-right shrink-0 tabular-nums flex justify-end ml-[5px]">
+                  {(() => {
+                    const val = m.value.toFixed(2);
+                    const padded = val.padStart(6, '0'); // "099.45"
+                    const hundredDigit = padded[0];
+                    const rest = padded.slice(1);
+                    return (
+                      <>
+                        <span className={hundredDigit === '0' ? 'opacity-0' : 'inherit'}>{hundredDigit}</span>
+                        <span>{rest}%</span>
+                      </>
+                    );
+                  })()}
                 </span>
               </div>
             ))}
@@ -434,8 +445,19 @@ function TelemetryPanel() {
                     transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[28px] text-right shrink-0 tabular-nums">
-                  {m.value.toFixed(2)}%
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[66px] text-right shrink-0 tabular-nums flex justify-end ml-[5px]">
+                  {(() => {
+                    const val = m.value.toFixed(2);
+                    const padded = val.padStart(6, '0');
+                    const hundredDigit = padded[0];
+                    const rest = padded.slice(1);
+                    return (
+                      <>
+                        <span className={hundredDigit === '0' ? 'opacity-0' : 'inherit'}>{hundredDigit}</span>
+                        <span>{rest}%</span>
+                      </>
+                    );
+                  })()}
                 </span>
               </div>
             ))}
@@ -488,7 +510,7 @@ function TelemetryPanel() {
 
         {/* 하단: SIGNAL TRACE — 2개의 선형 곡선, 서로 다른 속도로 유동적 움직임 */}
         <div className="flex-[3] flex flex-col border-t border-[var(--foreground)]/25 overflow-hidden">
-          <div className="flex justify-between items-center px-4 py-1 shrink-0">
+          <div className="flex justify-between items-center px-2.5 py-1 shrink-0">
             <span className="font-mono text-[6px] md:text-[0.42vw] opacity-50 tracking-[0.3em] uppercase">
               SIGNAL TRACE
             </span>
