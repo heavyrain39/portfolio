@@ -138,25 +138,25 @@ function WeaponSystemBundle({ id, index }: { id: string; index: number }) {
             animate={
               isBlinking
                 ? {
-                    // 원본 글리치 느낌 복원: 극단적으로 짧은 사이클, 불규칙 opacity로 시스템 오류 연출
-                    opacity: [0.9, 0.4, 0.8, 0.2, 0.9],
-                    scale:   [1,   1.01, 1,  0.99, 1  ],
-                  }
+                  // 원본 글리치 느낌 복원: 극단적으로 짧은 사이클, 불규칙 opacity로 시스템 오류 연출
+                  opacity: [0.9, 0.4, 0.8, 0.2, 0.9],
+                  scale: [1, 1.01, 1, 0.99, 1],
+                }
                 : {
-                    // 대기 상태: 정상 가시 상태로 복귀
-                    opacity: 0.9,
-                    scale: 1,
-                  }
+                  // 대기 상태: 정상 가시 상태로 복귀
+                  opacity: 0.9,
+                  scale: 1,
+                }
             }
             transition={
               isBlinking
                 ? {
-                    // 0.15s × repeat 4 = 총 ~0.6s 동안 빠른 글리치 버스트
-                    duration: 0.15,
-                    repeat: 4,
-                    repeatType: "loop" as const,
-                    ease: "linear",
-                  }
+                  // 0.15s × repeat 4 = 총 ~0.6s 동안 빠른 글리치 버스트
+                  duration: 0.15,
+                  repeat: 4,
+                  repeatType: "loop" as const,
+                  ease: "linear",
+                }
                 : { duration: 0.4, ease: "easeOut" }
             }
           >
@@ -194,7 +194,7 @@ function SignalTraceCanvas() {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    
+
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         setDimensions({
@@ -203,63 +203,63 @@ function SignalTraceCanvas() {
         });
       }
     });
-    
+
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
 
   // 두 곡선의 path 생성
   const generatePaths = useCallback((width: number, height: number, t: number) => {
-    const SEGMENTS = 120; 
+    const SEGMENTS = 120;
     const padding = 0; // 패널 여백(px-2.5)에 맞추기 위해 내부 패딩 제거
     const drawHeight = height - 16; // 상하 여백은 유지
-    
+
     // 1. 숨쉬기 효과
     const breath = Math.sin(t * 0.4) * 0.1;
-    
+
     // 2. 무한 좌우 흐름 효과: phaseOffset으로 파동이 좌→우로 흘러가는 시뮬레이션
     // 화면 왼쪽에서 들어와 오른쪽으로 나가는 느낌
     const mainFlowOffset = t * 0.8; // 시간에 따라 파동 위상이 좌→우 이동
     const noiseFlowOffset = t * 1.6; // 노이즈는 더 빠르게
-    
+
     // midY는 고정 (위아래 흔들림 없이)
     const midY = height / 2;
-    
+
     // [MAIN SIGNAL] 심해의 흐름처럼 묵직하게 좌→우 흐름
     const mainSpeed = 1.4;
     const mainAmp = drawHeight * (0.28 + breath);
-    
+
     // [NOISE FIELD] 양자 요동처럼 빠르게 좌→우 흐름
     const noiseSpeed = 2.2;
     const noiseAmp = drawHeight * 0.15;
-    
+
     // 영역 경계
     const minY = padding;
     const maxY = height - padding;
-    
+
     let mainPath = '';
     let noisePath = '';
-    
+
     for (let i = 0; i <= SEGMENTS; i++) {
       const x = padding + (width - padding * 2) * (i / SEGMENTS);
       const normalizedX = i / SEGMENTS;
-      
+
       // 메인 시그널: phaseOffset 추가로 파동이 좌→우로 흘러보임
       // (normalizedX * freq + t * speed + flowOffset) → flowOffset이 클수록 빠른 좌→우 흐름
-      const mainY = midY + 
+      const mainY = midY +
         Math.sin(normalizedX * 2.8 * Math.PI + t * mainSpeed + mainFlowOffset) * mainAmp +
         Math.sin(normalizedX * 5.1 * Math.PI - t * mainSpeed * 0.7 + mainFlowOffset * 1.3) * mainAmp * 0.4 +
         Math.cos(normalizedX * 1.3 * Math.PI + t * mainSpeed * 0.3 + mainFlowOffset * 0.7) * mainAmp * 0.2;
-      
+
       // 노이즈 필드: 더 빠른 좌→우 흐름
-      const rawNoiseY = midY + 
+      const rawNoiseY = midY +
         Math.sin(normalizedX * 8.5 * Math.PI + t * noiseSpeed + noiseFlowOffset) * noiseAmp * 0.5 +
         Math.cos(normalizedX * 13.2 * Math.PI - t * noiseSpeed * 1.3 + noiseFlowOffset * 1.8) * noiseAmp * 0.3 +
         Math.sin(normalizedX * 21.7 * Math.PI + t * noiseSpeed * 2.1 + noiseFlowOffset * 2.5) * noiseAmp * 0.2;
-      
+
       // 노이즈 Y값 영역 경계 내 제한
       const noiseY = Math.max(minY, Math.min(maxY, rawNoiseY));
-      
+
       if (i === 0) {
         mainPath = `M ${x} ${mainY}`;
         noisePath = `M ${x} ${noiseY}`;
@@ -268,31 +268,31 @@ function SignalTraceCanvas() {
         noisePath += ` L ${x} ${noiseY}`;
       }
     }
-    
+
     return { main: mainPath, noise: noisePath };
   }, []);
 
   // 애니메이션 루프
   useEffect(() => {
     if (dimensions.width === 0) return;
-    
+
     let lastTime = performance.now();
-    
+
     const animate = (currentTime: number) => {
       const deltaTime = (currentTime - lastTime) / 1000;
       lastTime = currentTime;
-      
+
       // 시간 누적 (부드러운 움직임을 위해 deltaTime 사용)
       timeRef.current += deltaTime;
-      
+
       const paths = generatePaths(dimensions.width, dimensions.height, timeRef.current);
       setPathData(paths);
-      
+
       animationRef.current = requestAnimationFrame(animate);
     };
-    
+
     animationRef.current = requestAnimationFrame(animate);
-    
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -335,34 +335,34 @@ function SignalTraceCanvas() {
 
 function TelemetryPanel() {
   const METER_DEFS = [
-    { id: 'O2',  label: 'O\u2082PP',      base: 87, tag: 'ACT' },
-    { id: 'OXY', label: 'R.OXYGEN',       base: 74, tag: 'OK'  },
-    { id: 'MET', label: 'METHANE',         base: 31, tag: 'LOW' },
-    { id: 'XEN', label: 'XENON-133',       base: 92, tag: 'LCK' },
-    { id: 'INS', label: 'T.INSTBLTY',     base: 64, tag: 'STB' },
-    { id: 'ACC', label: 'ENT.ACCN',       base: 41, tag: 'IDL' },
+    { id: 'O2', label: 'O\u2082PP', base: 87, tag: 'ACT' },
+    { id: 'OXY', label: 'R.OXYGEN', base: 74, tag: 'OK' },
+    { id: 'MET', label: 'METHANE', base: 31, tag: 'LOW' },
+    { id: 'XEN', label: 'XENON-133', base: 92, tag: 'LCK' },
+    { id: 'INS', label: 'T.INSTBLTY', base: 64, tag: 'STB' },
+    { id: 'ACC', label: 'ENT.ACCN', base: 41, tag: 'IDL' },
   ];
 
   // 좌측 헥스+점자 데이터 테이블
   const DATA_TABLE = [
-    { idx: '00', addr: '0xFF2A', chk: 'OK ',  payload: '⠿⠟⠯⠷⠾' },
-    { idx: '01', addr: '0x3BC1', chk: 'ERR',  payload: '⠾⠽⠝⠷⠶' },
-    { idx: '02', addr: '0x91E4', chk: 'OK ',  payload: '⠿⠻⠯⠿⠟' },
-    { idx: '03', addr: '0xA042', chk: 'OK ',  payload: '⠷⠿⠻⠯⠶' },
-    { idx: '04', addr: '0x7F0E', chk: 'IDL',  payload: '⠶⠵⠿⠾⠽' },
-    { idx: '05', addr: '0xDE21', chk: 'OK ',  payload: '⠿⠟⠯⠾⠿' },
-    { idx: '06', addr: '0xB011', chk: 'OK ',  payload: '⠽⠝⠿⠷⠶' },
+    { idx: '00', addr: '0xFF2A', chk: 'OK ', payload: '⠿⠟⠯⠷⠾' },
+    { idx: '01', addr: '0x3BC1', chk: 'ERR', payload: '⠾⠽⠝⠷⠶' },
+    { idx: '02', addr: '0x91E4', chk: 'OK ', payload: '⠿⠻⠯⠿⠟' },
+    { idx: '03', addr: '0xA042', chk: 'OK ', payload: '⠷⠿⠻⠯⠶' },
+    { idx: '04', addr: '0x7F0E', chk: 'IDL', payload: '⠶⠵⠿⠾⠽' },
+    { idx: '05', addr: '0xDE21', chk: 'OK ', payload: '⠿⠟⠯⠾⠿' },
+    { idx: '06', addr: '0xB011', chk: 'OK ', payload: '⠽⠝⠿⠷⠶' },
   ] as const;
 
   // 우측 헥스+점자 데이터 테이블 (동일 포맷, 다른 내용)
   const DATA_TABLE_2 = [
-    { idx: '07', addr: '0xC4B3', chk: 'OK ',  payload: '⠿⠯⠷⠾⠟' },
-    { idx: '08', addr: '0x8A20', chk: 'OK ',  payload: '⠽⠝⠷⠶⠵' },
-    { idx: '09', addr: '0xE19D', chk: 'ERR',  payload: '⠯⠿⠻⠟⠾' },
-    { idx: '10', addr: '0x5F42', chk: 'IDL',  payload: '⠶⠿⠯⠷⠽' },
-    { idx: '11', addr: '0xB6C8', chk: 'OK ',  payload: '⠟⠯⠾⠿⠵' },
-    { idx: '12', addr: '0xA2D0', chk: 'OK ',  payload: '⠿⠟⠾⠽⠝' },
-    { idx: '13', addr: '0xF92E', chk: 'ERR',  payload: '⠯⠿⠻⠶⠵' },
+    { idx: '07', addr: '0xC4B3', chk: 'OK ', payload: '⠿⠯⠷⠾⠟' },
+    { idx: '08', addr: '0x8A20', chk: 'OK ', payload: '⠽⠝⠷⠶⠵' },
+    { idx: '09', addr: '0xE19D', chk: 'ERR', payload: '⠯⠿⠻⠟⠾' },
+    { idx: '10', addr: '0x5F42', chk: 'IDL', payload: '⠶⠿⠯⠷⠽' },
+    { idx: '11', addr: '0xB6C8', chk: 'OK ', payload: '⠟⠯⠾⠿⠵' },
+    { idx: '12', addr: '0xA2D0', chk: 'OK ', payload: '⠿⠟⠾⠽⠝' },
+    { idx: '13', addr: '0xF92E', chk: 'ERR', payload: '⠯⠿⠻⠶⠵' },
   ] as const;
 
   const [meters, setMeters] = useState(
@@ -388,7 +388,7 @@ function TelemetryPanel() {
       {/* ── 좌측: SYS TELEMETRY 게이지 바 ── */}
       <div className="flex-[6] flex flex-col border border-[var(--foreground)]/25 relative overflow-hidden">
         {/* 섹션 헤더 */}
-        <div className="flex justify-between items-center px-2.5 py-1 shrink-0">
+        <div className="flex justify-between items-center px-[15px] py-1 shrink-0">
           <span className="font-mono text-[6px] md:text-[0.42vw] opacity-50 tracking-[0.3em] uppercase">
             SYS TELEMETRY
           </span>
@@ -397,7 +397,7 @@ function TelemetryPanel() {
           </span>
         </div>
         {/* 게이지 바 목록 - 4개씩 두 그룹으로 분할하여 여백으로 구분 */}
-        <div className="flex flex-col flex-1 px-2.5 justify-center items-center">
+        <div className="flex flex-col flex-1 px-[15px] justify-center items-center">
           <div className="w-full max-w-full flex flex-col gap-[3px] md:gap-[0.2vw]">
             {/* 상단 그룹 (1-4) 컴팩트하게 정렬 */}
             {meters.slice(0, 4).map(m => (
@@ -412,7 +412,7 @@ function TelemetryPanel() {
                     transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[66px] text-right shrink-0 tabular-nums flex justify-end ml-[5px]">
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[45px] text-right shrink-0 tabular-nums flex justify-end">
                   {(() => {
                     const val = m.value.toFixed(2);
                     const padded = val.padStart(6, '0'); // "099.45"
@@ -445,7 +445,7 @@ function TelemetryPanel() {
                     transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
-                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[66px] text-right shrink-0 tabular-nums flex justify-end ml-[5px]">
+                <span className="font-mono text-[7px] md:text-[0.5vw] opacity-50 w-[45px] text-right shrink-0 tabular-nums flex justify-end">
                   {(() => {
                     const val = m.value.toFixed(2);
                     const padded = val.padStart(6, '0');
@@ -481,7 +481,7 @@ function TelemetryPanel() {
                 <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 w-[35%] tracking-widest">ADDR</span>
                 <span className="font-mono text-[6px] md:text-[0.42vw] opacity-25 flex-1 tracking-[0.2em] text-right pr-1">PAYLOAD</span>
               </div>
-              
+
               {/* 데이터 행: 정적인 데이터지만 기계적인 리듬감을 위해 일정한 높이 부여 */}
               <div className="flex flex-col flex-1 min-h-0">
                 {table.map((row) => (
@@ -510,7 +510,7 @@ function TelemetryPanel() {
 
         {/* 하단: SIGNAL TRACE — 2개의 선형 곡선, 서로 다른 속도로 유동적 움직임 */}
         <div className="flex-[3] flex flex-col border-t border-[var(--foreground)]/25 overflow-hidden">
-          <div className="flex justify-between items-center px-2.5 py-1 shrink-0">
+          <div className="flex justify-between items-center px-[15px] py-1 shrink-0">
             <span className="font-mono text-[6px] md:text-[0.42vw] opacity-50 tracking-[0.3em] uppercase">
               SIGNAL TRACE
             </span>
