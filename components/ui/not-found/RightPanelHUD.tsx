@@ -46,7 +46,7 @@ function DotMatrixTimer({ seconds, opacity }: { seconds: number; opacity: number
     const sStr = s.toString().padStart(2, '0');
 
     return (
-        <div className="flex items-center gap-[6px]">
+        <div className="flex items-center gap-[5px]">
             <DotMatrixDigit char={mStr[0]} opacity={opacity} />
             <DotMatrixDigit char={mStr[1]} opacity={opacity} />
             <DotMatrixDigit char=":" opacity={opacity} />
@@ -248,8 +248,8 @@ export default function RightPanelHUD() {
                     animation: gridSlideHUD 3.75s linear infinite;
                 }
                 :root {
-                    --pixel-size: clamp(2px, 0.22vw, 3.2px);
-                    --pixel-gap: clamp(1px, 0.07vw, 1.2px);
+                    --pixel-size: clamp(1.8px, 0.2vw, 2.9px);
+                    --pixel-gap: clamp(0.9px, 0.06vw, 1.1px);
                     --pixel-total: calc(var(--pixel-size) + var(--pixel-gap));
                 }
                 .controls-pixel-bg {
