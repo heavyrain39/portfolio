@@ -110,15 +110,15 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
     const [isMouseDown, setIsMouseDown] = useState(false);
 
     useEffect(() => {
-        const handleDown = (e: MouseEvent | TouchEvent) => { 
+        const handleDown = (e: MouseEvent | TouchEvent) => {
             // 마우스 이벤트의 경우 좌클릭만 허용
             if (e instanceof MouseEvent && e.button !== 0) return;
             // Ignore clicks on interactive UI elements
             const target = e.target as HTMLElement;
             if (target.closest('button, a, input, label, [role="button"]')) return;
 
-            setIsMouseDown(true); 
-            ensureAudioContext(audioCtxRef); 
+            setIsMouseDown(true);
+            ensureAudioContext(audioCtxRef);
         };
         const handleUp = () => setIsMouseDown(false);
         window.addEventListener("mousedown", handleDown);
@@ -146,12 +146,12 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
 
     useFrame((state, delta) => {
         const time = state.clock.getElapsedTime() * 1000;
-        
+
         // 1. Parallax Camera
         // Floating/Breathing effect instead of mouse parallax
         const driftFrequency = 0.5; // slow breathing
         const driftAmplitude = 0.02; // subtle movement
-        
+
         // 카메라 틸트 제거 (HUD 정렬 복구)
         camera.rotation.x = Math.sin(state.clock.elapsedTime * driftFrequency) * driftAmplitude;
         camera.position.y = Math.sin(state.clock.elapsedTime * (driftFrequency * 0.7)) * 0.1;
@@ -191,20 +191,20 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
             const group = new THREE.Group();
             group.add(haloMesh);
             group.add(coreMesh);
-            
+
             const start = new THREE.Vector3(startX, startY, startZ);
-            
+
             // Unproject center coordinates (0,0) to target the fixed screen center
             const vector = new THREE.Vector3(0, 0, 0.5);
             vector.unproject(camera);
             const dir = vector.sub(camera.position).normalize();
-            
+
             // Target is far away along that direction, offset to prevent crossing
             const distance = 120;
             const target = camera.position.clone().add(dir.multiplyScalar(distance));
             target.x += isLeft ? -0.5 : 0.5; // Spread target slightly so trajectory is parallel
 
-            
+
             // Angle the cylinder correctly right away
             group.position.copy(start);
             group.lookAt(target);
@@ -217,7 +217,7 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
         for (let i = bulletsRef.current.length - 1; i >= 0; i--) {
             const b = bulletsRef.current[i];
             b.progress += b.speed;
-            
+
             if (b.progress >= 1) {
                 // Bullet reached distance limit, remove it
                 scene.remove(b.mesh);
@@ -248,14 +248,21 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
 
     return (
         <group>
+            {/* 3D 공간 상에서 하늘 배경 역할을 해주는 거대한 백드롭 평면입니다. */}
+            {/* 이 평면이 WebGL 픽셀을 불투명하게 채워주어, 상단 하늘 영역에도 스캔라인이 정상적으로 덧입혀지게 됩니다. */}
+            <mesh position={[0, 0, -15000]}>
+                <planeGeometry args={[100000, 100000]} />
+                <meshBasicMaterial color={bgColorStr} />
+            </mesh>
+
             {/* Environment */}
             <DottedOcean />
-            
-            {/* Stars & Atmosphere - 별을 바다 마스크보다 훨씬 뒤로 밀어서 확실히 가려지게 함 (radius 10000) */}
-            <Stars radius={10000} depth={100} count={2500} factor={4} saturation={0} fade speed={1.5} />
-            <Sparkles count={150} scale={50} size={2} speed={0.4} opacity={0.3} color="#ffffff" position={[0,0,-20]} />
+
+            {/* Stars & Atmosphere - 지평선 마스크(Z=-3100) 뒤에 안정적으로 위치(radius 3300). 잔잔한 밤하늘을 위해 개수(count)와 점멸 속도(speed) 하향 조정 */}
+            <Stars radius={3300} depth={500} count={404} factor={70} saturation={0} fade speed={0.5} />
+            <Sparkles count={150} scale={50} size={2} speed={0.4} opacity={0.3} color="#ffffff" position={[0, 0, -20]} />
             <FastParticles />
-            
+
             {/* Post Processing for Retro/Terminal Look */}
             <EffectComposer>
                 <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} intensity={1.5} />
