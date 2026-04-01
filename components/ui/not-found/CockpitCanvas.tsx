@@ -109,22 +109,43 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
     const lastShotTime = useRef(0);
     const [isMouseDown, setIsMouseDown] = useState(false);
 
+    const touchStartPos = useRef<{ x: number, y: number } | null>(null);
+
     useEffect(() => {
         const handleDown = (e: MouseEvent | TouchEvent) => {
-            // 마우스 이벤트의 경우 좌클릭만 허용
             if (e instanceof MouseEvent && e.button !== 0) return;
-            // Ignore clicks on interactive UI elements
             const target = e.target as HTMLElement;
-            if (target.closest('button, a, input, label, [role="button"]')) return;
+            if (target.closest('button, a, input, label, [role="button"], [data-hud-interactive="true"]')) return;
 
-            setIsMouseDown(true);
+            if ('touches' in e && e.touches.length > 0) {
+                touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            } else if (!(e instanceof TouchEvent)) {
+                setIsMouseDown(true);
+            }
             ensureAudioContext(audioCtxRef);
         };
-        const handleUp = () => setIsMouseDown(false);
+
+        const handleUp = (e: MouseEvent | TouchEvent) => {
+            if ('changedTouches' in e && touchStartPos.current) {
+                const touch = e.changedTouches[0];
+                const dx = touch.clientX - touchStartPos.current.x;
+                const dy = touch.clientY - touchStartPos.current.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 10) {
+                    setIsMouseDown(true);
+                    setTimeout(() => setIsMouseDown(false), 50);
+                }
+                touchStartPos.current = null;
+            } else {
+                setIsMouseDown(false);
+            }
+        };
+
         window.addEventListener("mousedown", handleDown);
         window.addEventListener("mouseup", handleUp);
-        window.addEventListener("touchstart", handleDown, { passive: false });
-        window.addEventListener("touchend", handleUp);
+        window.addEventListener("touchstart", handleDown, { passive: true });
+        window.addEventListener("touchend", handleUp, { passive: true });
         return () => {
             window.removeEventListener("mousedown", handleDown);
             window.removeEventListener("mouseup", handleUp);

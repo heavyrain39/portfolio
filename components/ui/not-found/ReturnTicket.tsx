@@ -49,7 +49,7 @@ export default function ReturnTicket({ isReady = false }: { isReady?: boolean })
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
-            className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative scale-[0.8] md:scale-100 origin-bottom"
+            className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative scale-[0.8] md:scale-100 origin-bottom pointer-events-auto"
             style={{
                 transformOrigin: "center 80%", // rotate around its lower point so it stays horizontally anchored
                 /* Perforated holes mask using multiple gradients combined natively */

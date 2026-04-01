@@ -259,7 +259,7 @@ export default function RightPanelHUD() {
     };
 
     return (
-        <div className="flex flex-col h-[100%] w-full bg-[var(--background)] pointer-events-none relative overflow-hidden">
+        <div className="flex flex-col h-[100%] w-full bg-[var(--background)] pointer-events-auto relative overflow-hidden">
             <style>{`
                 @keyframes gridSlideHUD {
                     from { background-position: 0 -20px, 0 -20px; }

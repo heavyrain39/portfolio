@@ -178,16 +178,16 @@ function HUDCornerMarkers() {
     return (
         <>
             <div className={`${baseClass} top-4 left-4 md:top-8 md:left-10`} style={{ fontSize: size }}>
-                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
+                <CrossMarker /><CrossMarker /><div className="hidden md:block"><CrossMarker /></div><div className="hidden md:block"><CrossMarker /></div>
             </div>
             <div className={`${baseClass} top-4 right-4 md:top-8 md:right-10`} style={{ fontSize: size }}>
-                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
+                <div className="hidden md:block"><CrossMarker /></div><div className="hidden md:block"><CrossMarker /></div><CrossMarker /><CrossMarker />
             </div>
             <div className={`${baseClass} bottom-4 left-4 md:bottom-8 md:left-10`} style={{ fontSize: size }}>
-                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
+                <CrossMarker /><CrossMarker /><div className="hidden md:block"><CrossMarker /></div><div className="hidden md:block"><CrossMarker /></div>
             </div>
             <div className={`${baseClass} bottom-4 right-4 md:bottom-8 md:right-10`} style={{ fontSize: size }}>
-                <CrossMarker /><CrossMarker /><CrossMarker /><CrossMarker />
+                <div className="hidden md:block"><CrossMarker /></div><div className="hidden md:block"><CrossMarker /></div><CrossMarker /><CrossMarker />
             </div>
         </>
     );
@@ -228,9 +228,9 @@ export default function CockpitHUD() {
 
             {/* ═══ Row 1: Top Header (404 + Barcode Lines) ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
-            <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-4 md:px-8">
+            <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-2 md:px-8">
                 <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between relative">
-                    <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pl-[60px] md:pl-[84px]">
+                    <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pl-[20px] md:pl-[84px]">
                         {Array.from({ length: 4 }).map((_, i) => (
                             <div key={`leftline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
                         ))}
@@ -243,7 +243,7 @@ export default function CockpitHUD() {
                         404
                     </h1>
 
-                    <div className="flex-1 flex items-end justify-end opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pr-[60px] md:pr-[84px]">
+                    <div className="flex-1 flex items-end justify-end opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pr-[20px] md:pr-[84px]">
                         {Array.from({ length: 4 }).map((_, i) => (
                             <div key={`rightline-${i}`} className="w-[1px] h-[20px] md:h-[35px] bg-[var(--foreground)]" />
                         ))}
@@ -263,7 +263,7 @@ export default function CockpitHUD() {
                     </div>
 
                     {/* Viewport Mask and Overlay */}
-                    <div className="relative z-[5] shrink-0 flex items-center justify-center w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]">
+                    <div className="relative z-[5] shrink-0 flex items-center justify-center w-[min(70vw,300px)] h-[min(70vw,300px)] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]">
                         {/* Mask shadow — 200vmax creates the opaque cockpit wall */}
                         <div className="w-full h-full rounded-full relative" style={{ boxShadow: "0 0 0 200vmax var(--background)" }}>
                             {/* Monitor backlight glow from bottom */}

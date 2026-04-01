@@ -121,7 +121,7 @@ export default function NotFoundCockpit() {
             {/* pointer-events-none to let clicks pass through to background HUD, but auto for the ticket itself */}
             <div className="absolute inset-0 z-[1000] pointer-events-none overflow-hidden">
                 {/* Positioned at the bottom, sliding up via framer-motion inside ReturnTicket */}
-                <div className="absolute bottom-0 left-[50%] md:left-[65%] -translate-x-1/2 pointer-events-auto flex items-end">
+                <div className="absolute bottom-0 left-[50%] md:left-[65%] -translate-x-1/2 flex items-end">
                     <ReturnTicket isReady={isAtBottom} />
                 </div>
             </div>

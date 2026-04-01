@@ -67,7 +67,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
             </div>
 
             {/* Scrolling Numbers */}
-            <div className="overflow-hidden h-[60%] flex items-center justify-center w-[4vw] min-w-[50px] shrink-0">
+            <div className="overflow-hidden h-[60%] flex items-center justify-center w-[6vw] md:w-[4vw] md:min-w-[50px] shrink-0">
                 <motion.div
                     style={{ y: transformY, fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
                     className="flex flex-col font-mono opacity-80"
