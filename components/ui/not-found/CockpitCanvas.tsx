@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Stars, Sparkles } from "@react-three/drei";
+import { Stars } from "@react-three/drei";
 import { EffectComposer, Bloom, Noise, Scanline } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
@@ -133,7 +133,7 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
                 const dx = touch.clientX - touchStartPos.current.x;
                 const dy = touch.clientY - touchStartPos.current.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                
+
                 // If they move more than 10px, assume they are scrolling -> Stop shooting
                 if (dist > 10) {
                     setIsMouseDown(false);
@@ -286,8 +286,7 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
             <DottedOcean />
 
             {/* Stars & Atmosphere - 지평선 마스크(Z=-4200)가 뒤로 물러남에 따라 별자리도 안전하게 뒤(radius 5000)로 밀어내고, 유저가 맞춘 크기를 100% 유지하도록 factor를 수학적으로 비례 확대(106)했습니다. */}
-            <Stars radius={5000} depth={500} count={404} factor={106} saturation={0} fade speed={0.5} />
-            <Sparkles count={150} scale={50} size={2} speed={0.4} opacity={0.3} color="#ffffff" position={[0, 0, -20]} />
+            <Stars radius={5000} depth={500} count={404} factor={200} saturation={0} fade speed={0} />
             <FastParticles />
 
             {/* Post Processing for Retro/Terminal Look */}
