@@ -45,7 +45,7 @@ export default function ReturnTicket({ isReady = false }: { isReady?: boolean })
     return (
         <motion.div
             initial={{ y: 700, rotate: 0 }}          // initially hidden completely
-            animate={isHovered ? { y: 80, rotate: -15 } : { y: yTarget, rotate: 0 }}      // hover: rise + tilt, non-hover: 5% visible
+            animate={isHovered ? { y: 95, rotate: -12 } : { y: yTarget, rotate: 0 }}      // 호버 시: 위로 솟아오름 (y: 80 값을 줄이면 더 높이 올라옵니다), 비호버 시: 일부만 노출
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
