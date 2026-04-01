@@ -119,40 +119,46 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
 
             if ('touches' in e && e.touches.length > 0) {
                 touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                // Start auto-firing immediately on touch
+                setIsMouseDown(true);
             } else if (!(e instanceof TouchEvent)) {
                 setIsMouseDown(true);
             }
             ensureAudioContext(audioCtxRef);
         };
 
-        const handleUp = (e: MouseEvent | TouchEvent) => {
-            if ('changedTouches' in e && touchStartPos.current) {
-                const touch = e.changedTouches[0];
+        const handleMove = (e: TouchEvent) => {
+            if (touchStartPos.current && e.touches.length > 0) {
+                const touch = e.touches[0];
                 const dx = touch.clientX - touchStartPos.current.x;
                 const dy = touch.clientY - touchStartPos.current.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 
-                if (dist < 10) {
-                    setIsMouseDown(true);
-                    setTimeout(() => setIsMouseDown(false), 50);
+                // If they move more than 10px, assume they are scrolling -> Stop shooting
+                if (dist > 10) {
+                    setIsMouseDown(false);
                 }
-                touchStartPos.current = null;
-            } else {
-                setIsMouseDown(false);
             }
+        };
+
+        const handleUp = () => {
+            setIsMouseDown(false);
+            touchStartPos.current = null;
         };
 
         window.addEventListener("mousedown", handleDown);
         window.addEventListener("mouseup", handleUp);
         window.addEventListener("touchstart", handleDown, { passive: true });
+        window.addEventListener("touchmove", handleMove, { passive: true });
         window.addEventListener("touchend", handleUp, { passive: true });
         return () => {
             window.removeEventListener("mousedown", handleDown);
             window.removeEventListener("mouseup", handleUp);
             window.removeEventListener("touchstart", handleDown);
+            window.removeEventListener("touchmove", handleMove);
             window.removeEventListener("touchend", handleUp);
             closeAudioContext(audioCtxRef);
-            // Clean up meshes
+            // Clean up meshes...
             bulletsRef.current.forEach(b => {
                 scene.remove(b.mesh);
                 b.mesh.traverse((child) => {

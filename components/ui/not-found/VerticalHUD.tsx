@@ -52,7 +52,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
 
     return (
         <div
-            className={`flex items-center gap-2 h-full z-20 ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}
+            className={`flex items-center gap-1 md:gap-3 h-full z-20 ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}
             style={{
                 maskImage: 'linear-gradient(to bottom, transparent 10%, black 50%, transparent 90%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, transparent 10%, black 50%, transparent 90%)'
@@ -60,7 +60,7 @@ export default function VerticalHUD({ side }: VerticalHUDProps) {
         >
             {/* Nav Triangle Indicator */}
             <div
-                className={`text-[var(--foreground)] opacity-80 shrink-0 ${isLeft ? 'translate-x-[15px]' : '-translate-x-[15px]'}`}
+                className={`text-[var(--foreground)] opacity-80 shrink-0`}
                 style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
             >
                 {isLeft ? '▷' : '◁'}
