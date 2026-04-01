@@ -294,25 +294,34 @@ export default function CockpitHUD() {
 
             {/* ═══ Row 3: Bottom Quote Panel ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
-            <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-12">
-                <div className="w-full max-w-[85vw] md:max-w-[800px] flex flex-col justify-center">
-                    <p
-                        className="w-full font-mono leading-relaxed text-justify uppercase tracking-[0.05em] opacity-50 relative"
-                        style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)' }}
-                    >
-                        {fullQuote}
-                        <span className="inline-block w-[0.6em] h-[1em] bg-[var(--foreground)] ml-1 align-middle animate-blink" />
-                    </p>
-                    <div className="flex items-center justify-center gap-3 mt-4 md:mt-6">
-                        <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
-                        <span
-                            className="font-mono opacity-20 tracking-[0.3em] uppercase whitespace-nowrap"
-                            style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
+            <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-8">
+                <div className="w-full max-w-[min(95vw,1000px)] flex flex-row justify-between px-4 md:px-8 relative">
+                    {/* Left Spacer to align with side telemetry */}
+                    <div className="flex-1 hidden md:flex" />
+
+                    {/* Center Quote Area: Constrained width matching viewport + proximity to telemetry numbers */}
+                    <div className="w-full md:w-[min(65vh,740px)] flex flex-col justify-center mx-auto md:mx-0">
+                        <p
+                            className="w-full font-mono leading-relaxed text-justify uppercase tracking-[0.05em] opacity-50 relative"
+                            style={{ fontSize: 'clamp(0.6rem, 0.8vw, 1rem)' }}
                         >
-                            C.G. JUNG, 1945
-                        </span>
-                        <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
+                            {fullQuote}
+                            <span className="inline-block w-[0.6em] h-[1em] bg-[var(--foreground)] ml-1 align-middle animate-blink" />
+                        </p>
+                        <div className="flex items-center justify-center gap-3 mt-4 md:mt-6">
+                            <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
+                            <span
+                                className="font-mono opacity-20 tracking-[0.3em] uppercase whitespace-nowrap"
+                                style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.85rem)' }}
+                            >
+                                C.G. JUNG, 1945
+                            </span>
+                            <div className="h-[1px] w-8 md:w-16 bg-[var(--foreground)] opacity-20" />
+                        </div>
                     </div>
+
+                    {/* Right Spacer to align with side telemetry */}
+                    <div className="flex-1 hidden md:flex" />
                 </div>
             </div>
             {/* Final Overlay Layers */}
