@@ -15,6 +15,7 @@ export default function NotFoundCockpit() {
 
     const [shake, setShake] = useState(0);
     const [fireFlash, setFireFlash] = useState<"left" | "right" | null>(null);
+    const [isAtBottom, setIsAtBottom] = useState(false);
 
     useEffect(() => {
         if (fireFlash) {
@@ -39,6 +40,31 @@ export default function NotFoundCockpit() {
         }
     }, [shake]);
 
+    useEffect(() => {
+        const checkScroll = () => {
+            if (!containerRef.current) return;
+            const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+            // 허용 오차 50px 이내면 바닥 도달로 간주 (데스크탑처럼 스크롤바가 없는 꽉 찬 화면이면 무조건 0이 되므로 즉시 true)
+            if (scrollHeight - scrollTop - clientHeight < 50) {
+                setIsAtBottom(true);
+            }
+        };
+
+        checkScroll();
+        const el = containerRef.current;
+        if (el) {
+            el.addEventListener('scroll', checkScroll);
+        }
+
+        const observer = new ResizeObserver(checkScroll);
+        if (el) observer.observe(el);
+
+        return () => {
+            if (el) el.removeEventListener('scroll', checkScroll);
+            observer.disconnect();
+        };
+    }, []);
+
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!containerRef.current) return;
         const rect = containerRef.current.getBoundingClientRect();
@@ -62,13 +88,13 @@ export default function NotFoundCockpit() {
             <div
                 ref={containerRef}
                 onMouseMove={handleMouseMove}
-                className="w-full h-full flex flex-col md:flex-row relative"
+                className="w-full h-full overflow-y-auto overflow-x-hidden md:overflow-hidden flex flex-col md:flex-row relative"
                 style={{
                     transform: `translate(${shakeX}px, ${shakeY}px)`,
                 }}
             >
                 {/* ═══ LEFT PANEL (6.5 Area) ═══ */}
-                <div className="relative w-full md:w-[65%] h-[60vh] md:h-full shrink-0 flex flex-col overflow-hidden">
+                <div className="relative w-full md:w-[65%] h-[85svh] md:h-full shrink-0 flex flex-col overflow-hidden">
                     {/* Layer 0: 3D Canvas Background (Restrained to this left panel width/height) */}
                     <CockpitCanvas mouseX={mouseX} mouseY={mouseY} setShake={setShake} setFireFlash={setFireFlash} />
 
@@ -85,19 +111,18 @@ export default function NotFoundCockpit() {
                 {/* ═══ RIGHT PANEL (3.5 Area) ═══ */}
                 {/* A solid border separating the left and right panels */}
                 <div 
-                    className="w-full md:w-[35%] h-[40vh] md:h-full relative shrink-0 overflow-y-auto z-10"
-                    style={{ borderLeft: '1px solid color-mix(in srgb, var(--foreground) 20%, transparent)' }}
+                    className="w-full md:w-[35%] h-auto md:h-full relative shrink-0 md:overflow-y-auto z-10 border-t md:border-t-0 md:border-l border-[var(--foreground)]/20"
                 >
                     <RightPanelHUD />
                 </div>
+            </div>
 
-                {/* ═══ LAYER 2: GLOBAL FRONT UI (TICKET) ═══ */}
-                {/* pointer-events-none to let clicks pass through to background HUD, but auto for the ticket itself */}
-                <div className="absolute inset-0 z-[1000] pointer-events-none overflow-hidden">
-                    {/* Positioned at the bottom, sliding up via framer-motion inside ReturnTicket */}
-                    <div className="absolute bottom-0 left-[50%] md:left-[65%] -translate-x-1/2 pointer-events-auto flex items-end">
-                        <ReturnTicket />
-                    </div>
+            {/* ═══ LAYER 2: GLOBAL FRONT UI (TICKET) ═══ */}
+            {/* pointer-events-none to let clicks pass through to background HUD, but auto for the ticket itself */}
+            <div className="absolute inset-0 z-[1000] pointer-events-none overflow-hidden">
+                {/* Positioned at the bottom, sliding up via framer-motion inside ReturnTicket */}
+                <div className="absolute bottom-0 left-[50%] md:left-[65%] -translate-x-1/2 pointer-events-auto flex items-end">
+                    <ReturnTicket isReady={isAtBottom} />
                 </div>
             </div>
         </div>

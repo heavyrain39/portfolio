@@ -158,11 +158,11 @@ function HUDCircles() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
             {/* Left Circle: 25% visible (75% outside boundary) */}
             <div
-                className="absolute top-1/2 left-0 -translate-x-3/4 -translate-y-1/2 w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)] rounded-full border border-[var(--foreground)]/25 z-40"
+                className="hidden md:block absolute top-1/2 left-0 -translate-x-3/4 -translate-y-1/2 w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)] rounded-full border border-[var(--foreground)]/25 z-40"
             />
             {/* Right Circle: 25% visible (75% outside boundary) */}
             <div
-                className="absolute top-1/2 right-0 translate-x-3/4 -translate-y-1/2 w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)] rounded-full border border-[var(--foreground)]/25 z-40"
+                className="hidden md:block absolute top-1/2 right-0 translate-x-3/4 -translate-y-1/2 w-[300px] h-[300px] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)] rounded-full border border-[var(--foreground)]/25 z-40"
             />
         </div>
     );

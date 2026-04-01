@@ -328,9 +328,23 @@ export default function RightPanelHUD() {
                             <div
                                 id="vol-knob"
                                 data-hud-interactive="true"
-                                className="h-[1.8rem] md:h-[2.2vw] w-full flex items-center justify-center cursor-ns-resize relative overflow-visible pointer-events-auto"
+                                className="h-[1.8rem] md:h-[2.2vw] w-full flex items-center justify-center cursor-ns-resize relative overflow-visible pointer-events-auto touch-none"
                                 onWheel={handleVolumeWheel}
                                 onMouseDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onTouchMove={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const touch = e.touches[0];
+                                    // Calculate relative position within the knob (0 to 1)
+                                    // Top is 100%, bottom is 0%
+                                    let pct = 1 - ((touch.clientY - rect.top) / rect.height);
+                                    pct = Math.max(0, Math.min(1, pct));
+                                    const next = Math.round(pct * 100);
+                                    setVolume(next);
+                                    if (gainNodeRef.current) gainNodeRef.current.gain.value = next / 100;
+                                }}
                             >
                                 <svg viewBox="-42 -47 84 69" className="w-full h-full text-[var(--foreground)] opacity-50 overflow-visible">
                                     <path d="M -40 20 A 45 45 0 1 1 40 20" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -348,13 +362,15 @@ export default function RightPanelHUD() {
                             <div className="flex items-center gap-1 h-[1.2rem] md:h-[1.4vw] pointer-events-auto">
                                 <button
                                     onClick={stopAudio}
-                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
+                                    onTouchStart={(e) => { e.preventDefault(); stopAudio(); }}
+                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert select-none"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80"><rect x="5.5" y="5.5" width="13" height="13" /></svg>
                                 </button>
                                 <button
                                     onClick={togglePlay}
-                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
+                                    onTouchStart={(e) => { e.preventDefault(); togglePlay(); }}
+                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert select-none"
                                 >
                                     {isPlaying ? (
                                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80">
@@ -367,7 +383,8 @@ export default function RightPanelHUD() {
                                 </button>
                                 <button
                                     onClick={nextTrack}
-                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert"
+                                    onTouchStart={(e) => { e.preventDefault(); nextTrack(); }}
+                                    className="h-full aspect-square border border-[var(--foreground)]/40 flex items-center justify-center bg-block rounded-none transition-all active:scale-[0.98] active:invert select-none"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[38%] h-[38%] opacity-80"><polygon points="4.5,4.5 15.5,12 4.5,19.5" /><rect x="17.5" y="4.5" width="2" height="15" /></svg>
                                 </button>
@@ -380,6 +397,21 @@ export default function RightPanelHUD() {
                                     data-hud-interactive="true"
                                     className="w-full h-[4px] md:h-[6px] bg-block border border-[var(--foreground)]/20 relative cursor-pointer"
                                     onClick={handleProgressScrub}
+                                    onTouchStart={(e) => {
+                                        e.preventDefault();
+                                        if (!duration || isLoading) return;
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const touch = e.touches[0];
+                                        const pct = (touch.clientX - rect.left) / rect.width;
+                                        const newTime = pct * duration;
+                                        pauseTimeRef.current = newTime;
+                                        const buffer = audioBuffersRef.current[currentTrackIndex];
+                                        if (buffer && isPlaying) {
+                                            playAudio(newTime, buffer);
+                                        } else {
+                                            setCurrentTime(newTime);
+                                        }
+                                    }}
                                     onMouseDown={(e) => e.stopPropagation()}
                                 >
                                     <div

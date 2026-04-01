@@ -4,15 +4,16 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-export default function ReturnTicket() {
+export default function ReturnTicket({ isReady = false }: { isReady?: boolean }) {
     const [timeStr, setTimeStr] = useState("YY-MM-DD HH:MM:SS");
     const [yTarget, setYTarget] = useState(700);
     const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
-        const nudgeTimer = setTimeout(() => setYTarget(440), 2000);
+        if (!isReady) return;
+        const nudgeTimer = setTimeout(() => setYTarget(440), 1000);
         return () => clearTimeout(nudgeTimer);
-    }, []);
+    }, [isReady]);
 
     // 호버 시작: 위로 솟아오름
     const handleMouseEnter = () => setIsHovered(true);
@@ -48,7 +49,7 @@ export default function ReturnTicket() {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
-            className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative"
+            className="w-[280px] sm:w-[320px] h-[650px] bg-[var(--foreground)] text-[var(--background)] font-mono flex flex-col items-center select-none relative scale-[0.8] md:scale-100 origin-bottom"
             style={{
                 transformOrigin: "center 80%", // rotate around its lower point so it stays horizontally anchored
                 /* Perforated holes mask using multiple gradients combined natively */
