@@ -108,8 +108,8 @@ export function DottedOcean() {
     return (
         <group ref={groupRef} position={[0, -500, -3000]}>
             {/* 유저의 천재적인 제안 적용 완료: 콕핏 디스플레이 중앙의 평행선(크로스헤어, 즉 카메라의 수학적 지평선)까지만 정확히 덮는 통합 수직 마스크 */}
-            {/* 이 하나의 판이 ①먼 거리의 파도를 숨기고, ②지평선 아래의 별을 완벽히 차단하며, ③절단된 파도가 점멸하는 효과를 모두 안정적으로 수행합니다. */}
-            <mesh position={[0, -4500, -100]} rotation={[0, 0, 0]}>
+            {/* 파도를 더 길게 보여주기 위해 Z 위치를 -100에서 -525로 후퇴시켰습니다. (Top edge는 여전히 지평선에 고정되므로 하늘을 절대 침범하지 않습니다) */}
+            <mesh position={[0, -4500, -525]} rotation={[0, 0, 0]}>
                 <planeGeometry args={[80000, 10000]} />
                 <meshBasicMaterial color={bgColor} />
             </mesh>

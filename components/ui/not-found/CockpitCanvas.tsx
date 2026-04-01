@@ -258,8 +258,8 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
             {/* Environment */}
             <DottedOcean />
 
-            {/* Stars & Atmosphere - 지평선 마스크(Z=-3100) 뒤에 안정적으로 위치(radius 3300). 잔잔한 밤하늘을 위해 개수(count)와 점멸 속도(speed) 하향 조정 */}
-            <Stars radius={3300} depth={500} count={404} factor={70} saturation={0} fade speed={0.5} />
+            {/* Stars & Atmosphere - 지평선 마스크(Z=-4200)가 뒤로 물러남에 따라 별자리도 안전하게 뒤(radius 5000)로 밀어내고, 유저가 맞춘 크기를 100% 유지하도록 factor를 수학적으로 비례 확대(106)했습니다. */}
+            <Stars radius={5000} depth={500} count={404} factor={106} saturation={0} fade speed={0.5} />
             <Sparkles count={150} scale={50} size={2} speed={0.4} opacity={0.3} color="#ffffff" position={[0, 0, -20]} />
             <FastParticles />
 
