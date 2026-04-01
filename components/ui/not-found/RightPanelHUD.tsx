@@ -80,6 +80,7 @@ export default function RightPanelHUD() {
     const [analyzer, setAnalyzer] = useState<AnalyserNode | null>(null);
     const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
     const gainNodeRef = useRef<GainNode | null>(null);
+    const envelopeGainRef = useRef<GainNode | null>(null);
     const audioBuffersRef = useRef<(AudioBuffer | null)[]>([]);
 
     const startTimeRef = useRef<number>(0);
@@ -131,29 +132,55 @@ export default function RightPanelHUD() {
     };
 
     // Playback control
-    const stopAudio = useCallback(() => {
+    const pauseAudio = useCallback(() => {
         if (sourceNodeRef.current) {
-            try { sourceNodeRef.current.stop(); } catch (e) { }
+            try {
+                if (audioCtxRef.current && envelopeGainRef.current) {
+                    const ctx = audioCtxRef.current;
+                    const env = envelopeGainRef.current;
+                    const stopTime = ctx.currentTime + 0.05;
+                    
+                    env.gain.cancelScheduledValues(ctx.currentTime);
+                    env.gain.setValueAtTime(env.gain.value, ctx.currentTime);
+                    env.gain.linearRampToValueAtTime(0, stopTime);
+                    
+                    sourceNodeRef.current.stop(stopTime);
+                } else {
+                    sourceNodeRef.current.stop();
+                }
+            } catch (e) { }
         }
         sourceNodeRef.current = null;
+        envelopeGainRef.current = null;
         setIsPlaying(false);
-        pauseTimeRef.current = 0;
-        setCurrentTime(0);
         if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     }, []);
+
+    const stopAudio = useCallback(() => {
+        pauseAudio();
+        pauseTimeRef.current = 0;
+        setCurrentTime(0);
+    }, [pauseAudio]);
 
     const playAudio = useCallback((offset: number, buffer: AudioBuffer) => {
         const ctx = ensureContext()!;
         if (ctx.state === 'suspended') ctx.resume();
 
-        stopAudio();
+        pauseAudio();
 
         const source = ctx.createBufferSource();
         source.buffer = buffer;
 
+        const envelope = ctx.createGain();
+        envelope.gain.setValueAtTime(0, ctx.currentTime);
+        envelope.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.05);
+        envelopeGainRef.current = envelope;
+
+        source.connect(envelope);
+
         // Use Ref for immediate connection to avoid State async lag
         if (analyzerRef.current) {
-            source.connect(analyzerRef.current);
+            envelope.connect(analyzerRef.current);
         }
 
         source.onended = () => {
@@ -172,7 +199,7 @@ export default function RightPanelHUD() {
             const current = ctx.currentTime - startTimeRef.current;
             setCurrentTime(Math.min(buffer.duration, current));
         }, 100);
-    }, [ensureContext, stopAudio]);
+    }, [ensureContext, pauseAudio]);
 
     const togglePlay = async () => {
         if (isLoading) return;
@@ -181,8 +208,7 @@ export default function RightPanelHUD() {
 
         if (isPlaying) {
             pauseTimeRef.current = audioCtxRef.current!.currentTime - startTimeRef.current;
-            stopAudio();
-            setIsPlaying(false);
+            pauseAudio();
         } else {
             if (pauseTimeRef.current >= buffer.duration) pauseTimeRef.current = 0;
             playAudio(pauseTimeRef.current, buffer);
