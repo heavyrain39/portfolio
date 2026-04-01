@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, Variants } from "framer-motion";
 import VerticalHUD from "./VerticalHUD";
 import HUDCrosshair from "./HUDCrosshair";
@@ -195,40 +195,68 @@ function HUDCornerMarkers() {
 
 export default function CockpitHUD() {
     const [isTapped, setIsTapped] = useState(false);
+    const touchStartPos = useRef<{ x: number, y: number } | null>(null);
     const fullQuote = `「The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man.」`;
 
-
-
     useEffect(() => {
-        const handleGlobalDown = (e: MouseEvent) => {
-            if (e.button !== 0) return;
+        const handleGlobalDown = (e: MouseEvent | TouchEvent) => {
+            if (e instanceof MouseEvent && e.button !== 0) return;
             const target = e.target as HTMLElement;
             if (target.closest('button, a, input, label, [role="button"], [data-hud-interactive="true"]')) return;
+            
+            if ('touches' in e && e.touches.length > 0) {
+                touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
             setIsTapped(true);
         };
-        const handleGlobalUp = () => setIsTapped(false);
+
+        const handleGlobalMove = (e: TouchEvent) => {
+            if (touchStartPos.current && e.touches.length > 0) {
+                const touch = e.touches[0];
+                const dx = touch.clientX - touchStartPos.current.x;
+                const dy = touch.clientY - touchStartPos.current.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // 10px 이상 이동 시 스크롤 중으로 간주 (사격 중단과 일치)
+                if (dist > 10) {
+                    setIsTapped(false);
+                }
+            }
+        };
+
+        const handleGlobalUp = () => {
+            setIsTapped(false);
+            touchStartPos.current = null;
+        };
 
         window.addEventListener('mousedown', handleGlobalDown);
         window.addEventListener('mouseup', handleGlobalUp);
-        window.addEventListener('touchend', handleGlobalUp);
+        window.addEventListener('touchstart', handleGlobalDown, { passive: true });
+        window.addEventListener('touchmove', handleGlobalMove, { passive: true });
+        window.addEventListener('touchend', handleGlobalUp, { passive: true });
+        window.addEventListener('touchcancel', handleGlobalUp, { passive: true });
+
         return () => {
             window.removeEventListener('mousedown', handleGlobalDown);
             window.removeEventListener('mouseup', handleGlobalUp);
+            window.removeEventListener('touchstart', handleGlobalDown);
+            window.removeEventListener('touchmove', handleGlobalMove);
             window.removeEventListener('touchend', handleGlobalUp);
+            window.removeEventListener('touchcancel', handleGlobalUp);
         };
     }, []);
 
     return (
         <div
             className="relative h-full w-full pointer-events-auto overflow-hidden select-none gap-4 md:gap-8"
-            style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto' }}
+            style={{ display: 'grid', gridTemplateRows: '1fr auto 1fr' }}
             onDragStart={(e) => e.preventDefault()}
         >
             <HUDCornerMarkers />
 
             {/* ═══ Row 1: Top Header (404 + Barcode Lines) ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
-            <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-2 md:px-8">
+            <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-2 md:px-8 self-start">
                 <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between relative">
                     <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pl-[20px] md:pl-[84px]">
                         {Array.from({ length: 4 }).map((_, i) => (
@@ -294,7 +322,7 @@ export default function CockpitHUD() {
 
             {/* ═══ Row 3: Bottom Quote Panel ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
-            <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-8">
+            <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-8 self-end">
                 <div className="w-full max-w-[min(95vw,1000px)] flex flex-row justify-between px-4 md:px-8 relative">
                     {/* Left Spacer to align with side telemetry */}
                     <div className="flex-1 hidden md:flex" />
