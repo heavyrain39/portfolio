@@ -131,8 +131,8 @@ function TVOverlay() {
 function WarningMessage() {
     return (
         <motion.div
-            className="px-4 py-1 bg-[var(--foreground)] text-[var(--background)] tracking-[0.3em] font-mono uppercase font-bold whitespace-nowrap"
-            style={{ fontSize: 'clamp(0.7rem, 0.9vw, 1.1rem)' }}
+            className="px-2 md:px-4 py-1 bg-[var(--foreground)] text-[var(--background)] tracking-[0.1em] md:tracking-[0.3em] font-mono uppercase font-bold whitespace-nowrap"
+            style={{ fontSize: 'clamp(0.55rem, 0.8vw, 1.1rem)' }}
             animate={{
                 x: [0, -4, 4, -2, 0, 0, 0],
                 skewX: [0, -20, 20, -10, 0, 0, 0],

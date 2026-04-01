@@ -21,7 +21,9 @@ export default function ReturnTicket({ isReady = false }: { isReady?: boolean })
     // 호버 끝: 아래로 내려가서 5%만 보임
     const handleMouseLeave = () => {
         setIsHovered(false);
-        setYTarget(560); // 5%만 보이도록 (적당히 아래로)
+        // 모바일(768px 미만)인 경우 30px 더 내려간 590으로 설정
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        setYTarget(isMobile ? 590 : 560);
     };
 
     useEffect(() => {
@@ -45,7 +47,7 @@ export default function ReturnTicket({ isReady = false }: { isReady?: boolean })
     return (
         <motion.div
             initial={{ y: 700, rotate: 0 }}          // initially hidden completely
-            animate={isHovered ? { y: 95, rotate: -12 } : { y: yTarget, rotate: 0 }}      // 호버 시: 위로 솟아오름 (y: 80 값을 줄이면 더 높이 올라옵니다), 비호버 시: 일부만 노출
+            animate={isHovered ? { y: 90, rotate: -12 } : { y: yTarget, rotate: 0 }}      // 호버 시: 위로 솟아오름 (y: 90 값을 줄이면 더 높이 올라옵니다), 비호버 시: 일부만 노출
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             transition={{ type: 'spring', stiffness: 1100, damping: 65, mass: 1 }}
