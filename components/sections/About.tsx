@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import TypewriterText from "@/components/ui/TypewriterText";
 import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
 import { useLanguage } from "@/context/LanguageContext";
@@ -8,6 +9,12 @@ import { dictionary } from "@/data/dictionary";
 export default function About() {
     const { language, isMounted } = useLanguage();
     const t = dictionary[language].about;
+    const [isTitleComplete, setIsTitleComplete] = useState(false);
+
+    // Reset sequence when language changes or component remounts
+    useEffect(() => {
+        setIsTitleComplete(false);
+    }, [language, isMounted]);
 
     return (
         <section id="about" className="container mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-12 gap-12">
@@ -27,10 +34,18 @@ export default function About() {
 
             <div className="md:col-span-8 flex flex-col gap-8 text-lg opacity-100 leading-relaxed text-justify break-keep">
                 <div className="text-2xl md:text-3xl font-serif font-bold opacity-100 mb-4 flex items-center">
-                    <TypewriterText text={isMounted ? t.title : dictionary.ko.about.title} className="block" />
+                    <TypewriterText
+                        text={isMounted ? t.title : dictionary.ko.about.title}
+                        className="block"
+                        onComplete={() => setIsTitleComplete(true)}
+                        blinkOnComplete={false}
+                    />
                 </div>
                 <div>
-                    <TypewriterText text={isMounted ? t.description : dictionary.ko.about.description} />
+                    <TypewriterText
+                        text={isMounted ? t.description : dictionary.ko.about.description}
+                        enabled={isTitleComplete}
+                    />
                 </div>
 
                 <div className="pt-2 mt-4">

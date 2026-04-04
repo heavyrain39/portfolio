@@ -1,18 +1,55 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
+
+interface Segment {
+    type: "text" | "link" | "break";
+    content: string;
+    href?: string;
+}
 
 interface TypewriterTextProps {
     text: string;
     className?: string;
+    onComplete?: () => void;
+    enabled?: boolean;
+    blinkOnComplete?: boolean;
 }
 
-export default function TypewriterText({ text, className }: TypewriterTextProps) {
-    const [displayText, setDisplayText] = useState("");
+export default function TypewriterText({
+    text,
+    className,
+    onComplete,
+    enabled = true,
+    blinkOnComplete = true
+}: TypewriterTextProps) {
+    const [visibleCharCount, setVisibleCharCount] = useState(0);
     const [showCursor, setShowCursor] = useState(true);
     const [isComplete, setIsComplete] = useState(false);
     const [isInView, setIsInView] = useState(false);
     const ref = useRef<HTMLSpanElement>(null);
+
+    // Pre-parse the text into segments when text changes
+    const { segments, totalVisibleChars } = useMemo(() => {
+        const parts = text.split(/(<a\s+href="[^"]+"[^>]*>.*?<\/a>|<br\s*\/?>)/g);
+        let visibleLength = 0;
+
+        const parsedSegments = parts.filter(Boolean).map((part: string) => {
+            if (part.startsWith("<a")) {
+                const hrefMatch = part.match(/href="([^"]+)"/);
+                const contentMatch = part.match(/>(.*?)<\/a>/);
+                const content = contentMatch ? contentMatch[1] : "";
+                visibleLength += content.length;
+                return { type: "link", content, href: hrefMatch ? hrefMatch[1] : "" } as Segment;
+            } else if (part.startsWith("<br")) {
+                return { type: "break", content: "" } as Segment;
+            } else {
+                visibleLength += part.length;
+                return { type: "text", content: part } as Segment;
+            }
+        });
+        return { segments: parsedSegments, totalVisibleChars: visibleLength };
+    }, [text]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -33,98 +70,95 @@ export default function TypewriterText({ text, className }: TypewriterTextProps)
         };
     }, []);
 
+    const onCompleteRef = useRef(onComplete);
     useEffect(() => {
-        if (!isInView) return;
+        onCompleteRef.current = onComplete;
+    }, [onComplete]);
 
-        let index = 0;
-        setDisplayText("");
+    useEffect(() => {
+        if (!isInView || !enabled) return;
+
+        let count = 0;
+        setVisibleCharCount(0);
         setIsComplete(false);
         setShowCursor(true);
 
         const interval = setInterval(() => {
-            if (index < text.length) {
-                setDisplayText(text.slice(0, index + 1));
-                index++;
+            if (count < totalVisibleChars) {
+                count++;
+                setVisibleCharCount(count);
             } else {
                 clearInterval(interval);
                 setIsComplete(true);
+                if (onCompleteRef.current) onCompleteRef.current();
 
                 // Wait 1.5s then fade out cursor
                 setTimeout(() => {
                     setShowCursor(false);
                 }, 1500);
             }
-        }, 15); // 15ms per character for faster, snappy typing
+        }, 30);
 
         return () => clearInterval(interval);
-    }, [text, isInView]);
+    }, [text, isInView, enabled, totalVisibleChars]);
 
-    // Parse text for <br> and <a> tags and convert to JSX
-    const renderContent = (content: string) => {
-        const parts: React.JSX.Element[] = [];
+    const renderContent = (count: number, isGhost: boolean = false) => {
+        const result: React.ReactNode[] = [];
+        let remainingChars = isGhost ? Infinity : count;
         let key = 0;
 
-        // Split by <br> first
-        const lines = content.split("<br>");
+        for (const segment of segments) {
+            // Stop rendering if we've run out of visible characters (unless we're the ghost)
+            if (!isGhost && remainingChars <= 0) break;
 
-        lines.forEach((line, lineIndex) => {
-            // Parse links in each line, supporting attributes like target and rel
-            const linkRegex = /<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g;
-            let lastIndex = 0;
-            let match;
-
-            while ((match = linkRegex.exec(line)) !== null) {
-                // Add text before the link
-                if (match.index > lastIndex) {
-                    parts.push(<span key={key++}>{line.slice(lastIndex, match.index)}</span>);
+            if (segment.type === "text") {
+                const visibleText = isGhost ? segment.content : segment.content.slice(0, remainingChars);
+                result.push(<span key={key++}>{visibleText}</span>);
+                remainingChars -= segment.content.length;
+            } else if (segment.type === "link") {
+                const visibleText = isGhost ? segment.content : segment.content.slice(0, remainingChars);
+                if (visibleText || isGhost) {
+                    result.push(
+                        <a
+                            key={key++}
+                            href={segment.href}
+                            target={segment.href?.startsWith("http") ? "_blank" : undefined}
+                            rel={segment.href?.startsWith("http") ? "noopener noreferrer" : undefined}
+                            className="underline hover:opacity-50 transition-opacity"
+                        >
+                            {visibleText}
+                        </a>
+                    );
                 }
-
-                // Add the link
-                const href = match[1];
-                const linkText = match[2];
-                parts.push(
-                    <a
-                        key={key++}
-                        href={href}
-                        target={href.startsWith('http') ? '_blank' : undefined}
-                        rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                        className="underline hover:opacity-50 transition-opacity"
-                    >
-                        {linkText}
-                    </a>
-                );
-
-                lastIndex = linkRegex.lastIndex;
+                remainingChars -= segment.content.length;
+            } else if (segment.type === "break") {
+                result.push(<br key={key++} />);
             }
+        }
 
-            // Add remaining text in the line
-            if (lastIndex < line.length) {
-                parts.push(<span key={key++}>{line.slice(lastIndex)}</span>);
-            }
-
-            // Add line break if not the last line
-            if (lineIndex < lines.length - 1) {
-                parts.push(<br key={key++} />);
-            }
-        });
-
-        return parts;
+        return result;
     };
 
     return (
         <span ref={ref} className={`${className} relative inline-grid`}>
-            {/* Ghost text for space reservation */}
-            <span className="invisible [grid-area:1/1] pointer-events-none select-none" aria-hidden="true">
-                {renderContent(text)}
+            {/* Ghost text for space reservation: Determines the final height and width */}
+            <span className="invisible col-start-1 row-start-1 pointer-events-none select-none" aria-hidden="true">
+                {renderContent(0, true)}
                 {/* Space for the cursor */}
                 <span className="inline-block w-[2px] h-[1em] ml-1" />
             </span>
 
-            {/* Actual animated text */}
-            <span className="[grid-area:1/1]">
-                {renderContent(displayText)}
+            {/* Actual animated text: Removed from document flow to prevent layout jank */}
+            <span className="absolute inset-0 w-full h-full pointer-events-none">
+                {renderContent(visibleCharCount)}
                 <span
-                    className={`inline-block w-[2px] h-[1em] bg-current ml-1 align-middle transition-opacity duration-500 ${showCursor ? 'opacity-100 animate-pulse' : 'opacity-0'
+                    className={`inline-block w-[2px] h-[1em] bg-current ml-1 align-middle transition-opacity duration-500 ${showCursor
+                        ? isComplete
+                            ? blinkOnComplete
+                                ? "opacity-100 animate-blink"
+                                : "opacity-0" // Hide immediately if blink is disabled
+                            : "opacity-100" // Solid while typing
+                        : "opacity-0" // Faded out after timeout
                         }`}
                 />
             </span>

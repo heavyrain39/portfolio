@@ -203,7 +203,7 @@ export const projects: Project[] = [
         id: "archive03",
         title: "아카이브 03",
         enTitle: "Archive 03",
-        lastUpdated: "2025-07-05",
+        lastUpdated: "2026-04-05",
         concept: "세 인외 미소녀가 전하는 투자 인사이트",
         enConcept: "Investment insights from three demi-girls",
         description: "천사, 악마, 안드로이드라는 세 명의 인외 미소녀가 최신 데이터를 바탕으로 전하는 대화 형식의 투자 정보 연재 블로그. 데이터/성장성/리스크를 대표하는 세 캐릭터의 티키타카를 보다 보면 어느새 당신도 경제 전문가.",
