@@ -124,7 +124,7 @@ export default function TypewriterText({
                             href={segment.href}
                             target={segment.href?.startsWith("http") ? "_blank" : undefined}
                             rel={segment.href?.startsWith("http") ? "noopener noreferrer" : undefined}
-                            className="underline hover:opacity-50 transition-opacity"
+                            className="underline hover:opacity-50 transition-opacity pointer-events-auto"
                         >
                             {visibleText}
                         </a>
