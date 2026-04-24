@@ -10,6 +10,7 @@ import ReturnTicket from "./ReturnTicket";
 
 export default function NotFoundCockpit() {
     const containerRef = useRef<HTMLDivElement>(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
@@ -96,15 +97,11 @@ export default function NotFoundCockpit() {
                 {/* ═══ LEFT PANEL (6.5 Area) ═══ */}
                 <div className="relative w-full md:w-[65%] h-[85svh] md:h-full shrink-0 flex flex-col overflow-hidden">
                     {/* Layer 0: 3D Canvas Background (Restrained to this left panel width/height) */}
-                    <CockpitCanvas mouseX={mouseX} mouseY={mouseY} setShake={setShake} setFireFlash={setFireFlash} />
-
-                    {/* Firing Flashes relative to this left panel */}
-                    <div className={`absolute bottom-0 left-0 w-1/2 h-1/2 bg-[var(--foreground)] blur-[40px] pointer-events-none transition-opacity duration-75 z-40 ${fireFlash === "left" ? "opacity-10" : "opacity-0"}`} />
-                    <div className={`absolute bottom-0 right-0 w-1/2 h-1/2 bg-[var(--foreground)] blur-[40px] pointer-events-none transition-opacity duration-75 z-40 ${fireFlash === "right" ? "opacity-10" : "opacity-0"}`} />
+                    <CockpitCanvas mouseX={mouseX} mouseY={mouseY} setShake={setShake} setFireFlash={setFireFlash} aimTargetRef={viewportRef} />
 
                     {/* Layer 1: The Foreground HUD over the observation window */}
                     <div className="absolute inset-0 z-20 pointer-events-none">
-                        <CockpitHUD />
+                        <CockpitHUD fireFlash={fireFlash} viewportRef={viewportRef} />
                     </div>
                 </div>
 

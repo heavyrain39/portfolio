@@ -5,6 +5,11 @@ import { motion, Variants } from "framer-motion";
 import VerticalHUD from "./VerticalHUD";
 import HUDCrosshair from "./HUDCrosshair";
 
+interface CockpitHUDProps {
+    fireFlash?: "left" | "right" | null;
+    viewportRef?: React.RefObject<HTMLDivElement | null>;
+}
+
 /* ── Cross Marker (1px line-drawn) ── */
 function CrossMarker() {
     return (
@@ -79,6 +84,22 @@ function HUDBrackets() {
                     <polyline points="255,208 278,208 278,185" />
                 </g>
             </svg>
+        </div>
+    );
+}
+
+function ViewportMuzzleFlash({ fireFlash = null }: { fireFlash?: "left" | "right" | null }) {
+    return (
+        <div
+            className="absolute inset-0 rounded-full overflow-hidden pointer-events-none z-[1]"
+            style={{ clipPath: "circle(50% at 50% 50%)" }}
+        >
+            <div
+                className={`absolute bottom-[2%] left-[4%] h-[30%] w-[36%] rounded-full bg-[var(--foreground)] blur-[28px] transition-opacity duration-75 ${fireFlash === "left" ? "opacity-[0.016]" : "opacity-0"}`}
+            />
+            <div
+                className={`absolute bottom-[2%] right-[4%] h-[30%] w-[36%] rounded-full bg-[var(--foreground)] blur-[28px] transition-opacity duration-75 ${fireFlash === "right" ? "opacity-[0.016]" : "opacity-0"}`}
+            />
         </div>
     );
 }
@@ -193,10 +214,22 @@ function HUDCornerMarkers() {
     );
 }
 
-export default function CockpitHUD() {
+export default function CockpitHUD({ fireFlash = null, viewportRef }: CockpitHUDProps) {
     const [isTapped, setIsTapped] = useState(false);
+    const [hasBrowserChrome, setHasBrowserChrome] = useState(false);
     const touchStartPos = useRef<{ x: number, y: number } | null>(null);
     const fullQuote = `「The spirit is so intimately connected with the roots of man's being that it powerfully and seductively leads him to believe he is the creator of the spirit, and that he possesses it. But in reality, it is the primordial phenomenon of the spirit that possesses man.」`;
+
+    useEffect(() => {
+        const updateViewportMode = () => {
+            const availableHeight = window.screen?.availHeight ?? window.innerHeight;
+            setHasBrowserChrome(availableHeight - window.innerHeight > 72);
+        };
+
+        updateViewportMode();
+        window.addEventListener('resize', updateViewportMode);
+        return () => window.removeEventListener('resize', updateViewportMode);
+    }, []);
 
     useEffect(() => {
         const handleGlobalDown = (e: MouseEvent | TouchEvent) => {
@@ -256,7 +289,7 @@ export default function CockpitHUD() {
 
             {/* ═══ Row 1: Top Header (404 + Barcode Lines) ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
-            <div className="relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-2 md:px-8 self-start">
+            <div className={`relative z-30 flex justify-center w-full pt-4 md:pt-8 lg:pt-12 px-2 md:px-8 self-start ${hasBrowserChrome ? "pb-3 md:pb-5" : ""}`}>
                 <div className="w-full max-w-[min(95vw,1000px)] flex items-end justify-between relative">
                     <div className="flex-1 flex items-end justify-start opacity-20 gap-2 md:gap-4 translate-y-[10px] md:translate-y-[14px] pl-[20px] md:pl-[84px]">
                         {Array.from({ length: 4 }).map((_, i) => (
@@ -291,7 +324,12 @@ export default function CockpitHUD() {
                     </div>
 
                     {/* Viewport Mask and Overlay */}
-                    <div className="relative z-[5] shrink-0 flex items-center justify-center w-[min(70vw,300px)] h-[min(70vw,300px)] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]">
+                    <div
+                        ref={viewportRef}
+                        className="relative z-[5] shrink-0 flex items-center justify-center w-[min(70vw,300px)] h-[min(70vw,300px)] md:w-[min(55vh,640px)] md:h-[min(55vh,640px)]"
+                    >
+                        <ViewportMuzzleFlash fireFlash={fireFlash} />
+
                         {/* Mask shadow — 200vmax creates the opaque cockpit wall */}
                         <div className="w-full h-full rounded-full relative" style={{ boxShadow: "0 0 0 200vmax var(--background)" }}>
                             {/* Monitor backlight glow from bottom */}
@@ -322,7 +360,7 @@ export default function CockpitHUD() {
 
             {/* ═══ Row 3: Bottom Quote Panel ═══
                 z-30 so it paints ABOVE the viewport mask shadow */}
-            <div className="relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-8 self-end">
+            <div className={`relative z-30 flex justify-center w-full pb-4 md:pb-8 lg:pb-12 px-4 md:px-8 self-end ${hasBrowserChrome ? "pt-3 md:pt-5" : ""}`}>
                 <div className="w-full max-w-[min(95vw,1000px)] flex flex-row justify-between px-4 md:px-8 relative">
                     {/* Left Spacer to align with side telemetry */}
                     <div className="flex-1 hidden md:flex" />

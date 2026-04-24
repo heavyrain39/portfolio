@@ -16,6 +16,7 @@ interface CockpitCanvasProps {
     mouseX: MotionValue<number>;
     mouseY: MotionValue<number>;
     setFireFlash?: (side: "left" | "right") => void;
+    aimTargetRef?: React.RefObject<HTMLElement | null>;
 }
 
 interface BulletData {
@@ -92,8 +93,8 @@ function FastParticles() {
     );
 }
 
-function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasProps) {
-    const { camera, scene, viewport } = useThree();
+function CockpitScene({ setShake, mouseX, mouseY, setFireFlash, aimTargetRef }: CockpitCanvasProps) {
+    const { camera, scene, viewport, gl } = useThree();
     const audioCtxRef = useRef<AudioContext | null>(null);
 
     const bgColorStr = useMemo(() => {
@@ -221,8 +222,16 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
 
             const start = new THREE.Vector3(startX, startY, startZ);
 
-            // Unproject center coordinates (0,0) to target the fixed screen center
-            const vector = new THREE.Vector3(0, 0, 0.5);
+            const canvasRect = gl.domElement.getBoundingClientRect();
+            const aimRect = aimTargetRef?.current?.getBoundingClientRect();
+            const aimX = aimRect ? aimRect.left + aimRect.width / 2 : canvasRect.left + canvasRect.width / 2;
+            const aimY = aimRect ? aimRect.top + aimRect.height / 2 : canvasRect.top + canvasRect.height / 2;
+            const ndcX = ((aimX - canvasRect.left) / canvasRect.width) * 2 - 1;
+            const ndcY = -(((aimY - canvasRect.top) / canvasRect.height) * 2 - 1);
+
+            // Unproject the visible HUD viewport center instead of assuming the canvas center.
+            camera.updateMatrixWorld();
+            const vector = new THREE.Vector3(ndcX, ndcY, 0.5);
             vector.unproject(camera);
             const dir = vector.sub(camera.position).normalize();
 
@@ -299,11 +308,11 @@ function CockpitScene({ setShake, mouseX, mouseY, setFireFlash }: CockpitCanvasP
     );
 }
 
-export default function CockpitCanvas({ mouseX, mouseY, setShake }: CockpitCanvasProps) {
+export default function CockpitCanvas({ mouseX, mouseY, setShake, setFireFlash, aimTargetRef }: CockpitCanvasProps) {
     return (
         <div className="absolute inset-0 z-0 pointer-events-none">
             <Canvas camera={{ position: [0, 0, 5], fov: 60, near: 0.1, far: 20000 }} dpr={[1, 2]}>
-                <CockpitScene mouseX={mouseX} mouseY={mouseY} setShake={setShake} />
+                <CockpitScene mouseX={mouseX} mouseY={mouseY} setShake={setShake} setFireFlash={setFireFlash} aimTargetRef={aimTargetRef} />
             </Canvas>
         </div>
     );

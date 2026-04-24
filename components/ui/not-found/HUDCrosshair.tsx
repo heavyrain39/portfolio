@@ -39,6 +39,7 @@ export default function HUDCrosshair({ isTapped }: HUDCrosshairProps) {
             >
                 {/* Outer Circle - Squeezes on tap */}
                 <motion.div
+                    key={isTapped ? "outer-tapped" : "outer-idle"}
                     className="absolute inset-0 border border-[var(--foreground)] rounded-full"
                     animate={isTapped ? TAP_PULSE : IDLE_PULSE}
                     transition={isTapped ? TAP_TRANSITION : IDLE_TRANSITION}
@@ -60,6 +61,7 @@ export default function HUDCrosshair({ isTapped }: HUDCrosshairProps) {
                             }`}
                         >
                             <motion.div
+                                key={`${dir}-${isTapped ? "tapped" : "idle"}`}
                                 className={`${dir === 'left' || dir === 'right' ? 'w-2 h-[1px]' : 'w-[1px] h-2'} bg-[var(--foreground)]`}
                                 animate={isTapped ? {
                                     x: dir === 'left' ? 3 : dir === 'right' ? -3 : 0,
