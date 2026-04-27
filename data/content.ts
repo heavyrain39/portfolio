@@ -37,6 +37,25 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "liveonwakaba",
+        title: "라이브 온! 와카바",
+        enTitle: "Live on! Wakaba",
+        lastUpdated: "2026-04-27",
+        concept: "방치형 스트리머 육성 시뮬레이션 게임",
+        enConcept: "Idle streamer raising simulation game",
+        description: "PC에서 키우는 나만의 미소녀 다마고치. 나무의 정령 '이부키 와카바'를 SSS급 스트리머로 육성하고, 호감도를 높여 특별 일러스트를 모두 해금하자.",
+        enDescription: "An idle streamer raising simulator. Your very own desktop companion. Turn the tree spirit 'Ibuki Wakaba' into an SSS-rank streamer, raise her affection, and unlock special illustrations.",
+        techStack: ["Python/Pygame", "Stable Diffusion"],
+        link: "https://live-on-wakaba.vercel.app/",
+        linkText: "플레이하기",
+        enLinkText: "Play",
+        secondaryLink: "https://heavyrain39.github.io/wakaba/",
+        secondaryLinkText: "소개 페이지",
+        enSecondaryLinkText: "Info Page",
+        thumbnail: "/portfolio/images/thumbnail01.png",
+        category: "game"
+    },
+    {
         id: "nimblist",
         title: "님블리스트",
         enTitle: "Nimblist",
@@ -279,22 +298,6 @@ export const projects: Project[] = [
         thumbnail: "/portfolio/images/thumbnail02.png",
         category: "web-app"
     },
-    {
-        id: "liveonwakaba",
-        title: "라이브 온! 와카바",
-        enTitle: "Live on! Wakaba",
-        lastUpdated: "2025-04-27",
-        concept: "방치형 스트리머 육성 시뮬레이션 게임",
-        enConcept: "Idle streamer raising simulation game",
-        description: "PC에서 키우는 나만의 미소녀 다마고치. 나무의 정령 '이부키 와카바'를 SSS급 스트리머로 육성하고, 호감도를 높여 특별 일러스트를 모두 해금하자.",
-        enDescription: "An idle streamer raising simulator. Your very own desktop companion. Turn the tree spirit 'Ibuki Wakaba' into an SSS-rank streamer, raise her affection, and unlock special illustrations.",
-        techStack: ["Python/Pygame", "Stable Diffusion"],
-        link: "https://heavyrain39.github.io/wakaba/",
-        linkText: "소개 페이지",
-        enLinkText: "Info Page",
-        thumbnail: "/portfolio/images/thumbnail01.png",
-        category: "game"
-    }
 ];
 
 export const musicAlbums: MusicItem[] = [
