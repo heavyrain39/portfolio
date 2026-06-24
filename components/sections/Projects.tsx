@@ -5,6 +5,10 @@ import ProjectCard from "@/components/ui/ProjectCard";
 import { motion } from "framer-motion";
 import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
 
+const projectsByLastUpdated = [...projects].sort((a, b) =>
+    b.lastUpdated.localeCompare(a.lastUpdated)
+);
+
 export default function Projects() {
     return (
         <section id="projects" className="container mx-auto px-6 py-32 border-t border-border/15">
@@ -20,7 +24,7 @@ export default function Projects() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16 md:gap-y-20">
-                {projects.map((project, index) => (
+                {projectsByLastUpdated.map((project, index) => (
                     <motion.div
                         key={project.id}
                         initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0 }}
