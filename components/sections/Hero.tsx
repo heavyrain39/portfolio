@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { heroContent } from "@/data/content";
 import MiniGame from "@/components/ui/MiniGame";
 import { useLanguage } from "@/context/LanguageContext";
@@ -32,6 +33,12 @@ const Github = ({ size = 20 }: { size?: number }) => (
 const Mail = ({ size = 20 }: { size?: number }) => (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
         <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z" />
+    </svg>
+);
+
+const Ghost = ({ size = 20 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 0a6 6 0 0 0-6 6v7.5a.5.5 0 0 0 .8.4l1.45-1.087 1.45 1.087a.5.5 0 0 0 .6 0L8 12.625l1.7 1.275a.5.5 0 0 0 .6 0l1.45-1.087 1.45 1.087a.5.5 0 0 0 .8-.4V6a6 6 0 0 0-6-6M6 5.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0m6 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
     </svg>
 );
 
@@ -99,6 +106,9 @@ export default function Hero() {
                     <a href={heroContent.socials.email} className="opacity-60 hover:opacity-100 transition-opacity" aria-label="Email">
                         <Mail size={20} />
                     </a>
+                    <Link href="/404/" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="404 Page">
+                        <Ghost size={20} />
+                    </Link>
                 </div>
             </motion.div>
 
