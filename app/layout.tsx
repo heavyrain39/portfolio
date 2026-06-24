@@ -11,6 +11,9 @@ import GridBackground from "@/components/layout/GridBackground";
 export const metadata: Metadata = {
     title: "야차완 | 夜叉腕 Portfolio",
     description: "Writer, Indie Developer. Portfolio of Yakshawan.",
+    verification: {
+        google: "xi2C6EVZJmd2cMu9JTRHqwv1MqTn6dLB4ZNJEFo8Qbg",
+    },
     icons: {
         icon: "/portfolio/images/favicon.png",
     },
