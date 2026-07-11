@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ensureAudioContext, createRadioFilter } from "./minigame/audio";
+import { closeAudioContext, ensureAudioContext, createRadioFilter } from "./minigame/audio";
 
 interface OperatorCommentsProps {
     isParentHovered: boolean;
@@ -40,7 +40,7 @@ const COMMENTS = [
 ];
 
 const BASE_PATH = "/portfolio";
-const HOVER_START_DELAY = 750;
+const FIRST_ENGAGEMENT_DELAY = 500;
 const DEFAULT_TYPING_DELAY = 35;
 const SPACE_DELAY = 60;
 const PUNCTUATION_DELAY = 300;
@@ -48,7 +48,6 @@ const VOICE_VOLUME = 0.15;
 const RADIO_SFX_VOLUME = 0.15;
 const RADIO_SFX_DURATION_MS = 200;
 const RADIO_TO_VOICE_GAP_MS = 50;
-const PRELOAD_VOICE_COUNT = 2;
 
 type VoiceAudioState = {
     audio: HTMLAudioElement;
@@ -178,6 +177,7 @@ export default function OperatorComments({
     const [isVisible, setIsVisible] = useState(false);
     const [isComplete, setIsComplete] = useState(false);
     const [isBlinking, setIsBlinking] = useState(false);
+    const [hasEngaged, setHasEngaged] = useState(false);
 
     const charIndexRef = useRef(0);
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -185,11 +185,11 @@ export default function OperatorComments({
     const blinkCycleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blinkEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const nextMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const hoverStartDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const engagementTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTypingRef = useRef(false);
     const hoverRef = useRef(isParentHovered);
-    const wasHoveredRef = useRef(isParentHovered);
-    const hasAppliedInitialHoverDelayRef = useRef(false);
+    const engagementStartedRef = useRef(false);
+    const hasStartedFirstCommentRef = useRef(false);
     const currentIndexRef = useRef(currentIndex);
     const isCompleteRef = useRef(isComplete);
     const currentTypingDelayRef = useRef(DEFAULT_TYPING_DELAY);
@@ -202,8 +202,9 @@ export default function OperatorComments({
     const hasFadedOutRef = useRef(false);
 
     const delayedVoiceStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const pendingRetryVoiceIndexRef = useRef<number | null>(null);
-    const playVoiceForIndexRef = useRef<(index: number) => void>(() => { });
+    const activeVoiceIndexRef = useRef<number | null>(null);
+    const primedVoiceIndexRef = useRef<number | null>(null);
+    const startCommentRef = useRef<(withRadioLead: boolean) => void>(() => { });
 
     // Randomly select operator (operator01 - operator04) on mount
     const [selectedOperatorId] = useState(() => {
@@ -263,10 +264,10 @@ export default function OperatorComments({
         }
     };
 
-    const clearHoverStartDelayTimer = () => {
-        if (hoverStartDelayTimeoutRef.current) {
-            clearTimeout(hoverStartDelayTimeoutRef.current);
-            hoverStartDelayTimeoutRef.current = null;
+    const clearEngagementTimer = () => {
+        if (engagementTimeoutRef.current) {
+            clearTimeout(engagementTimeoutRef.current);
+            engagementTimeoutRef.current = null;
         }
     };
 
@@ -289,7 +290,6 @@ export default function OperatorComments({
     };
 
     const clearAllTimers = () => {
-        clearHoverStartDelayTimer();
         clearDelayedVoiceStartTimer();
         clearTypingTimer();
         clearTransitionTimers();
@@ -372,23 +372,45 @@ export default function OperatorComments({
         }
     };
 
+    const stopActiveVoice = () => {
+        const activeIndex = activeVoiceIndexRef.current;
+        if (activeIndex === null) return;
+        const activeState = voiceAudioStateRef.current.get(activeIndex);
+        if (activeState) {
+            activeState.audio.pause();
+            activeState.audio.currentTime = 0;
+        }
+        activeVoiceIndexRef.current = null;
+    };
+
     const startVoicePlayback = (index: number) => {
+        if (index !== currentIndexRef.current) return;
+        stopActiveVoice();
         const audio = getOrCreateVoiceAudio(index);
         audio.volume = isMuted ? 0 : VOICE_VOLUME;
         audio.currentTime = 0;
 
+        if (primedVoiceIndexRef.current === index && !audio.paused) {
+            primedVoiceIndexRef.current = null;
+            activeVoiceIndexRef.current = index;
+            playedVoiceIndexesRef.current.add(index);
+            return;
+        }
+
         const playPromise = audio.play();
         if (playPromise) {
             playPromise.then(() => {
-                playedVoiceIndexesRef.current.add(index);
-                pendingRetryVoiceIndexRef.current = null;
-            }).catch((error) => {
-                if (error instanceof DOMException && error.name === "NotAllowedError") {
-                    pendingRetryVoiceIndexRef.current = index;
+                if (index !== currentIndexRef.current) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    return;
                 }
-            });
+                playedVoiceIndexesRef.current.add(index);
+                activeVoiceIndexRef.current = index;
+            }).catch(() => { });
         } else {
             playedVoiceIndexesRef.current.add(index);
+            activeVoiceIndexRef.current = index;
         }
     };
 
@@ -450,21 +472,6 @@ export default function OperatorComments({
         return audio;
     };
 
-    const playVoiceForIndex = (index: number) => {
-        if (index < 0 || index >= COMMENTS.length) return;
-        if (isMuted) return;
-        if (playedVoiceIndexesRef.current.has(index)) return;
-
-        playRadioSfx();
-        clearDelayedVoiceStartTimer();
-        delayedVoiceStartTimeoutRef.current = setTimeout(() => {
-            delayedVoiceStartTimeoutRef.current = null;
-            startVoicePlayback(index);
-        }, RADIO_SFX_DURATION_MS + RADIO_TO_VOICE_GAP_MS);
-    };
-
-    playVoiceForIndexRef.current = playVoiceForIndex;
-
     const typeNextChar = () => {
         if (!hoverRef.current || isCompleteRef.current) {
             isTypingRef.current = false;
@@ -477,7 +484,6 @@ export default function OperatorComments({
 
         if (charIndexRef.current === 0) {
             currentTypingDelayRef.current = getTypingDelayForIndex(index);
-            playVoiceForIndexRef.current(index);
         }
 
         if (charIndexRef.current >= fullText.length) {
@@ -501,6 +507,33 @@ export default function OperatorComments({
             typeNextChar();
         }, delay);
     };
+
+    const startSynchronizedComment = (withRadioLead: boolean) => {
+        if (!hoverRef.current || isCompleteRef.current || isTypingRef.current) return;
+        const index = currentIndexRef.current;
+
+        const start = () => {
+            if (!hoverRef.current || index !== currentIndexRef.current || isCompleteRef.current) return;
+            if (charIndexRef.current === 0 && !playedVoiceIndexesRef.current.has(index)) {
+                startVoicePlayback(index);
+            }
+            typeNextChar();
+        };
+
+        if (!withRadioLead) {
+            start();
+            return;
+        }
+
+        playRadioSfx();
+        clearDelayedVoiceStartTimer();
+        delayedVoiceStartTimeoutRef.current = setTimeout(() => {
+            delayedVoiceStartTimeoutRef.current = null;
+            start();
+        }, RADIO_SFX_DURATION_MS + RADIO_TO_VOICE_GAP_MS);
+    };
+
+    startCommentRef.current = startSynchronizedComment;
 
     useEffect(() => {
         hoverRef.current = isParentHovered;
@@ -527,24 +560,39 @@ export default function OperatorComments({
     }, [isMuted]);
 
     useEffect(() => {
-        for (let i = 0; i < Math.min(PRELOAD_VOICE_COUNT, COMMENTS.length); i++) {
-            getOrCreateVoiceAudio(i);
-        }
-    }, []);
+        const engageOperator = (event: PointerEvent) => {
+            if (engagementStartedRef.current || !hoverRef.current) return;
+            if (event.button !== 0) return;
+            if (event.target instanceof Element && event.target.closest("button")) return;
+            engagementStartedRef.current = true;
 
-    useEffect(() => {
-        const retryPendingVoice = () => {
-            const pendingIndex = pendingRetryVoiceIndexRef.current;
-            if (pendingIndex === null) return;
-            pendingRetryVoiceIndexRef.current = null;
-            playVoiceForIndexRef.current(pendingIndex);
+            playRadioSfx();
+            const index = currentIndexRef.current;
+            const voice = getOrCreateVoiceAudio(index);
+            voice.volume = 0;
+            voice.currentTime = 0;
+            const playPromise = voice.play();
+            if (playPromise) {
+                playPromise.then(() => {
+                    if (index === currentIndexRef.current) {
+                        primedVoiceIndexRef.current = index;
+                    } else {
+                        voice.pause();
+                        voice.currentTime = 0;
+                    }
+                }).catch(() => { });
+            }
+
+            clearEngagementTimer();
+            engagementTimeoutRef.current = setTimeout(() => {
+                engagementTimeoutRef.current = null;
+                setHasEngaged(true);
+            }, FIRST_ENGAGEMENT_DELAY);
         };
 
-        window.addEventListener("pointerdown", retryPendingVoice);
-        window.addEventListener("keydown", retryPendingVoice);
+        window.addEventListener("pointerdown", engageOperator);
         return () => {
-            window.removeEventListener("pointerdown", retryPendingVoice);
-            window.removeEventListener("keydown", retryPendingVoice);
+            window.removeEventListener("pointerdown", engageOperator);
         };
     }, []);
 
@@ -575,8 +623,7 @@ export default function OperatorComments({
     }, [isParentHovered, selectedOperatorId]);
 
     useEffect(() => {
-        if (!isParentHovered) {
-            wasHoveredRef.current = false;
+        if (!isParentHovered || !hasEngaged) {
             clearAllTimers();
             isTypingRef.current = false;
             setIsVisible(false);
@@ -591,26 +638,14 @@ export default function OperatorComments({
             }
             setIsVisible(true);
             if (!isTypingRef.current && !isComplete) {
-                typeNextChar();
+                const isFirstStart = !hasStartedFirstCommentRef.current;
+                hasStartedFirstCommentRef.current = true;
+                startCommentRef.current(!isFirstStart);
             }
         };
 
-        const isEnteringHover = !wasHoveredRef.current;
-        wasHoveredRef.current = true;
-
-        if (isEnteringHover && !hasAppliedInitialHoverDelayRef.current) {
-            hasAppliedInitialHoverDelayRef.current = true;
-            clearHoverStartDelayTimer();
-            hoverStartDelayTimeoutRef.current = setTimeout(() => {
-                hoverStartDelayTimeoutRef.current = null;
-                if (!hoverRef.current) return;
-                startCommentCycle();
-            }, HOVER_START_DELAY);
-            return;
-        }
-
         startCommentCycle();
-    }, [isParentHovered, isComplete, currentIndex]);
+    }, [isParentHovered, isComplete, currentIndex, hasEngaged]);
 
     useEffect(() => {
         if (!isParentHovered || !isComplete) return;
@@ -633,12 +668,12 @@ export default function OperatorComments({
                 charIndexRef.current = 0;
                 setIsComplete(false);
                 hasFadedOutRef.current = false;
+                stopActiveVoice();
                 setCurrentIndex((prev) => {
                     const nextIndex = (prev + 1) % COMMENTS.length;
                     if (nextIndex === 0) {
                         // New dialogue cycle starts here: allow all 25 voice clips to play again.
                         playedVoiceIndexesRef.current.clear();
-                        pendingRetryVoiceIndexRef.current = null;
                     }
                     return nextIndex;
                 });
@@ -650,13 +685,21 @@ export default function OperatorComments({
     useEffect(() => {
         return () => {
             clearAllTimers();
+            clearEngagementTimer();
             clearDelayedVoiceStartTimer();
+            stopActiveVoice();
             voiceAudioStateRef.current.forEach((state) => cleanupVoiceAudio(state));
             voiceAudioStateRef.current.clear();
             if (radioSfxStateRef.current) {
                 cleanupSingleAudio(radioSfxStateRef.current);
                 radioSfxStateRef.current = null;
             }
+            if (radioFilterRef.current) {
+                try { radioFilterRef.current.input.disconnect(); } catch (e) { }
+                try { radioFilterRef.current.output.disconnect(); } catch (e) { }
+                radioFilterRef.current = null;
+            }
+            closeAudioContext(audioCtxRef);
         };
     }, []);
 

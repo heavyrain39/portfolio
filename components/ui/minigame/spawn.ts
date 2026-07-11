@@ -48,13 +48,15 @@ interface SpawnEnemyGroupParams {
     canvasWidth: number;
     canvasHeight: number;
     physicsPreset: PhysicsPreset;
+    arenaScale: number;
 }
 
 export const spawnEnemyGroup = ({
     enemyGroups,
     canvasWidth,
     canvasHeight,
-    physicsPreset
+    physicsPreset,
+    arenaScale
 }: SpawnEnemyGroupParams) => {
     const aliveUnits = countAliveUnits(enemyGroups);
     if (aliveUnits >= MAX_MAP_UNITS) return;
@@ -82,13 +84,14 @@ export const spawnEnemyGroup = ({
 
     const side = Math.random() > 0.5 ? "left" : "right";
     const dir: 1 | -1 = side === "left" ? 1 : -1;
-    const radius = 25 + Math.random() * 10;
+    const radius = (25 + Math.random() * 10) * arenaScale;
     const unitMass = Math.max(1, (radius * radius) / 700);
     const isFusedSpawn = unitCount > 1;
     const isSpeedster = family === "normal" && Math.random() < SPEEDSTER_CHANCE;
     const speedMultiplier = isSpeedster ? 1.5 : 1;
     const sizeSpeedScale = Math.max(0.62, 1 - (unitCount - 1) * 0.09);
-    const baseSpeed = (Math.random() * 1.8 + 2.1) * 1.1 * speedMultiplier * sizeSpeedScale;
+    const baseSpeed = (Math.random() * 1.8 + 2.1) * 1.1 * speedMultiplier * sizeSpeedScale * arenaScale;
+    const heading = Math.atan2((Math.random() - 0.5) * 0.6, dir);
 
     const units: EnemyUnit[] = Array.from({ length: unitCount }, () => createUnit(isFusedSpawn));
 
@@ -98,14 +101,16 @@ export const spawnEnemyGroup = ({
         x: 0,
         y: 0,
         vx: dir * baseSpeed,
-        vy: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2 * arenaScale,
+        impactVx: 0,
+        impactVy: 0,
         dir,
         radius,
         unitMass,
         mass: unitMass * unitCount,
         baseSpeed,
-        maxSpeed: baseSpeed + Math.random() * 1.2 + 1.2,
-        driftAmp: (Math.random() * 0.9 + 0.7) * (family === "caterpillar" ? 1.1 : 1),
+        maxSpeed: baseSpeed + (Math.random() * 1.2 + 1.2) * arenaScale,
+        driftAmp: (Math.random() * 0.9 + 0.7) * (family === "caterpillar" ? 1.1 : 1) * arenaScale,
         driftFreq: Math.random() * 0.055 + 0.05,
         steer: Math.random() * 0.028 + 0.03,
         damping: Math.random() * 0.008 + 0.987,
@@ -120,7 +125,10 @@ export const spawnEnemyGroup = ({
                 : 0,
         angularVelocity: 0,
         angularDamping: 0.945,
-        heading: Math.atan2((Math.random() - 0.5) * 0.6, dir),
+        heading,
+        headingHistory: [heading],
+        segmentBends: Array(unitCount).fill(0),
+        segmentBendVelocities: Array(unitCount).fill(0),
         turnTargetHeading: null,
         turnAngularSpeed: Math.random() * 0.02 + 0.03,
         turnCooldown: 0,

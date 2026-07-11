@@ -1,4 +1,4 @@
-import { HALF_OUTSIDE_RATIO } from "./constants";
+import { HALF_OUTSIDE_RATIO, IMPACT_DRIVE_SHARE } from "./constants";
 import { getFormation, getLocalOffsets, getWorldUnitPositions } from "./formation";
 import {
     cancelFusionBonusIfSingle,
@@ -8,6 +8,52 @@ import {
 } from "./group-state";
 import { clamp, getAngleDelta } from "./math";
 import type { EnemyGroup, PhysicsPreset, Point, WorldUnitPosition } from "./types";
+
+const CATERPILLAR_HEADING_HISTORY_LIMIT = 120;
+const CATERPILLAR_BEND_PROPAGATION = 0.14;
+const CATERPILLAR_BEND_RECENTERING = 0.08;
+const CATERPILLAR_BEND_DAMPING = 0.8;
+const CATERPILLAR_BEND_LIMIT = 0.22;
+
+export const updateCaterpillarSpineState = (group: EnemyGroup) => {
+    if (group.family !== "caterpillar") return;
+
+    group.headingHistory.unshift(group.heading);
+    if (group.headingHistory.length > CATERPILLAR_HEADING_HISTORY_LIMIT) {
+        group.headingHistory.length = CATERPILLAR_HEADING_HISTORY_LIMIT;
+    }
+
+    while (group.segmentBends.length < group.units.length) group.segmentBends.push(0);
+    while (group.segmentBendVelocities.length < group.units.length) group.segmentBendVelocities.push(0);
+    group.segmentBends.length = group.units.length;
+    group.segmentBendVelocities.length = group.units.length;
+
+    const previousBends = group.segmentBends.slice();
+    for (let i = 0; i < group.units.length; i++) {
+        const left = previousBends[i - 1];
+        const right = previousBends[i + 1];
+        let neighborSum = 0;
+        let neighborCount = 0;
+        if (left !== undefined) {
+            neighborSum += left;
+            neighborCount++;
+        }
+        if (right !== undefined) {
+            neighborSum += right;
+            neighborCount++;
+        }
+
+        const bend = previousBends[i] ?? 0;
+        const neighborAverage = neighborCount > 0 ? neighborSum / neighborCount : 0;
+        const acceleration =
+            (neighborAverage - bend) * CATERPILLAR_BEND_PROPAGATION -
+            bend * CATERPILLAR_BEND_RECENTERING;
+        const velocity =
+            ((group.segmentBendVelocities[i] ?? 0) + acceleration) * CATERPILLAR_BEND_DAMPING;
+        group.segmentBendVelocities[i] = velocity;
+        group.segmentBends[i] = clamp(bend + velocity, -CATERPILLAR_BEND_LIMIT, CATERPILLAR_BEND_LIMIT);
+    }
+};
 
 export const updateArenaEntryState = (group: EnemyGroup, canvasWidth: number) => {
     const halfOutside = group.radius * HALF_OUTSIDE_RATIO;
@@ -61,6 +107,9 @@ export const applyBoundaryConstraints = (
                 group.vx = Math.abs(group.vx) * Math.max(group.restitution, 0.2);
                 group.dir = 1;
             }
+            if (group.impactVx < 0) {
+                group.impactVx = Math.abs(group.impactVx) * Math.max(group.restitution, 0.2);
+            }
         } else if (world.x > maxX && !skipMaxXClamp) {
             group.x -= world.x - maxX;
             hitX = true;
@@ -69,6 +118,9 @@ export const applyBoundaryConstraints = (
             } else if (group.vx > 0) {
                 group.vx = -Math.abs(group.vx) * Math.max(group.restitution, 0.2);
                 group.dir = -1;
+            }
+            if (group.impactVx > 0) {
+                group.impactVx = -Math.abs(group.impactVx) * Math.max(group.restitution, 0.2);
             }
         }
 
@@ -80,6 +132,9 @@ export const applyBoundaryConstraints = (
             } else if (group.vy < 0) {
                 group.vy = Math.abs(group.vy) * Math.max(group.restitution, 0.2);
             }
+            if (group.impactVy < 0) {
+                group.impactVy = Math.abs(group.impactVy) * Math.max(group.restitution, 0.2);
+            }
         } else if (world.y > maxY) {
             group.y -= world.y - maxY;
             hitY = true;
@@ -87,6 +142,9 @@ export const applyBoundaryConstraints = (
                 group.vy *= 0.96;
             } else if (group.vy > 0) {
                 group.vy = -Math.abs(group.vy) * Math.max(group.restitution, 0.2);
+            }
+            if (group.impactVy > 0) {
+                group.impactVy = -Math.abs(group.impactVy) * Math.max(group.restitution, 0.2);
             }
         }
     }
@@ -150,8 +208,8 @@ export const resolveGroupCollisions = (groups: EnemyGroup[], physicsPreset: Phys
             const nx = normalX / normalLength;
             const ny = normalY / normalLength;
 
-            const rvx = b.vx - a.vx;
-            const rvy = b.vy - a.vy;
+            const rvx = b.vx + b.impactVx - (a.vx + a.impactVx);
+            const rvy = b.vy + b.impactVy - (a.vy + a.impactVy);
             const velAlongNormal = rvx * nx + rvy * ny;
 
             if (velAlongNormal < 0) {
@@ -161,10 +219,10 @@ export const resolveGroupCollisions = (groups: EnemyGroup[], physicsPreset: Phys
                 const impulseX = impulseMag * nx;
                 const impulseY = impulseMag * ny;
 
-                a.vx -= impulseX / a.mass;
-                a.vy -= impulseY / a.mass;
-                b.vx += impulseX / b.mass;
-                b.vy += impulseY / b.mass;
+                a.impactVx -= impulseX / a.mass;
+                a.impactVy -= impulseY / a.mass;
+                b.impactVx += impulseX / b.mass;
+                b.impactVy += impulseY / b.mass;
             }
 
             const tx = -ny;
@@ -174,10 +232,10 @@ export const resolveGroupCollisions = (groups: EnemyGroup[], physicsPreset: Phys
             const frictionX = frictionMag * tx;
             const frictionY = frictionMag * ty;
 
-            a.vx -= frictionX / a.mass;
-            a.vy -= frictionY / a.mass;
-            b.vx += frictionX / b.mass;
-            b.vy += frictionY / b.mass;
+            a.impactVx -= frictionX / a.mass;
+            a.impactVy -= frictionY / a.mass;
+            b.impactVx += frictionX / b.mass;
+            b.impactVy += frictionY / b.mass;
         }
     }
 };
@@ -191,6 +249,8 @@ export const handleUnitDestroyed = (
     if (!group) return;
 
     const originalUnits = group.units.slice();
+    const originalSegmentBends = group.segmentBends.slice();
+    const originalSegmentBendVelocities = group.segmentBendVelocities.slice();
     const worldUnits = getWorldUnitPositions(group);
     const worldByUnitId = new Map<number, Point>();
     for (const world of worldUnits) {
@@ -213,9 +273,12 @@ export const handleUnitDestroyed = (
         const baseVx = group.vx;
         const baseVy = group.vy;
         const basePhase = group.phase;
+        const splitNudge = 0.35 * (group.radius / 30);
 
         group.units = leftUnits.slice();
-        group.vx = baseVx - 0.35;
+        group.segmentBends = originalSegmentBends.slice(0, unitIndex);
+        group.segmentBendVelocities = originalSegmentBendVelocities.slice(0, unitIndex);
+        group.vx = baseVx - splitNudge;
         group.vy = baseVy + (Math.random() - 0.5) * 0.2;
         group.phase = basePhase;
         group.spawnProgress = 1;
@@ -226,11 +289,13 @@ export const handleUnitDestroyed = (
         const rightGroup: EnemyGroup = {
             ...group,
             id: Math.random(),
-            vx: baseVx + 0.35,
+            vx: baseVx + splitNudge,
             vy: baseVy + (Math.random() - 0.5) * 0.2,
             phase: basePhase,
             spawnProgress: 1,
-            units: rightUnits.slice()
+            units: rightUnits.slice(),
+            segmentBends: originalSegmentBends.slice(unitIndex + 1),
+            segmentBendVelocities: originalSegmentBendVelocities.slice(unitIndex + 1)
         };
         reanchorGroupFromWorldMap(rightGroup, worldByUnitId, rightCentroid);
         recalcGroupMass(rightGroup);
@@ -247,6 +312,14 @@ export const handleUnitDestroyed = (
 
     const centroid = getCentroidFromWorldMap(survivors, worldByUnitId, { x: group.x, y: group.y });
     group.units = survivors;
+    group.segmentBends = [
+        ...originalSegmentBends.slice(0, unitIndex),
+        ...originalSegmentBends.slice(unitIndex + 1)
+    ];
+    group.segmentBendVelocities = [
+        ...originalSegmentBendVelocities.slice(0, unitIndex),
+        ...originalSegmentBendVelocities.slice(unitIndex + 1)
+    ];
     group.spawnProgress = 1;
     reanchorGroupFromWorldMap(group, worldByUnitId, centroid);
     recalcGroupMass(group);
@@ -259,7 +332,9 @@ export const applyPerUnitImpactKnockback = (
     hitUnitIndex: number,
     hitNx: number,
     hitNy: number,
-    physicsPreset: PhysicsPreset
+    physicsPreset: PhysicsPreset,
+    knockbackMultiplier = 1,
+    arenaScale = 1
 ) => {
     const hitUnit = worldUnits[hitUnitIndex];
     if (!hitUnit) return;
@@ -273,15 +348,19 @@ export const applyPerUnitImpactKnockback = (
     centerX /= worldUnits.length;
     centerY /= worldUnits.length;
 
-    const impulseMagnitude = physicsPreset.knockbackBase * 1.06;
+    const impulseMagnitude =
+        physicsPreset.knockbackBase * 1.06 * knockbackMultiplier * arenaScale * arenaScale * arenaScale;
     const impulseX = hitNx * impulseMagnitude;
     const impulseY = hitNy * impulseMagnitude;
     const invMass = 1 / Math.max(group.mass, group.unitMass, 0.0001);
     const deltaVx = impulseX * invMass;
     const deltaVy = impulseY * invMass;
 
-    group.vx += deltaVx;
-    group.vy += deltaVy;
+    const impactShare = 1 - IMPACT_DRIVE_SHARE;
+    group.impactVx += deltaVx * impactShare;
+    group.impactVy += deltaVy * impactShare;
+    group.vx += deltaVx * IMPACT_DRIVE_SHARE;
+    group.vy += deltaVy * IMPACT_DRIVE_SHARE;
 
     const unitMass = Math.max(group.unitMass, 0.0001);
     const unitDiskInertia = unitMass * group.radius * group.radius * 0.5;
@@ -297,11 +376,25 @@ export const applyPerUnitImpactKnockback = (
     const ry = hitUnit.y - centerY;
     const torque = rx * impulseY - ry * impulseX;
     const angularImpulse = (torque / inertia) * 1.2;
-    const maxAngular = group.family === "caterpillar" ? 0.095 : 0.11;
-    group.angularVelocity = clamp(group.angularVelocity + angularImpulse, -maxAngular, maxAngular);
-
     const formation = getFormation(group);
-    if (group.family === "caterpillar" && formation === "line") {
+    const isCaterpillarLine = group.family === "caterpillar" && formation === "line";
+    const maxAngular = group.family === "caterpillar" ? 0.095 : 0.11;
+    const globalAngularImpulse = isCaterpillarLine ? angularImpulse * 0.3 : angularImpulse;
+    group.angularVelocity = clamp(group.angularVelocity + globalAngularImpulse, -maxAngular, maxAngular);
+
+    if (isCaterpillarLine) {
+        while (group.segmentBendVelocities.length < group.units.length) {
+            group.segmentBendVelocities.push(0);
+        }
+        const localBendImpulse = angularImpulse * 2.2;
+        group.segmentBendVelocities[hitUnitIndex] += localBendImpulse;
+        if (hitUnitIndex > 0) group.segmentBendVelocities[hitUnitIndex - 1] += localBendImpulse * 0.4;
+        if (hitUnitIndex < group.units.length - 1) {
+            group.segmentBendVelocities[hitUnitIndex + 1] += localBendImpulse * 0.4;
+        }
+    }
+
+    if (isCaterpillarLine) {
         group.heading += group.angularVelocity * 0.8;
     } else if (group.units.length > 1) {
         group.rotation += group.angularVelocity * 0.8;
@@ -311,6 +404,4 @@ export const applyPerUnitImpactKnockback = (
         }
     }
 
-    group.x += deltaVx * 2.4;
-    group.y += deltaVy * 2.4;
 };

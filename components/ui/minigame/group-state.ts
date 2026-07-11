@@ -74,6 +74,7 @@ export const reanchorGroupFromWorldMap = (
                     group.rotation = angle;
                 }
                 group.heading = angle;
+                group.headingHistory = [angle];
                 group.dir = Math.cos(angle) >= 0 ? 1 : -1;
             }
         }

@@ -12,6 +12,15 @@ export const CONNECTED_SPAWN_CHANCE = 0.03;
 export const CATERPILLAR_SPAWN_CHANCE = 0.03;
 export const SPEEDSTER_CHANCE = 0.08;
 export const HALF_OUTSIDE_RATIO = 0.5;
+export const ARENA_REFERENCE_SIZE = 720;
+export const ARENA_SCALE_MIN = 0.8;
+export const ARENA_SCALE_MAX = 1.15;
+export const IMPACT_DAMPING = 0.82;
+export const IMPACT_POSITION_KICK = 5;
+export const IMPACT_DRIVE_SHARE = 0.35;
+export const HIT_STREAK_WINDOW_MS = 250;
+export const HIT_STREAK_MAX = 5;
+export const HIT_STREAK_KNOCKBACK_STEP = 0.02;
 
 export const PHYSICS_PRESETS: Record<"subtle" | "balanced" | "punchy", PhysicsPreset> = {
     subtle: {

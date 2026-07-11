@@ -32,6 +32,8 @@ export interface EnemyGroup {
     y: number;
     vx: number;
     vy: number;
+    impactVx: number;
+    impactVy: number;
     dir: 1 | -1;
     radius: number;
     unitMass: number;
@@ -49,6 +51,9 @@ export interface EnemyGroup {
     angularVelocity: number;
     angularDamping: number;
     heading: number;
+    headingHistory: number[];
+    segmentBends: number[];
+    segmentBendVelocities: number[];
     turnTargetHeading: number | null;
     turnAngularSpeed: number;
     turnCooldown: number;
