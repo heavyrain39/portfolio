@@ -18,6 +18,10 @@ export const dictionary = {
             targetsTerminated: "TARGETS TERMINATED",
             wheelToSwitch: "WHEEL_TO_SWITCH",
             clickToEngage: "CLICK_TO_ENGAGE",
+        },
+        projects: {
+            showAll: "모두 보기",
+            showFeatured: "접기",
         }
     },
     en: {
@@ -39,6 +43,10 @@ export const dictionary = {
             targetsTerminated: "TARGETS TERMINATED",
             wheelToSwitch: "WHEEL_TO_SWITCH",
             clickToEngage: "CLICK_TO_ENGAGE",
+        },
+        projects: {
+            showAll: "View All Projects",
+            showFeatured: "Collapse",
         }
     }
 };
