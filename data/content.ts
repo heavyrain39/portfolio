@@ -37,6 +37,22 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "podshift",
+        title: "PODSHIFT",
+        enTitle: "PODSHIFT",
+        lastUpdated: "2026-07-19",
+        concept: "세 레인을 가르는 3D 호버 러너 레이싱",
+        enConcept: "A three-lane 3D hover runner racing game",
+        description: "탈취한 미래형 기체로 3개의 레인을 오가며 장애물을 피하고, 부스터와 빔 사격으로 사물을 파괴하며 돌파하는 3D 러너 레이싱 게임. 현재 10개 스테이지 데모 공개 중!",
+        enDescription: "A 3D runner racing game where you pilot a commandeered futuristic craft across three lanes, dodge obstacles, and smash through objects with boost and beam fire. A 10-stage demo is now live!",
+        techStack: ["React 19", "TypeScript", "Three.js", "Vite 6", "Blender"],
+        link: "https://heavyrain39.github.io/podshift/",
+        linkText: "플레이하기",
+        enLinkText: "Play",
+        thumbnail: "/portfolio/images/thumbnail_podshift.png",
+        category: "game"
+    },
+    {
         id: "liveonwakaba",
         title: "라이브 온! 와카바",
         enTitle: "Live on! Wakaba",
