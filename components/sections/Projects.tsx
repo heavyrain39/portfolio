@@ -9,7 +9,7 @@ import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
 import { useLanguage } from "@/context/LanguageContext";
 
 const FEATURED_PROJECT_IDS = new Set([
-    "podshift",
+    "aftertrace",
     "haruna",
     "mstrmnd",
     "nimblist",
