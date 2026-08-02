@@ -1,4 +1,10 @@
-import { HALF_OUTSIDE_RATIO, IMPACT_DRIVE_SHARE } from "./constants";
+import {
+    DESTRUCTION_SHOCKWAVE_MAX_OFFSET,
+    DESTRUCTION_SHOCKWAVE_RADIUS,
+    FORMATION_BREAK_MAX_OFFSET,
+    HALF_OUTSIDE_RATIO,
+    IMPACT_DRIVE_SHARE
+} from "./constants";
 import { getFormation, getLocalOffsets, getWorldUnitPositions } from "./formation";
 import {
     cancelFusionBonusIfSingle,
@@ -243,7 +249,8 @@ export const resolveGroupCollisions = (groups: EnemyGroup[], physicsPreset: Phys
 export const handleUnitDestroyed = (
     enemyGroups: EnemyGroup[],
     groupIndex: number,
-    unitIndex: number
+    unitIndex: number,
+    arenaScale = 1
 ) => {
     const group = enemyGroups[groupIndex];
     if (!group) return;
@@ -252,9 +259,66 @@ export const handleUnitDestroyed = (
     const originalSegmentBends = group.segmentBends.slice();
     const originalSegmentBendVelocities = group.segmentBendVelocities.slice();
     const worldUnits = getWorldUnitPositions(group);
+    const destroyedWorld = worldUnits[unitIndex];
+    if (!destroyedWorld) return;
+
+    const shockwaveRadius = DESTRUCTION_SHOCKWAVE_RADIUS * arenaScale;
+    const shockwaveMaxOffset = DESTRUCTION_SHOCKWAVE_MAX_OFFSET * arenaScale;
+    for (let i = 0; i < enemyGroups.length; i++) {
+        if (i === groupIndex) continue;
+
+        const nearbyGroup = enemyGroups[i];
+        const nearbyUnits = getWorldUnitPositions(nearbyGroup);
+        let nearest = nearbyUnits[0];
+        let nearestDistance = Number.POSITIVE_INFINITY;
+        for (const world of nearbyUnits) {
+            const distance = Math.hypot(world.x - destroyedWorld.x, world.y - destroyedWorld.y);
+            if (distance >= nearestDistance) continue;
+            nearest = world;
+            nearestDistance = distance;
+        }
+        if (!nearest || nearestDistance >= shockwaveRadius) continue;
+
+        let dx = nearest.x - destroyedWorld.x;
+        let dy = nearest.y - destroyedWorld.y;
+        let distance = Math.hypot(dx, dy);
+        if (distance < 0.001) {
+            const fallbackAngle = nearbyGroup.id * Math.PI * 2;
+            dx = Math.cos(fallbackAngle);
+            dy = Math.sin(fallbackAngle);
+            distance = 1;
+        }
+
+        const falloff = 1 - nearestDistance / shockwaveRadius;
+        const offset = shockwaveMaxOffset * falloff * falloff;
+        nearbyGroup.x += (dx / distance) * offset;
+        nearbyGroup.y += (dy / distance) * offset;
+    }
+
     const worldByUnitId = new Map<number, Point>();
     for (const world of worldUnits) {
         worldByUnitId.set(world.unit.id, { x: world.x, y: world.y });
+    }
+
+    const formationBreakMaxOffset = FORMATION_BREAK_MAX_OFFSET * arenaScale;
+    for (const world of worldUnits) {
+        if (world.index === unitIndex) continue;
+
+        let dx = world.x - destroyedWorld.x;
+        let dy = world.y - destroyedWorld.y;
+        let distance = Math.hypot(dx, dy);
+        if (distance < 0.001) {
+            const fallbackDirection = world.index < unitIndex ? -1 : 1;
+            dx = fallbackDirection;
+            dy = 0;
+            distance = 1;
+        }
+
+        const falloff = Math.max(0.35, 1 - distance / shockwaveRadius);
+        const anchor = worldByUnitId.get(world.unit.id);
+        if (!anchor) continue;
+        anchor.x += (dx / distance) * formationBreakMaxOffset * falloff;
+        anchor.y += (dy / distance) * formationBreakMaxOffset * falloff;
     }
 
     const leftUnits = originalUnits.slice(0, unitIndex);

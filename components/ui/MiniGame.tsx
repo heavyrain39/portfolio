@@ -670,7 +670,12 @@ export default function MiniGame() {
 
                         scoreRef.current++;
                         setUiScore(scoreRef.current);
-                        handleUnitDestroyed(enemyGroups.current, groupIndex, worldUnit.index);
+                        handleUnitDestroyed(
+                            enemyGroups.current,
+                            groupIndex,
+                            worldUnit.index,
+                            arenaScaleRef.current
+                        );
                     }
                 } // End bullet loop
 
