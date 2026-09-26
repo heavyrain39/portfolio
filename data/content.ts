@@ -37,6 +37,22 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "fruit-fly-girl",
+        title: "Fruit Fly Girl",
+        enTitle: "Fruit Fly Girl",
+        lastUpdated: "2026-09-24",
+        concept: "초파리의 신경망을 이식한 미소녀는 어떻게 움직일까?",
+        enConcept: "How would an anime girl move with a fruit fly brain?",
+        description: "실제 초파리의 중추신경계 연결망을 4족 로봇 쇼키와 미소녀 아바타 유메카에 각각 연결하고, 두 낯선 몸에서 각자의 움직임이 생겨나는 과정을 관찰하는 프로젝트.",
+        enDescription: "A fruit fly neural network is connected to two unfamiliar bodies—SHOKI, a four-legged robot, and YUMEKA, an anime girl avatar—to observe the movements each body develops.",
+        techStack: ["Python", "PyTorch", "Unity", "ML-Agents", "MaleCNS"],
+        link: "https://heavyrain39.github.io/ffrep/",
+        linkText: "프로젝트 보기",
+        enLinkText: "View Project",
+        thumbnail: "/portfolio/images/thumbnail_ffrep.png",
+        category: "other"
+    },
+    {
         id: "aftertrace",
         title: "AFTERTRACE",
         enTitle: "AFTERTRACE",
@@ -270,7 +286,7 @@ export const projects: Project[] = [
         id: "promptviewer",
         title: "프롬프트 뷰어",
         enTitle: "Prompt Viewer",
-        lastUpdated: "2025-06-04",
+        lastUpdated: "2026-08-23",
         concept: "간편하게 확인하는 AI 이미지 프롬프트",
         enConcept: "Easily view AI image prompts",
         description: "인터넷에서 본 AI 이미지의 프롬프트, 모델, 세팅이 궁금했다면? 간편하고 강력한 크롬 익스텐션 '프롬프트 뷰어'로 해결. 우클릭 후 '프롬프트 보기'를 선택하면 WebUI, NAI 이미지 생성 정보가 즉시 나타난다.",

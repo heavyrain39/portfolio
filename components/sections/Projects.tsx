@@ -8,25 +8,29 @@ import { motion } from "framer-motion";
 import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
 import { useLanguage } from "@/context/LanguageContext";
 
-const FEATURED_PROJECT_IDS = new Set([
-    "aftertrace",
+const FEATURED_PROJECT_IDS = [
+    "fruit-fly-girl",
     "haruna",
     "mstrmnd",
+    "aftertrace",
     "nimblist",
     "hanjul",
     "takt",
-]);
+    "promptviewer",
+] as const;
+
+const featuredProjectIdSet = new Set<string>(FEATURED_PROJECT_IDS);
 
 const projectsByLastUpdated = [...projects].sort((a, b) =>
     b.lastUpdated.localeCompare(a.lastUpdated)
 );
 
-const featuredProjects = projectsByLastUpdated.filter((project) =>
-    FEATURED_PROJECT_IDS.has(project.id)
-);
+const featuredProjects = FEATURED_PROJECT_IDS.map((id) =>
+    projects.find((project) => project.id === id)
+).filter((project): project is NonNullable<typeof project> => Boolean(project));
 
 const remainingProjects = projectsByLastUpdated.filter((project) =>
-    !FEATURED_PROJECT_IDS.has(project.id)
+    !featuredProjectIdSet.has(project.id)
 );
 
 export default function Projects() {
