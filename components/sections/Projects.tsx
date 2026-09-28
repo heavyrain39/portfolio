@@ -60,18 +60,29 @@ export default function Projects() {
                 className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16 md:gap-y-20"
             >
                 {visibleProjects.map((project, index) => (
+                    // The outer wrapper is what gets observed. Chromium intersects the
+                    // clip-path'd box, and the fully clipped reveal state is a zero-width
+                    // line at the card's left edge — on narrow screens that line sat
+                    // inside the -50px margin and the cards never appeared.
                     <motion.div
                         key={project.id}
-                        initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0 }}
-                        whileInView={{ clipPath: "inset(0 0% 0 0)", opacity: 1 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ 
-                            clipPath: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }, 
-                            opacity: { duration: 0.2 }, 
-                            delay: (index % 2) * 0.1 
-                        }}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-50px 0px" }}
                     >
-                        <ProjectCard project={project} />
+                        <motion.div
+                            variants={{
+                                hidden: { clipPath: "inset(0 100% 0 0)", opacity: 0 },
+                                visible: { clipPath: "inset(0 0% 0 0)", opacity: 1 }
+                            }}
+                            transition={{
+                                clipPath: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                                opacity: { duration: 0.2 },
+                                delay: (index % 2) * 0.1
+                            }}
+                        >
+                            <ProjectCard project={project} />
+                        </motion.div>
                     </motion.div>
                 ))}
             </div>
