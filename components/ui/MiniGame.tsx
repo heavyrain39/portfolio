@@ -26,6 +26,7 @@ import {
     IMPACT_DAMPING,
     IMPACT_DRIVE_SHARE,
     IMPACT_POSITION_KICK,
+    PHYSICS_STEP_MS,
     QUAD_BURST_SPREAD_SCALE,
     QUAD_HORIZONTAL_JITTER,
     QUAD_LANE_OFFSET_X,
@@ -34,6 +35,7 @@ import {
     SFX_LEVEL_SCALE,
     SIDE_BALANCE_BIAS_STRENGTH,
     SIDE_BALANCE_WINDOW,
+    UNIT_HIT_FLASH_MS,
     WHEEL_GESTURE_IDLE_RESET_MS,
     WHEEL_MODE_SWITCH_THRESHOLD_PX,
     WHEEL_MODE_SWITCH_COOLDOWN_MS
@@ -72,13 +74,15 @@ export default function MiniGame() {
     const hitFlashes = useRef<HitFlash[]>([]);
     const mousePos = useRef<Point>({ x: 0, y: 0 });
     const isMouseDown = useRef(false);
-    const lastShotTime = useRef(0);
+    const lastShotTime = useRef(-Infinity);
+    const simulationTime = useRef(0);
     const burstShotCount = useRef(0);
     const frameCount = useRef(0);
     const lastFrameTime = useRef<number | null>(null);
     const shakeIntensity = useRef(0);
     const cachedIsDark = useRef(false);
     const heatRatioRef = useRef(0);
+    const heatWarningRef = useRef(false);
     const isOverheatedRef = useRef(false);
     const isHoveredRef = useRef(false);
     const fireModeRef = useRef<FireMode>("dual");
@@ -99,11 +103,12 @@ export default function MiniGame() {
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [fireMode, setFireMode] = useState<FireMode>("dual");
-    const [heatRatio, setHeatRatio] = useState(0);
+    const heatRatio = useMotionValue(0);
+    const [isHeatWarning, setIsHeatWarning] = useState(false);
     const [isOverheated, setIsOverheated] = useState(false);
     const [operatorThemeColor, setOperatorThemeColor] = useState("#f5f5f0");
     const [operatorContrastColor, setOperatorContrastColor] = useState("#1a1a1a");
-    const [pointColor, setPointColor] = useState("#06b6d4");
+    const pointColor = useMotionValue("#06b6d4");
     const isMutedRef = useRef(false);
 
     useEffect(() => {
@@ -116,7 +121,6 @@ export default function MiniGame() {
     const smoothMouseY = useSpring(rawMouseY, { stiffness: 500, damping: 30 });
 
     const physicsPreset = DEFAULT_PHYSICS_PRESET;
-    const isHeatWarning = heatRatio >= HEAT_WARNING_RATIO;
     const heatVisualOpacity = isOverheated ? 0.9 : (isHeatWarning ? 0.7 : 0.5);
 
     const getAudioContext = (): AudioContext => ensureAudioContext(audioCtxRef);
@@ -173,6 +177,16 @@ export default function MiniGame() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
+        const updateHeat = (value: number) => {
+            heatRatioRef.current = value;
+            heatRatio.set(value);
+            const warning = value >= HEAT_WARNING_RATIO;
+            if (warning !== heatWarningRef.current) {
+                heatWarningRef.current = warning;
+                setIsHeatWarning(warning);
+            }
+        };
+
         const syncThemeState = () => {
             const isDarkTheme = document.documentElement.getAttribute("data-theme") === "dark";
             cachedIsDark.current = isDarkTheme;
@@ -183,7 +197,7 @@ export default function MiniGame() {
 
             setOperatorThemeColor(background || (isDarkTheme ? "#1a1a1a" : "#f5f5f0"));
             setOperatorContrastColor(foreground || (isDarkTheme ? "#f5f5f0" : "#1a1a1a"));
-            setPointColor(isDarkTheme ? "#06b6d4" : "#d98d9c"); // Softer dusty pink
+            pointColor.set(isDarkTheme ? "#06b6d4" : "#d98d9c"); // Softer dusty pink
         };
 
         syncThemeState();
@@ -280,10 +294,13 @@ export default function MiniGame() {
         };
 
         const handlePointerDown = (e: PointerEvent) => {
+            // Native listeners run before React's delegated handlers. Filter HUD
+            // controls here so pressing mute never starts a firing burst.
+            if (e.target instanceof Element && e.target.closest("button, a, input, select, textarea, [role='button']")) return;
             e.preventDefault();
             isMouseDown.current = true;
             setIsShooting(!isOverheatedRef.current);
-            lastShotTime.current = 0;
+            lastShotTime.current = -Infinity;
             burstShotCount.current = 0;
             getAudioContext();
         };
@@ -360,8 +377,7 @@ export default function MiniGame() {
             if (shouldCoolDown && heatRatioRef.current > 0) {
                 const cooled = Math.max(0, heatRatioRef.current - deltaMs * HEAT_COOL_PER_MS);
                 if (cooled !== heatRatioRef.current) {
-                    heatRatioRef.current = cooled;
-                    setHeatRatio(cooled);
+                    updateHeat(cooled);
                 }
             }
 
@@ -419,8 +435,8 @@ export default function MiniGame() {
 
             const { bulletColor, pointColorValue } = getDynamicColor();
             if (isDark) {
-                // Sync pointColor state for HUD every frame with boosted lightness
-                setPointColor(pointColorValue);
+                // Motion values update the HUD without rerendering the game tree.
+                pointColor.set(pointColorValue);
             }
             if (isOverheatedRef.current && heatRatioRef.current <= HEAT_RECOVER_RATIO) {
                 isOverheatedRef.current = false;
@@ -440,13 +456,14 @@ export default function MiniGame() {
             // The original developer tuned all velocities (e.g. vx = 60), damping, and spawn intervals 
             // strictly on a 30Hz monitor without delta time multipliers. 
             // Therefore, "1.0x" normal speed for this game is exactly 30 physics ticks per second (33.33ms).
-            const FIXED_STEP = 33.3333333;
+            const FIXED_STEP = PHYSICS_STEP_MS;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
 
-            while (physicsAccumulator.current >= FIXED_STEP) {
-                physicsAccumulator.current -= FIXED_STEP;
+            while (physicsAccumulator.current + 0.000001 >= FIXED_STEP) {
+                physicsAccumulator.current = Math.max(0, physicsAccumulator.current - FIXED_STEP);
+                simulationTime.current += FIXED_STEP;
 
                 shakeIntensity.current *= 0.7; // 0.85에서 0.7로 감쇠율을 높여 훨씬 짧게 끊어지도록 함
                 if (shakeIntensity.current < 0.15) shakeIntensity.current = 0;
@@ -463,7 +480,7 @@ export default function MiniGame() {
                     });
                 }
 
-                if (isMouseDown.current && !isOverheatedRef.current && time - lastShotTime.current > FIRE_CADENCE_MS) {
+                if (isMouseDown.current && !isOverheatedRef.current && simulationTime.current - lastShotTime.current >= FIRE_CADENCE_MS - 0.000001) {
                     const startY = canvas.height;
                     const leftX = canvas.width * CANNON_LEFT_RATIO;
                     const rightX = canvas.width * CANNON_RIGHT_RATIO;
@@ -523,12 +540,12 @@ export default function MiniGame() {
 
                     burstShotCount.current++;
                     playSound("shoot");
-                    lastShotTime.current = time;
+                    lastShotTime.current = simulationTime.current;
 
                     const heatMultiplier = fireModeRef.current === "quad" ? QUAD_MODE_HEAT_MULTIPLIER : 1;
-                    const nextHeat = Math.min(1, heatRatioRef.current + HEAT_PER_SHOT * heatMultiplier);
-                    heatRatioRef.current = nextHeat;
-                    setHeatRatio(nextHeat);
+                    const heatAfterShot = heatRatioRef.current + HEAT_PER_SHOT * heatMultiplier;
+                    const nextHeat = heatAfterShot >= 1 - 1e-9 ? 1 : heatAfterShot;
+                    updateHeat(nextHeat);
                     if (nextHeat >= 1 && !isOverheatedRef.current) {
                         isOverheatedRef.current = true;
                         setIsOverheated(true);
@@ -586,6 +603,7 @@ export default function MiniGame() {
                     unit.hp--;
                     if (unit.fusionBonusRemaining > 0) unit.fusionBonusRemaining--;
                     unit.squareSpinDir *= -1;
+                    unit.hitFlashUntil = time + UNIT_HIT_FLASH_MS;
 
                     if (time - lastHitTimeRef.current > HIT_STREAK_WINDOW_MS) {
                         hitStreakRef.current = 0;
@@ -931,6 +949,18 @@ export default function MiniGame() {
                     const coreSize = group.radius * 0.2;
                     ctx.fillStyle = targetCenter;
                     ctx.fillRect(-coreSize, -coreSize, coreSize * 2, coreSize * 2);
+                    const hitGlow = clamp((worldUnit.unit.hitFlashUntil - time) / UNIT_HIT_FLASH_MS, 0, 1);
+                    if (hitGlow > 0) {
+                        // A short translucent wash on the struck unit; the existing
+                        // knockback and destruction effects supply the motion.
+                        ctx.globalAlpha = hitGlow * 0.55;
+                        ctx.fillStyle = isDark ? "#ffffff" : "#d98d9c";
+                        ctx.fillRect(-squareSize, -squareSize, squareSize * 2, squareSize * 2);
+                        ctx.globalAlpha = hitGlow * 0.9;
+                        ctx.strokeStyle = isDark ? "#ffffff" : "#b65f75";
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeRect(-squareSize, -squareSize, squareSize * 2, squareSize * 2);
+                    }
                     ctx.restore();
                 }
             }

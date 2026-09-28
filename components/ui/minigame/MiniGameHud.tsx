@@ -1,9 +1,9 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useSpring, type MotionValue } from "framer-motion";
 import type { FireMode } from "./types";
 
 type MiniGameHudProps = {
-    heatRatio: number;
+    heatRatio: MotionValue<number>;
     isHeatWarning: boolean;
     isOverheated: boolean;
     heatVisualOpacity: number;
@@ -11,7 +11,7 @@ type MiniGameHudProps = {
     isMuted: boolean;
     fireMode: FireMode;
     onToggleMute: () => void;
-    pointColor: string;
+    pointColor: MotionValue<string>;
 };
 
 export default function MiniGameHud({
@@ -25,6 +25,8 @@ export default function MiniGameHud({
     onToggleMute,
     pointColor
 }: MiniGameHudProps) {
+    const heatScale = useSpring(heatRatio, { stiffness: 400, damping: 40 });
+
     return (
         <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between z-10 pointer-events-none">
             <div className="select-none pb-2">
@@ -55,14 +57,12 @@ export default function MiniGameHud({
                         </motion.span>
                         <div className="relative h-[4px] bg-foreground/5 overflow-hidden">
                             <motion.div
-                                className="absolute inset-y-0 left-0 bg-foreground"
-                                style={{ opacity: heatVisualOpacity }}
+                                className="absolute inset-0 bg-foreground"
+                                style={{ scaleX: heatScale, transformOrigin: "0% 50%" }}
                                 animate={{
-                                    width: `${Math.max(0, Math.min(100, heatRatio * 100))}%`,
                                     opacity: isHeatWarning && !isOverheated ? [0.5, 0.9, 0.5] : heatVisualOpacity
                                 }}
                                 transition={{
-                                    width: { duration: 0.1, ease: "linear" },
                                     opacity: {
                                         duration: 0.8,
                                         repeat: isHeatWarning && !isOverheated ? Infinity : 0,
@@ -97,6 +97,7 @@ export default function MiniGameHud({
                 </div>
 
                 <button
+                    type="button"
                     onClick={onToggleMute}
                     className="p-3 opacity-50 hover:opacity-100 transition-opacity pointer-events-auto text-foreground"
                     title={isMuted ? "Unmute Sound" : "Mute Sound"}

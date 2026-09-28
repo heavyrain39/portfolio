@@ -2,6 +2,31 @@ type AudioContextRefLike = {
     current: AudioContext | null;
 };
 
+type NoiseKind = "impact" | "hit";
+const noiseBanks = new WeakMap<AudioContext, Partial<Record<NoiseKind, AudioBuffer[]>>>();
+
+const getNoiseBuffer = (ctx: AudioContext, kind: NoiseKind): AudioBuffer => {
+    let banks = noiseBanks.get(ctx);
+    if (!banks) {
+        banks = {};
+        noiseBanks.set(ctx, banks);
+    }
+    let buffers = banks[kind];
+    if (!buffers) {
+        const duration = kind === "impact" ? 0.03 : 0.02;
+        const length = Math.ceil(ctx.sampleRate * duration);
+        // Reuse a few variants; filters and oscillator pitch still vary per hit.
+        buffers = Array.from({ length: 4 }, () => {
+            const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+            return buffer;
+        });
+        banks[kind] = buffers;
+    }
+    return buffers[Math.floor(Math.random() * buffers.length)];
+};
+
 export const ensureAudioContext = (audioCtxRef: AudioContextRefLike): AudioContext => {
     if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -77,15 +102,8 @@ export const playGameSound = ({
         tapOsc.stop(now + 0.025);
 
         // 2. 백색 소음 버스트 (Noise Burst)
-        const bufferSize = ctx.sampleRate * 0.03;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-
         const noiseSrc = ctx.createBufferSource();
-        noiseSrc.buffer = buffer;
+        noiseSrc.buffer = getNoiseBuffer(ctx, "impact");
         const noiseGain = ctx.createGain();
 
         const noiseFilter = ctx.createBiquadFilter();
@@ -167,15 +185,8 @@ export const playGameSound = ({
         // Layer 2: 노이즈 스냅 (파열 트랜지언트)
         // 극도로 짧은(0.02s) 백색 소음을 bandpass 필터에 통과시켜
         // "뭔가 끊어졌다/부서졌다"는 순간적 파열감을 부여합니다.
-        const snapBufSize = Math.ceil(ctx.sampleRate * 0.02);
-        const snapBuf = ctx.createBuffer(1, snapBufSize, ctx.sampleRate);
-        const snapData = snapBuf.getChannelData(0);
-        for (let i = 0; i < snapBufSize; i++) {
-            snapData[i] = Math.random() * 2 - 1;
-        }
-
         const snapSrc = ctx.createBufferSource();
-        snapSrc.buffer = snapBuf;
+        snapSrc.buffer = getNoiseBuffer(ctx, "hit");
         const snapFilter = ctx.createBiquadFilter();
         snapFilter.type = "bandpass";
         snapFilter.frequency.value = 1500 + Math.random() * 1000; // 1500~2500Hz
@@ -195,6 +206,7 @@ export const playGameSound = ({
 
 export const closeAudioContext = (audioCtxRef: AudioContextRefLike) => {
     if (!audioCtxRef.current) return;
+    noiseBanks.delete(audioCtxRef.current);
     audioCtxRef.current.close();
     audioCtxRef.current = null;
 };

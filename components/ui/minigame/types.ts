@@ -19,6 +19,7 @@ export interface EnemyUnit {
     fusionBonusRemaining: number;
     squareSpinDir: 1 | -1;
     spinPhaseOffset: number;
+    hitFlashUntil: number;
 }
 
 export type EnemyFamily = "normal" | "cluster" | "caterpillar";

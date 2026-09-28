@@ -6,7 +6,7 @@ type MiniGameCrosshairProps = {
     y: MotionValue<number>;
     isOverheated: boolean;
     isShooting: boolean;
-    pointColor: string;
+    pointColor: MotionValue<string>;
 };
 
 export default function MiniGameCrosshair({
@@ -18,13 +18,12 @@ export default function MiniGameCrosshair({
 }: MiniGameCrosshairProps) {
     return (
         <motion.div
-            className="fixed w-8 h-8 pointer-events-none z-50 mix-blend-difference"
+            className="absolute w-8 h-8 pointer-events-none z-50 mix-blend-difference"
             style={{
                 x,
                 y,
-                top: 0,
-                left: 0,
-                position: "absolute"
+                top: -16,
+                left: -16
             }}
         >
             <motion.div

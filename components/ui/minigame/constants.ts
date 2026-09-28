@@ -24,6 +24,8 @@ export const FORMATION_BREAK_MAX_OFFSET = 5;
 export const HIT_STREAK_WINDOW_MS = 250;
 export const HIT_STREAK_MAX = 5;
 export const HIT_STREAK_KNOCKBACK_STEP = 0.02;
+export const UNIT_HIT_FLASH_MS = 110;
+export const PHYSICS_STEP_MS = 1000 / 30;
 
 export const PHYSICS_PRESETS: Record<"subtle" | "balanced" | "punchy", PhysicsPreset> = {
     subtle: {
@@ -65,7 +67,8 @@ export const WHEEL_MODE_SWITCH_THRESHOLD_PX = 90;
 export const WHEEL_GESTURE_IDLE_RESET_MS = 220;
 
 // Fire pattern
-export const FIRE_CADENCE_MS = 40;
+// Preserve the established 15 volleys/second, independent of render frame rate.
+export const FIRE_CADENCE_MS = PHYSICS_STEP_MS * 2;
 export const BULLET_SPEED = 60;
 export const CANNON_LEFT_RATIO = 0.2;
 export const CANNON_RIGHT_RATIO = 0.8;

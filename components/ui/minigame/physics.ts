@@ -103,56 +103,48 @@ export const applyBoundaryConstraints = (
     let hitY = false;
 
     const worldUnits = getWorldUnitPositions(group);
+    if (!worldUnits.length) return { hitX, hitY };
+    let left = Infinity;
+    let right = -Infinity;
+    let top = Infinity;
+    let bottom = -Infinity;
     for (const world of worldUnits) {
-        if (world.x < minX && !skipMinXClamp) {
-            group.x += minX - world.x;
-            hitX = true;
-            if (isCaterpillar) {
-                group.vx *= 0.96;
-            } else if (group.vx < 0) {
-                group.vx = Math.abs(group.vx) * Math.max(group.restitution, 0.2);
-                group.dir = 1;
-            }
-            if (group.impactVx < 0) {
-                group.impactVx = Math.abs(group.impactVx) * Math.max(group.restitution, 0.2);
-            }
-        } else if (world.x > maxX && !skipMaxXClamp) {
-            group.x -= world.x - maxX;
-            hitX = true;
-            if (isCaterpillar) {
-                group.vx *= 0.96;
-            } else if (group.vx > 0) {
-                group.vx = -Math.abs(group.vx) * Math.max(group.restitution, 0.2);
-                group.dir = -1;
-            }
-            if (group.impactVx > 0) {
-                group.impactVx = -Math.abs(group.impactVx) * Math.max(group.restitution, 0.2);
-            }
-        }
+        left = Math.min(left, world.x);
+        right = Math.max(right, world.x);
+        top = Math.min(top, world.y);
+        bottom = Math.max(bottom, world.y);
+    }
 
-        if (world.y < minY) {
-            group.y += minY - world.y;
-            hitY = true;
-            if (isCaterpillar) {
-                group.vy *= 0.96;
-            } else if (group.vy < 0) {
-                group.vy = Math.abs(group.vy) * Math.max(group.restitution, 0.2);
-            }
-            if (group.impactVy < 0) {
-                group.impactVy = Math.abs(group.impactVy) * Math.max(group.restitution, 0.2);
-            }
-        } else if (world.y > maxY) {
-            group.y -= world.y - maxY;
-            hitY = true;
-            if (isCaterpillar) {
-                group.vy *= 0.96;
-            } else if (group.vy > 0) {
-                group.vy = -Math.abs(group.vy) * Math.max(group.restitution, 0.2);
-            }
-            if (group.impactVy > 0) {
-                group.impactVy = -Math.abs(group.impactVy) * Math.max(group.restitution, 0.2);
-            }
+    // Translate the whole formation once. If it cannot fit (e.g. on resize),
+    // center it between the bounds instead of alternating between two walls.
+    const lowerX = skipMinXClamp ? -Infinity : minX - left;
+    const upperX = skipMaxXClamp ? Infinity : maxX - right;
+    const lowerY = minY - top;
+    const upperY = maxY - bottom;
+    const shiftX = lowerX > upperX ? (lowerX + upperX) / 2 : clamp(0, lowerX, upperX);
+    const shiftY = lowerY > upperY ? (lowerY + upperY) / 2 : clamp(0, lowerY, upperY);
+    const bounce = Math.max(group.restitution, 0.2);
+
+    if (shiftX !== 0) {
+        group.x += shiftX;
+        hitX = true;
+        if (isCaterpillar) {
+            group.vx *= 0.96;
+        } else if (group.vx * shiftX < 0) {
+            group.vx = -group.vx * bounce;
+            group.dir = shiftX > 0 ? 1 : -1;
         }
+        if (group.impactVx * shiftX < 0) group.impactVx = -group.impactVx * bounce;
+    }
+    if (shiftY !== 0) {
+        group.y += shiftY;
+        hitY = true;
+        if (isCaterpillar) {
+            group.vy *= 0.96;
+        } else if (group.vy * shiftY < 0) {
+            group.vy = -group.vy * bounce;
+        }
+        if (group.impactVy * shiftY < 0) group.impactVy = -group.impactVy * bounce;
     }
 
     return { hitX, hitY };

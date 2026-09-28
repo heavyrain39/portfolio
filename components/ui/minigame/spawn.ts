@@ -33,7 +33,8 @@ export const createUnit = (isFusedSpawn: boolean): EnemyUnit => {
         hp: baseHp + fusionBonus,
         fusionBonusRemaining: fusionBonus,
         squareSpinDir: 1,
-        spinPhaseOffset: Math.random() * Math.PI * 2
+        spinPhaseOffset: Math.random() * Math.PI * 2,
+        hitFlashUntil: 0
     };
 };
 
