@@ -5,6 +5,7 @@ import { clsx } from "clsx";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import GridBackground from "@/components/layout/GridBackground";
+import { themeInitScript } from "@/components/providers/theme-script";
 
 
 
@@ -64,6 +65,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ko" suppressHydrationWarning>
+            <head>
+                {/* Must stay first in <head>: sets data-theme before the first paint. */}
+                <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+            </head>
             <body suppressHydrationWarning className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
                 <script
                     type="application/ld+json"

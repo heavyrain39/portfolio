@@ -6,6 +6,14 @@ import { heroContent } from "@/data/content";
 import MiniGame from "@/components/ui/MiniGame";
 import { useLanguage } from "@/context/LanguageContext";
 import { dictionary } from "@/data/dictionary";
+import { Moon, Sun, SunMoon } from "lucide-react";
+import { useTheme, type ThemePreference } from "@/components/providers/ThemeProvider";
+
+const THEME_LABELS: Record<ThemePreference, string> = {
+    auto: "AUTO (LOCAL TIME)",
+    light: "LIGHT",
+    dark: "DARK"
+};
 
 const Threads = ({ size = 20 }: { size?: number }) => (
     <svg
@@ -44,6 +52,7 @@ const Ghost = ({ size = 20 }: { size?: number }) => (
 
 export default function Hero() {
     const { language, toggleLanguage, isMounted } = useLanguage();
+    const { preference, cyclePreference, isMounted: isThemeMounted } = useTheme();
     const t = dictionary[language].hero;
 
     return (
@@ -64,22 +73,42 @@ export default function Hero() {
             >
                 <div className="flex justify-between items-center w-full font-mono text-sm mb-5 pointer-events-auto select-none">
                     <span className="opacity-60 tracking-widest">PORTFOLIO.2026 ■■■■</span>
-                    {/* Language Toggle */}
                     {isMounted && (
-                        <div className="flex items-center gap-1 text-sm font-mono tracking-widest select-none" aria-label="Toggle Language">
-                            <button
-                                onClick={() => language !== "en" && toggleLanguage()}
-                                className={`transition-opacity ${language === "en" ? "font-bold opacity-100" : "opacity-30 hover:opacity-100"}`}
-                            >
-                                ENG
-                            </button>
-                            <span className="opacity-20 mx-1">/</span>
-                            <button
-                                onClick={() => language !== "ko" && toggleLanguage()}
-                                className={`transition-opacity ${language === "ko" ? "font-bold opacity-100" : "opacity-30 hover:opacity-100"}`}
-                            >
-                                KOR
-                            </button>
+                        <div className="flex items-center gap-4">
+                            {/* Language Toggle */}
+                            <div className="flex items-center gap-1 text-sm font-mono tracking-widest select-none" aria-label="Toggle Language">
+                                <button
+                                    onClick={() => language !== "en" && toggleLanguage()}
+                                    className={`transition-opacity ${language === "en" ? "font-bold opacity-100" : "opacity-30 hover:opacity-100"}`}
+                                >
+                                    ENG
+                                </button>
+                                <span className="opacity-20 mx-1">/</span>
+                                <button
+                                    onClick={() => language !== "ko" && toggleLanguage()}
+                                    className={`transition-opacity ${language === "ko" ? "font-bold opacity-100" : "opacity-30 hover:opacity-100"}`}
+                                >
+                                    KOR
+                                </button>
+                            </div>
+                            {/* Theme Toggle: AUTO (local time) -> LIGHT -> DARK */}
+                            {isThemeMounted && (
+                                <button
+                                    type="button"
+                                    onClick={cyclePreference}
+                                    className="opacity-40 hover:opacity-100 transition-opacity"
+                                    aria-label={`Theme: ${THEME_LABELS[preference]}. Click to switch.`}
+                                    title={`THEME: ${THEME_LABELS[preference]}`}
+                                >
+                                    {preference === "auto" ? (
+                                        <SunMoon size={15} strokeWidth={1.5} aria-hidden="true" />
+                                    ) : preference === "light" ? (
+                                        <Sun size={15} strokeWidth={1.5} aria-hidden="true" />
+                                    ) : (
+                                        <Moon size={15} strokeWidth={1.5} aria-hidden="true" />
+                                    )}
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>

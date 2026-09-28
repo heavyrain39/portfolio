@@ -1,80 +1,93 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+    DAY_END_HOUR,
+    DAY_START_HOUR,
+    LEGACY_THEME_STORAGE_KEY,
+    THEME_STORAGE_KEY
+} from "./theme-script";
 
 type Theme = "light" | "dark";
+// "auto" follows the visitor's local time; "light"/"dark" are explicit choices.
+export type ThemePreference = "auto" | Theme;
 
 interface ThemeContextType {
     theme: Theme;
-    toggleTheme: () => void;
+    preference: ThemePreference;
+    setPreference: (preference: ThemePreference) => void;
+    cyclePreference: () => void;
+    isMounted: boolean;
 }
+
+// New key: the old "theme" key was written by ?theme= URL overrides and could pin a
+// browser to one theme forever, so it is discarded instead of migrated.
+const STORAGE_KEY = THEME_STORAGE_KEY;
+const LEGACY_STORAGE_KEY = LEGACY_THEME_STORAGE_KEY;
+const CYCLE: ThemePreference[] = ["auto", "light", "dark"];
+const AUTO_CHECK_INTERVAL_MS = 60 * 1000;
+
+const getTimeBasedTheme = (): Theme => {
+    const hour = new Date().getHours();
+    return hour >= DAY_START_HOUR && hour < DAY_END_HOUR ? "light" : "dark";
+};
+
+const isTheme = (value: string | null): value is Theme => value === "light" || value === "dark";
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<Theme>("light");
-    const [mounted, setMounted] = useState(false);
+    const [preference, setPreferenceState] = useState<ThemePreference>("auto");
+    // A ?theme= override applies to the current visit only and is never persisted.
+    const [urlOverride, setUrlOverride] = useState<Theme | null>(null);
+    const [autoTheme, setAutoTheme] = useState<Theme>("light");
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
 
-        // Check URL first for ?theme=light or ?theme=dark overrides
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlTheme = urlParams.get("theme") as Theme | null;
+        const urlTheme = new URLSearchParams(window.location.search).get("theme");
+        if (isTheme(urlTheme)) setUrlOverride(urlTheme);
 
-        if (urlTheme === "light" || urlTheme === "dark") {
-            setTheme(urlTheme);
-            localStorage.setItem("theme", urlTheme);
-            document.documentElement.setAttribute("data-theme", urlTheme);
-            return;
-        }
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (isTheme(saved)) setPreferenceState(saved);
 
-        // Check local storage first
-        const savedTheme = localStorage.getItem("theme") as Theme | null;
-        if (savedTheme) {
-            setTheme(savedTheme);
-            document.documentElement.setAttribute("data-theme", savedTheme);
-            return;
-        }
-
-        // If no saved theme, apply time-based logic
-        const checkTime = () => {
-            const now = new Date();
-            // KR time is UTC+9. However, users are likely local. 
-            // We'll use local time of the user's details.
-            const currentHour = now.getHours();
-
-            // 08:00 (8) to 17:00 (17) -> Light
-            // Else -> Dark
-            const isDayTime = currentHour >= 8 && currentHour < 17;
-            const newTheme = isDayTime ? "light" : "dark";
-            setTheme(newTheme);
-            document.documentElement.setAttribute("data-theme", newTheme);
-        };
-
-        checkTime();
-
-        // Optional: Update explicitly every minute, but usually on load is enough.
-        // Setting an interval might be overkill but good for long sessions.
-        const interval = setInterval(checkTime, 60000 * 60);
-        return () => clearInterval(interval);
-
+        setAutoTheme(getTimeBasedTheme());
+        setIsMounted(true);
     }, []);
 
-    const toggleTheme = () => {
-        const newTheme = theme === "light" ? "dark" : "light";
-        setTheme(newTheme);
-        localStorage.setItem("theme", newTheme);
-        document.documentElement.setAttribute("data-theme", newTheme);
-    };
+    // Re-evaluate the clock while following local time so 08:00 / 17:00 switch on time.
+    useEffect(() => {
+        if (preference !== "auto" || urlOverride) return;
+        const interval = window.setInterval(() => setAutoTheme(getTimeBasedTheme()), AUTO_CHECK_INTERVAL_MS);
+        return () => window.clearInterval(interval);
+    }, [preference, urlOverride]);
 
-    // Prevent hydration mismatch
-    if (!mounted) {
-        return <>{children}</>;
-    }
+    const theme: Theme = urlOverride ?? (preference === "auto" ? autoTheme : preference);
+
+    useEffect(() => {
+        if (!isMounted) return;
+        document.documentElement.setAttribute("data-theme", theme);
+    }, [theme, isMounted]);
+
+    const setPreference = useCallback((next: ThemePreference) => {
+        // An explicit choice replaces any URL override for the rest of the visit.
+        setUrlOverride(null);
+        setPreferenceState(next);
+        if (next === "auto") {
+            localStorage.removeItem(STORAGE_KEY);
+            setAutoTheme(getTimeBasedTheme());
+        } else {
+            localStorage.setItem(STORAGE_KEY, next);
+        }
+    }, []);
+
+    const cyclePreference = useCallback(() => {
+        setPreference(CYCLE[(CYCLE.indexOf(preference) + 1) % CYCLE.length]);
+    }, [preference, setPreference]);
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme, preference, setPreference, cyclePreference, isMounted }}>
             {children}
         </ThemeContext.Provider>
     );
