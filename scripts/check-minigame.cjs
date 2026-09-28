@@ -83,7 +83,7 @@ console.log('PASS: group bounds, bounce, spawn entry, and oversized formations')
 
 // Execute the real component effect with a minimal DOM/React shell and a
 // controlled rAF clock. Rendering and sound output are stubbed, not firing logic.
-function mountGame() {
+function mountGame({ dpr } = {}) {
     const effects = [], stateUpdates = [], sounds = [], motions = [];
     const listeners = new Map(), windowListeners = new Map();
     let nextFrame;
@@ -126,7 +126,7 @@ function mountGame() {
         getComputedStyle: () => ({ getPropertyValue: () => '' }),
         MutationObserver: class { observe() {} disconnect() {} },
         ResizeObserver: class { observe() {} disconnect() {} },
-        window: { addEventListener: (name, fn) => windowListeners.set(name, fn), removeEventListener() {}, clearTimeout() {}, setTimeout: () => 1 },
+        window: { devicePixelRatio: dpr, addEventListener: (name, fn) => windowListeners.set(name, fn), removeEventListener() {}, clearTimeout() {}, setTimeout: () => 1 },
         performance: { now: () => 1000 },
         WheelEvent: { DOM_DELTA_LINE: 1, DOM_DELTA_PAGE: 2 },
         requestAnimationFrame: fn => { nextFrame = fn; return 1; },
@@ -139,7 +139,7 @@ function mountGame() {
     const tick = time => nextFrame(time);
     tick(0);
     return {
-        tick, sounds, stateUpdates, heat: motions[0], color: motions[1],
+        tick, sounds, stateUpdates, heat: motions[0], color: motions[1], canvas, container,
         down: (control = false) => listeners.get('pointerdown')({ target: control ? new Element(true) : canvas, preventDefault() {} }),
         up: () => windowListeners.get('pointerup')(),
         switchMode: () => listeners.get('wheel')({ deltaX: 0, deltaY: 120, deltaMode: 0, preventDefault() {} }),
@@ -182,6 +182,17 @@ quadGame.down();
 for (let i = 1; i <= 205; i++) quadGame.tick(i * 1000 / 30);
 assert.equal(quadGame.sounds.filter(s => s === 'shoot').length, 90, 'QUAD overheats after 90 volleys');
 console.log('PASS: real loop at 20/30/60/120/144 fps, UI updates, HUD input, overheat/recovery');
+
+for (const [dpr, expected] of [[undefined, 1], [1.5, 1.5], [3, 2]]) {
+    const game = mountGame({ dpr });
+    assert.equal(game.canvas.width, Math.round(640 * expected), `backing width at dpr ${dpr}`);
+    assert.equal(game.canvas.height, Math.round(720 * expected), `backing height at dpr ${dpr}`);
+    game.down();
+    for (let i = 1; i <= 60; i++) game.tick(i * 1000 / 60);
+    assert.equal(game.sounds.filter(s => s === 'shoot').length, 15, `cadence unchanged at dpr ${dpr}`);
+    assert.equal(game.container.style.transform, 'none', 'shake must not move the DOM container');
+}
+console.log('PASS: DPR-scaled backing store (capped at 2), DOM container never shaken');
 
 const { playGameSound, closeAudioContext } = load(path.join(gameRoot, 'audio.ts'));
 function fakeAudioContext() {

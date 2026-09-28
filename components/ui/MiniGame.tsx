@@ -36,6 +36,8 @@ import {
     SIDE_BALANCE_BIAS_STRENGTH,
     SIDE_BALANCE_WINDOW,
     UNIT_HIT_FLASH_MS,
+    DEATH_RING_MS,
+    MAX_CANVAS_PIXEL_RATIO,
     WHEEL_GESTURE_IDLE_RESET_MS,
     WHEEL_MODE_SWITCH_THRESHOLD_PX,
     WHEEL_MODE_SWITCH_COOLDOWN_MS
@@ -57,7 +59,7 @@ import {
     getFusionCutoutsForUnit
 } from "./minigame/render";
 import { getSpawnIntervalFrames, spawnEnemyGroup } from "./minigame/spawn";
-import type { Bullet, EnemyGroup, FireMode, FloatingText, HitFlash, Particle, Point } from "./minigame/types";
+import type { Bullet, DeathRing, EnemyGroup, FireMode, FloatingText, HitFlash, Particle, Point } from "./minigame/types";
 import { closeAudioContext, ensureAudioContext, playGameSound } from "./minigame/audio";
 
 export default function MiniGame() {
@@ -72,6 +74,7 @@ export default function MiniGame() {
     const particles = useRef<Particle[]>([]);
     const floatingTexts = useRef<FloatingText[]>([]);
     const hitFlashes = useRef<HitFlash[]>([]);
+    const deathRings = useRef<DeathRing[]>([]);
     const mousePos = useRef<Point>({ x: 0, y: 0 });
     const isMouseDown = useRef(false);
     const lastShotTime = useRef(-Infinity);
@@ -210,13 +213,25 @@ export default function MiniGame() {
             attributeFilter: ["data-theme"]
         });
 
+        // World coordinates stay in CSS pixels; only the backing store is scaled
+        // by devicePixelRatio (capped at 2 to bound fill cost) for crisp lines.
+        let arenaWidth = canvas.width;
+        let arenaHeight = canvas.height;
+        let pixelRatio = 1;
+        const getPixelRatio = () => Math.min(Math.max(window.devicePixelRatio || 1, 1), MAX_CANVAS_PIXEL_RATIO);
+
         const handleResize = () => {
             const nextWidth = container.offsetWidth;
             const nextHeight = container.offsetHeight;
-            if (nextWidth <= 0 || nextHeight <= 0) return;
+            if (nextWidth <= 0 || nextHeight <= 0) {
+                // Hidden (e.g. below md): remember DPR so the per-frame check stays idle;
+                // ResizeObserver resizes the backing store once the box becomes visible.
+                pixelRatio = getPixelRatio();
+                return;
+            }
 
-            const previousWidth = canvas.width;
-            const previousHeight = canvas.height;
+            const previousWidth = arenaWidth;
+            const previousHeight = arenaHeight;
             const previousScale = arenaScaleRef.current;
             const nextScale = clamp(
                 Math.min(nextWidth, nextHeight) / ARENA_REFERENCE_SIZE,
@@ -227,8 +242,11 @@ export default function MiniGame() {
             const positionScaleY = previousHeight > 0 ? nextHeight / previousHeight : 1;
             const worldScaleRatio = previousScale > 0 ? nextScale / previousScale : 1;
 
-            canvas.width = nextWidth;
-            canvas.height = nextHeight;
+            pixelRatio = getPixelRatio();
+            arenaWidth = nextWidth;
+            arenaHeight = nextHeight;
+            canvas.width = Math.round(nextWidth * pixelRatio);
+            canvas.height = Math.round(nextHeight * pixelRatio);
             arenaScaleRef.current = nextScale;
 
             for (const group of enemyGroups.current) {
@@ -265,6 +283,12 @@ export default function MiniGame() {
                 flash.x *= positionScaleX;
                 flash.y *= positionScaleY;
                 flash.radius *= worldScaleRatio;
+            }
+
+            for (const ring of deathRings.current) {
+                ring.x *= positionScaleX;
+                ring.y *= positionScaleY;
+                ring.radius *= worldScaleRatio;
             }
 
             for (const text of floatingTexts.current) {
@@ -458,7 +482,12 @@ export default function MiniGame() {
             // Therefore, "1.0x" normal speed for this game is exactly 30 physics ticks per second (33.33ms).
             const FIXED_STEP = PHYSICS_STEP_MS;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (getPixelRatio() !== pixelRatio) {
+                // Browser zoom or a move to another monitor changes DPR without resizing the box.
+                handleResize();
+            }
+            ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            ctx.clearRect(0, 0, arenaWidth, arenaHeight);
             ctx.save();
 
             while (physicsAccumulator.current + 0.000001 >= FIXED_STEP) {
@@ -473,17 +502,17 @@ export default function MiniGame() {
                 if (frameCount.current % spawnInterval === 0) {
                     spawnEnemyGroup({
                         enemyGroups: enemyGroups.current,
-                        canvasWidth: canvas.width,
-                        canvasHeight: canvas.height,
+                        canvasWidth: arenaWidth,
+                        canvasHeight: arenaHeight,
                         physicsPreset,
                         arenaScale: arenaScaleRef.current
                     });
                 }
 
                 if (isMouseDown.current && !isOverheatedRef.current && simulationTime.current - lastShotTime.current >= FIRE_CADENCE_MS - 0.000001) {
-                    const startY = canvas.height;
-                    const leftX = canvas.width * CANNON_LEFT_RATIO;
-                    const rightX = canvas.width * CANNON_RIGHT_RATIO;
+                    const startY = arenaHeight;
+                    const leftX = arenaWidth * CANNON_LEFT_RATIO;
+                    const rightX = arenaWidth * CANNON_RIGHT_RATIO;
                     const burstSpread = burstShotCount.current === 0 ? 0 : (Math.random() - 0.5) * BURST_SPREAD_RANGE;
 
                     const spawnBullet = (startX: number, spread: number) => {
@@ -586,7 +615,7 @@ export default function MiniGame() {
                     }
 
                     if (!closestHit) {
-                        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                        if (bullet.x < 0 || bullet.x > arenaWidth || bullet.y < 0 || bullet.y > arenaHeight) {
                             bullets.current.splice(i, 1);
                         }
                         continue;
@@ -669,6 +698,13 @@ export default function MiniGame() {
                         });
                         playSound("hit");
                         shakeIntensity.current = 2.5 * arenaScaleRef.current;
+                        deathRings.current.push({
+                            x: worldUnit.x,
+                            y: worldUnit.y,
+                            radius: group.radius,
+                            rotation: -(group.phase * 1.5 + unit.spinPhaseOffset) * unit.squareSpinDir,
+                            startTime: time
+                        });
                         hitFlashes.current.push({
                             x: worldUnit.x,
                             y: worldUnit.y,
@@ -770,8 +806,8 @@ export default function MiniGame() {
                         group.dir = group.vx >= 0 ? 1 : -1;
                     }
 
-                    updateArenaEntryState(group, canvas.width);
-                    const wallHit = applyBoundaryConstraints(group, canvas.width, canvas.height);
+                    updateArenaEntryState(group, arenaWidth);
+                    const wallHit = applyBoundaryConstraints(group, arenaWidth, arenaHeight);
                     if (
                         group.family === "caterpillar" &&
                         (wallHit.hitX || wallHit.hitY) &&
@@ -782,7 +818,7 @@ export default function MiniGame() {
                         const turnAmount = (Math.PI * (0.42 + Math.random() * 0.2)) * turnSide;
                         let nextHeading = group.heading + turnAmount;
 
-                        const toCenter = Math.atan2(canvas.height * 0.5 - group.y, canvas.width * 0.5 - group.x);
+                        const toCenter = Math.atan2(arenaHeight * 0.5 - group.y, arenaWidth * 0.5 - group.x);
                         const centerDelta = getAngleDelta(nextHeading, toCenter);
                         nextHeading += centerDelta * 0.22;
 
@@ -801,8 +837,8 @@ export default function MiniGame() {
 
                 resolveGroupCollisions(enemyGroups.current, physicsPreset);
                 for (const group of enemyGroups.current) {
-                    updateArenaEntryState(group, canvas.width);
-                    applyBoundaryConstraints(group, canvas.width, canvas.height);
+                    updateArenaEntryState(group, arenaWidth);
+                    applyBoundaryConstraints(group, arenaWidth, arenaHeight);
                 }
 
                 for (let i = particles.current.length - 1; i >= 0; i--) {
@@ -843,13 +879,9 @@ export default function MiniGame() {
             const shakeX = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 1.5 : 0;
             const shakeY = shakeIntensity.current > 0 ? (Math.random() - 0.5) * shakeIntensity.current * 1.5 : 0;
 
-            // 컨텍스트(캔버스 내부)가 아니라 게임 전체 DOM을 직접 흔들어 UI 모두에 피격감을 부여합니다.
-            if (containerRef.current) {
-                if (shakeIntensity.current > 0.15) {
-                    containerRef.current.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
-                } else if (containerRef.current.style.transform !== "none") {
-                    containerRef.current.style.transform = "none";
-                }
+            // Shake only the canvas contents so HUD text, crosshair and operator stay readable.
+            if (shakeIntensity.current > 0.15) {
+                ctx.translate(shakeX, shakeY);
             }
 
             ctx.globalCompositeOperation = isDark ? "lighter" : "source-over";
@@ -963,6 +995,36 @@ export default function MiniGame() {
                     }
                     ctx.restore();
                 }
+            }
+
+            // Ghost of a destroyed unit: a solid ring and its square expand and fade out,
+            // so kills read as a burst instead of the target simply vanishing.
+            const ghostColor = isDark ? "255, 255, 255" : "0, 0, 0";
+            for (let i = deathRings.current.length - 1; i >= 0; i--) {
+                const ring = deathRings.current[i];
+                const progress = (time - ring.startTime) / DEATH_RING_MS;
+                if (progress >= 1) {
+                    deathRings.current.splice(i, 1);
+                    continue;
+                }
+                const t = clamp(progress, 0, 1);
+                const eased = 1 - (1 - t) * (1 - t) * (1 - t);
+                const fade = 1 - t;
+
+                ctx.strokeStyle = `rgba(${ghostColor}, ${0.75 * fade})`;
+                ctx.lineWidth = 0.75 + 1.25 * fade;
+                ctx.beginPath();
+                ctx.arc(ring.x, ring.y, ring.radius * (1 + 0.55 * eased), 0, Math.PI * 2);
+                ctx.stroke();
+
+                const squareSize = ring.radius * 0.5 * (1 + 0.4 * eased);
+                ctx.save();
+                ctx.translate(ring.x, ring.y);
+                ctx.rotate(ring.rotation + eased * 0.35);
+                ctx.strokeStyle = `rgba(${ghostColor}, ${0.6 * fade * fade})`;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(-squareSize, -squareSize, squareSize * 2, squareSize * 2);
+                ctx.restore();
             }
 
             ctx.globalCompositeOperation = isDark ? "lighter" : "source-over";

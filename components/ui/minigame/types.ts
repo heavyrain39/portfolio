@@ -105,6 +105,14 @@ export interface FloatingText {
     text: string;
 }
 
+export interface DeathRing {
+    x: number;
+    y: number;
+    radius: number;
+    rotation: number;
+    startTime: number;
+}
+
 export interface HitFlash {
     x: number;
     y: number;
