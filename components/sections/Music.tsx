@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { musicAlbums, electronicMusic } from "@/data/content";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
+import SectionIndex from "@/components/ui/SectionIndex";
 
 export default function Music() {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -22,6 +23,7 @@ export default function Music() {
         <section id="music" className="container mx-auto px-6 py-32 border-t border-border/15">
             <div className="flex justify-between items-end mb-12">
                 <div>
+                    <SectionIndex index={2} label="AUDIO" className="mb-5" />
                     <h2 className="text-4xl font-serif font-bold flex items-center gap-1">
                         Auditory Log
                         <DecorativeSymbol />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import TypewriterText from "@/components/ui/TypewriterText";
 import DecorativeSymbol from "@/components/ui/DecorativeSymbol";
+import SectionIndex from "@/components/ui/SectionIndex";
 import { useLanguage } from "@/context/LanguageContext";
 import { dictionary } from "@/data/dictionary";
 
@@ -20,6 +21,7 @@ export default function About() {
         <section id="about" className="container mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-12 gap-12">
 
             <div className="md:col-span-4">
+                <SectionIndex index={3} label="PROFILE" className="mb-5" />
                 <h2 className="text-4xl font-serif font-bold mb-6 flex items-center gap-1 opacity-100">
                     Entity Profile
                     <DecorativeSymbol />

@@ -68,12 +68,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
                 <p className="text-sm opacity-60 break-keep w-full mt-1 leading-relaxed">
                     {isMounted && language === "en" ? (project.enDescription || project.description) : project.description}
-                    <span className="inline-block ml-2 px-2 py-0.5 rounded-full border border-border/15 text-[10px] font-mono opacity-40 whitespace-nowrap transform -translate-y-[2px]">
-                        {project.lastUpdated}
-                    </span>
                 </p>
 
-                <div className="flex gap-4 mt-2">
+                {/* Links left, last-updated date pinned right so it never wraps onto its own line. */}
+                <div className="flex items-center gap-4 mt-2">
                     {project.link && (
                         <a
                             href={project.link}
@@ -94,6 +92,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                             {isMounted && language === "en" ? (project.enSecondaryLinkText || project.secondaryLinkText || "VIEW PROJECT") : (project.secondaryLinkText || "VIEW PROJECT")} <ExternalLink size={10} />
                         </a>
                     )}
+                    <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full border border-border/15 text-[10px] font-mono opacity-40 whitespace-nowrap">
+                        {project.lastUpdated}
+                    </span>
                 </div>
             </div>
         </div>
