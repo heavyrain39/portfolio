@@ -25,7 +25,7 @@ export const HIT_STREAK_WINDOW_MS = 250;
 export const HIT_STREAK_MAX = 5;
 export const HIT_STREAK_KNOCKBACK_STEP = 0.02;
 export const UNIT_HIT_FLASH_MS = 110;
-export const DEATH_RING_MS = 120;
+export const DEATH_RING_MS = 85;
 export const MAX_CANVAS_PIXEL_RATIO = 2;
 export const PHYSICS_STEP_MS = 1000 / 30;
 

@@ -1010,18 +1010,20 @@ export default function MiniGame() {
                 const t = clamp(progress, 0, 1);
                 const eased = 1 - (1 - t) * (1 - t) * (1 - t);
                 const fade = 1 - t;
+                // Squared fade: a faint pop that is gone before it reads as a full circle.
+                const ringFade = fade * fade;
 
-                ctx.strokeStyle = `rgba(${ghostColor}, ${0.75 * fade})`;
-                ctx.lineWidth = 0.75 + 1.25 * fade;
+                ctx.strokeStyle = `rgba(${ghostColor}, ${0.4 * ringFade})`;
+                ctx.lineWidth = 0.5 + 0.75 * fade;
                 ctx.beginPath();
-                ctx.arc(ring.x, ring.y, ring.radius * (1 + 0.55 * eased), 0, Math.PI * 2);
+                ctx.arc(ring.x, ring.y, ring.radius * (1 + 0.45 * eased), 0, Math.PI * 2);
                 ctx.stroke();
 
-                const squareSize = ring.radius * 0.5 * (1 + 0.4 * eased);
+                const squareSize = ring.radius * 0.5 * (1 + 0.35 * eased);
                 ctx.save();
                 ctx.translate(ring.x, ring.y);
                 ctx.rotate(ring.rotation + eased * 0.35);
-                ctx.strokeStyle = `rgba(${ghostColor}, ${0.6 * fade * fade})`;
+                ctx.strokeStyle = `rgba(${ghostColor}, ${0.35 * ringFade * fade})`;
                 ctx.lineWidth = 1;
                 ctx.strokeRect(-squareSize, -squareSize, squareSize * 2, squareSize * 2);
                 ctx.restore();
