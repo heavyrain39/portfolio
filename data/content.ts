@@ -37,6 +37,22 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "sidearm",
+        title: "사이드암",
+        enTitle: "Sidearm",
+        lastUpdated: "2026-10-03",
+        concept: "내 웹사이트에 작은 반동을 더하는 Framer 미니게임",
+        enConcept: "A Framer mini-game that gives your website a little recoil",
+        description: "이 포트폴리오의 사격 미니게임을 Framer 컴포넌트로 출시했다. 듀얼·쿼드 사격과 파편 효과, 오퍼레이터의 대사로 페이지에 짧은 플레이 경험을 더한다. 테마, 사운드, 커스텀 대사와 HEAT 온오프 조절 가능.",
+        enDescription: "The shooting mini-game from this portfolio is now a Framer component. Dual and quad fire, reactive targets and an operator’s dialogue bring a short arcade break to any page. Customize its theme, sound and dialogue, or turn heat off for continuous fire.",
+        techStack: ["React", "TypeScript", "Canvas", "Framer"],
+        link: "https://sidearm-game.framer.website/",
+        linkText: "플레이 / 구매",
+        enLinkText: "Play / Buy",
+        thumbnail: "/portfolio/images/thumbnail_sidearm_2026-10-03.png",
+        category: "game"
+    },
+    {
         id: "fruit-fly-girl",
         title: "Fruit Fly Girl",
         enTitle: "Fruit Fly Girl",
