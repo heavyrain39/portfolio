@@ -11,6 +11,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Minus, Plus } from "lucide-react";
 
 const FEATURED_PROJECT_IDS = [
+    "kalavinka",
     "sidearm",
     "fruit-fly-girl",
     "haruna",

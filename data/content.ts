@@ -37,6 +37,22 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "kalavinka",
+        title: "가릉빈가",
+        enTitle: "Kalavinka",
+        lastUpdated: "2026-10-04",
+        concept: "끝없이 흐르는 자동 BGM 생성기",
+        enConcept: "Unlimited Auto BGM Generator",
+        description: "작업과 공부에 곁들일 나만의 배경 음악. 브라우저가 그때그때 새 음악을 만들고, 내 취향에 맞춘 소리가 끊임없이 흐른다. 재생을 누르고, 하던 일에 몰입하자.",
+        enDescription: "Your own background music for work and study. The browser keeps making fresh music, shaped to your taste. Press play and settle into what you're doing.",
+        techStack: ["TypeScript", "Vite", "Web Audio API"],
+        link: "https://heavyrain39.github.io/kalavinka/",
+        linkText: "들으러 가기",
+        enLinkText: "Listen",
+        thumbnail: "/portfolio/images/thumbnail_kalavinka.png",
+        category: "web-app"
+    },
+    {
         id: "sidearm",
         title: "사이드암",
         enTitle: "Sidearm",
