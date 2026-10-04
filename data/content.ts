@@ -53,6 +53,22 @@ export const projects: Project[] = [
         category: "web-app"
     },
     {
+        id: "yt-thumbnail",
+        title: "YT Thumbnail",
+        enTitle: "YT Thumbnail",
+        lastUpdated: "2026-10-04",
+        concept: "주소만 붙여 넣으면 끝, 유튜브 섬네일 추출기",
+        enConcept: "YouTube thumbnails, just a link away",
+        description: "마음에 드는 유튜브 섬네일을 간편하게 저장하자. 영상 주소를 붙여 넣고 원하는 크기를 고르면 바로 다운로드할 수 있다.",
+        enDescription: "Save a YouTube thumbnail that catches your eye. Paste the video link, pick a size, and download.",
+        techStack: ["JavaScript", "Cloudflare Workers"],
+        link: "https://yt-thumbnail.editions.workers.dev/",
+        linkText: "사용해 보기",
+        enLinkText: "Try it out",
+        thumbnail: "/portfolio/images/thumbnail_yt_thumbnail.png",
+        category: "web-app"
+    },
+    {
         id: "sidearm",
         title: "사이드암",
         enTitle: "Sidearm",
