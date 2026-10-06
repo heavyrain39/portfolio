@@ -37,6 +37,25 @@ export const heroContent = {
 
 export const projects: Project[] = [
     {
+        id: "arcanacode2",
+        title: "아르카나 코드 v2.0",
+        enTitle: "Arcana Code v2.0",
+        lastUpdated: "2026-10-06",
+        concept: "질문에 맞춰 카드를 읽어 주는 AI 타로 리딩",
+        enConcept: "AI tarot readings shaped around your question",
+        description: "북유럽풍 일러스트 타로 78장과 AI 해석으로 마음에 걸리는 질문을 새로운 시선으로 비춰 보자. 과거·현재·미래와 켈틱 크로스 스프레드로 카드 사이의 연결을 읽고, 지금 할 수 있는 다음 한 걸음까지 짚어 준다. 9개 국어, 리딩 기록 저장, 본인 Gemini API 키 연결 지원. 웹과 크롬 익스텐션으로 이용 가능.",
+        enDescription: "Shine a new light on the question on your mind with 78 Nordic-illustrated tarot cards and AI interpretation. Past · Present · Future and Celtic Cross spreads reveal how the cards connect and point to a concrete next step. Supports 9 languages, saved reading history and your own Gemini API key. Available on the web and as a Chrome extension.",
+        techStack: ["React 19", "TypeScript", "Vite", "Cloudflare Workers", "D1", "Claude API", "Gemini API", "Chrome Extension MV3"],
+        link: "https://arcana-code.editions.workers.dev/",
+        linkText: "사용해 보기",
+        enLinkText: "Try it out",
+        secondaryLink: "https://chromewebstore.google.com/detail/arcana-code-tarot-reading/jcnokkodpgoeklbechglijcmheicpkol",
+        secondaryLinkText: "크롬 익스텐션",
+        enSecondaryLinkText: "Chrome Extension",
+        thumbnail: "/portfolio/images/thumbnail_arcanacode2_2026-10-06.png",
+        category: "vibe-coding"
+    },
+    {
         id: "kalavinka",
         title: "가릉빈가",
         enTitle: "Kalavinka",
@@ -364,13 +383,13 @@ export const projects: Project[] = [
     },
     {
         id: "arcanacode1",
-        title: "아르카나 코드 v1.0",
-        enTitle: "Arcana Code v1.0",
+        title: "아르카나 코드 v1.0 (구버전)",
+        enTitle: "Arcana Code v1.0 (Legacy)",
         lastUpdated: "2025-05-03",
         concept: "AI가 해석해 주는 무료 타로카드 프로그램",
         enConcept: "Free AI-interpreted tarot card program",
-        description: "진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다! 현재 2.0 버전 개발 중.",
-        enDescription: "A software-based tarot solution addressing the limitation of true randomness in LLMs. Solves any question flawlessly. The meaning is automatically interpreted by the latest AI! Version 2.0 currently in development.",
+        description: "진정한 무작위 카드 뽑기가 불가능하다는 LLM의 결점을 보완한 쪽집게 타로카드 소프트웨어. 어떤 질문이든 완벽 해결. 해석은 최신 AI가 알아서 해 준다! 현재는 v2.0으로 대체된 구버전.",
+        enDescription: "A software-based tarot solution addressing the limitation of true randomness in LLMs. Solves any question flawlessly. The meaning is automatically interpreted by the latest AI! This legacy version has been succeeded by v2.0.",
         techStack: ["Node.js", "Express.js", "Gemini API", "Stable Diffusion"],
         link: "https://heavyrain39.github.io/arcana-code/",
         linkText: "소개 페이지",
