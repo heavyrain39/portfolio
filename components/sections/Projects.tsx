@@ -21,7 +21,6 @@ const FEATURED_PROJECT_IDS = [
     "nimblist",
     "hanjul",
     "takt",
-    "promptviewer",
 ] as const;
 
 const featuredProjectIdSet = new Set<string>(FEATURED_PROJECT_IDS);
